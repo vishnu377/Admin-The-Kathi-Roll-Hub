@@ -9,12 +9,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
-  apiKey:"AIzaSyC-Z4GGVJfkUFkPjXihi2YyVZAOlxavAAU",
-  authDomain:"panditji-loyalty.firebaseapp.com",
-  projectId:"panditji-loyalty",
-  storageBucket:"panditji-loyalty.firebasestorage.app",
-  messagingSenderId:"625570900306",
-  appId:"1:625570900306:web:d73c2f445a99436774f28b"
+  apiKey: "AIzaSyCErNYguHO8s4m5aeyGRQvM_PWV_9IzJKs",
+  authDomain: "the-kathi-roll-hub.firebaseapp.com",
+  projectId: "the-kathi-roll-hub",
+  storageBucket: "the-kathi-roll-hub.firebasestorage.app",
+  messagingSenderId: "684649816270",
+  appId: "1:684649816270:web:73dc4606b754702f6a309f",
+  measurementId: "G-NBTTCE099E"
 });
 const db = firebase.firestore();
 const shopDb = {
@@ -518,5 +519,12 @@ function dlCSV(d,f){const csv='\ufeff'+d.map(r=>r.map(v=>`"${String(v).replace(/
 function changePw(){const np=document.getElementById('new-pw').value.trim();if(!np||np.length<6)return toast('❌ 6+ chars');localStorage.setItem('rkh_admin_pw',np);ADMIN_PW=np;toast('✅ Changed!');document.getElementById('new-pw').value='';}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 </script>
+
+
+
+
+
+
+
 </body>
 </html>
