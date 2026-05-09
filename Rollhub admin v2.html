@@ -9,12 +9,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
-  apiKey:"AIzaSyC-Z4GGVJfkUFkPjXihi2YyVZAOlxavAAU",
-  authDomain:"panditji-loyalty.firebaseapp.com",
-  projectId:"panditji-loyalty",
-  storageBucket:"panditji-loyalty.firebasestorage.app",
-  messagingSenderId:"625570900306",
-  appId:"1:625570900306:web:d73c2f445a99436774f28b"
+  apiKey: "AIzaSyCErNYguHO8s4m5aeyGRQvM_PWV_9IzJKs",
+  authDomain: "the-kathi-roll-hub.firebaseapp.com",
+  projectId: "the-kathi-roll-hub",
+  storageBucket: "the-kathi-roll-hub.firebasestorage.app",
+  messagingSenderId: "684649816270",
+  appId: "1:684649816270:web:73dc4606b754702f6a309f",
+  measurementId: "G-NBTTCE099E"
 });
 const db = firebase.firestore();
 const shopDb = {
@@ -23,8 +24,7 @@ const shopDb = {
   referrals: () => db.collection('rollhub_referrals'),
   transactions: () => db.collection('rollhub_transactions'),
   menu: () => db.collection('rollhub_config').doc('menu'),
-  socialTasks: () => db.collection('rollhub_socialTasks'),
-  shopConfig: () => db.collection('rollhub_config').doc('settings')
+  socialTasks: () => db.collection('rollhub_socialTasks')
 };
 </script>
 <style>
@@ -171,7 +171,6 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <button class="tab" onclick="sw('referrals',this)">🔗 Referrals</button>
     <button class="tab" onclick="sw('posts',this)">📱 Posts</button>
     <button class="tab" onclick="sw('export',this)">📥 Export</button>
-    <button class="tab" onclick="sw('settings',this)">⚙️ Settings</button>
   </div>
 
   <div class="tc active" id="tc-dashboard">
@@ -186,8 +185,8 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <div class="scard">
       <h2>🔗 Quick Links</h2>
       <div style="font-size:.8rem;line-height:2.5;color:var(--muted);">
-        🌯 Customer Site: <a id="cust-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
-        🔧 Admin: <a id="admin-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
+        🌯 Customer Site: <a id="cust-link" href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">Loading...</a><br>
+        🔧 Admin: <a id="admin-link" href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">Loading...</a><br>
         📱 QR Print: <a id="qr-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
         📍 Google Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">The Kathi Roll Hub</a>
       </div>
@@ -312,56 +311,6 @@ tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-  <div class="tc" id="tc-settings">
-    <div class="scard">
-      <h2>⚙️ Points Rate — Owner Control</h2>
-      <p class="hint">Aap decide karo — kitne rupaye pe ek point milega customer ko</p>
-      <div class="fg2">
-        <div class="fg">
-          <label>₹ per 1 Point</label>
-          <input class="fi" id="set-rate" type="number" placeholder="10" min="5" max="100">
-          <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;" id="rate-hint">e.g. 10 → ₹100 = 10 pts</div>
-        </div>
-        <div class="fg">
-          <label>Welcome Points (naye member ko)</label>
-          <input class="fi" id="set-welcome" type="number" placeholder="50" min="0" max="500">
-        </div>
-      </div>
-      <div class="fg2">
-        <div class="fg">
-          <label>Referral Bonus Points</label>
-          <input class="fi" id="set-ref-bonus" type="number" placeholder="200" min="0" max="1000">
-        </div>
-        <div class="fg">
-          <label>100 pts = ₹ Discount</label>
-          <input class="fi" id="set-redeem-val" type="number" placeholder="10" min="1" max="50">
-        </div>
-      </div>
-      <div id="settings-preview" style="background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.9rem;font-size:.78rem;color:var(--muted);line-height:1.8;"></div>
-      <button class="btn btn-y btn-full" onclick="saveSettings()">💾 Settings Save Karein</button>
-    </div>
-    <div class="scard">
-      <h2>📊 Points Economy — Safe Discount Rate Check</h2>
-      <div style="font-size:.78rem;color:var(--muted);line-height:1.8;" id="economy-check">
-        <p>Settings save karne ke baad yahan discount rate dikhegi.</p>
-      </div>
-    </div>
-    <div class="scard">
-      <h2>🔐 Password Change</h2>
-      <div class="fg"><input class="fi" id="new-pw2" type="password" placeholder="Naya password (6+ chars)..."></div>
-      <button class="btn btn-ghost" onclick="changePw2()">🔐 Change</button>
-    </div>
-    <div class="scard">
-      <h2>🔗 Live URLs</h2>
-      <div style="font-size:.8rem;line-height:2.5;color:var(--muted);">
-        🌯 Customer: <a href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">the-kathi-roll-hub-users.vercel.app</a><br>
-        📱 QR Print: <a id="qr-link2" href="https://the-kathi-roll-hub-users.vercel.app/qr.html" target="_blank" style="color:var(--yellow);">QR Card</a><br>
-        📍 Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">Google Maps</a>
-      </div>
-    </div>
-  </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -379,9 +328,9 @@ window.onload=()=>{
   document.getElementById('qr-link').href=base+'qr.html';document.getElementById('qr-link').textContent=base+'qr.html';
 };
 
-function sw(n,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById('tc-'+n).classList.add('active');btn.classList.add('active');if(n==='alerts')loadAlerts();if(n==='referrals')loadRefs();if(n==='settings')loadSettings();}
+function sw(n,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById('tc-'+n).classList.add('active');btn.classList.add('active');if(n==='alerts')loadAlerts();if(n==='referrals')loadRefs();}
 
-async function initApp(){await Promise.all([loadDash(),loadC(),loadMenu(),renderPosts(),loadSettings()]);}
+async function initApp(){await Promise.all([loadDash(),loadC(),loadMenu(),renderPosts()]);}
 
 async function loadDash(){
   try{
@@ -443,7 +392,7 @@ function showCR(c){
 }
 function hideCR(){['cr','add-card','red-card','bonus-card'].forEach(id=>document.getElementById(id).style.display='none');}
 
-function calcPts(){const a=parseFloat(document.getElementById('p-amt').value)||0;const rate=shopSettings.rupeePerPoint||10;document.getElementById('p-pts').value=Math.floor(a/rate);const rv=document.getElementById('rv');if(rv&&a>0)rv.textContent='';}
+function calcPts(){const a=parseFloat(document.getElementById('p-amt').value)||0;document.getElementById('p-pts').value=Math.floor(a/10);}
 function showRV(){const p=parseInt(document.getElementById('r-pts').value)||0;document.getElementById('rv').textContent=p>0?`${p} pts = ₹${Math.floor(p/10)} discount`:''; }
 
 async function addPts(){
@@ -544,21 +493,21 @@ async function loadRefs(){
 async function verRef(id){try{await shopDb.referrals().doc(id).update({status:'verified'});toast('✅ Verified!');loadRefs();}catch(e){toast('❌ '+e.message);}}
 
 const POSTS=[
-  {t:"Welcome",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday FREE Roll/Momos\n🔥 5th Visit pe Free Item!\n👥 3 dost refer = ₹200 cash\n\n👉 [Customer Site Link]\n\n#KathiRollHub #Jaipur #MurlipuraFood`},
+  {t:"Welcome",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday FREE Roll/Momos\n🔥 5th Visit pe Free Item!\n👥 3 dost refer = ₹200 cash\n\n👉 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#KathiRollHub #Jaipur #MurlipuraFood`},
   {t:"Birthday",e:"🎂",txt:`🎂 *Birthday wale members!*\n\nBirthday month mein FREE Roll ya Momos + 15% off!\n\nJoin karo:\n👉 [Customer Site Link]\n\n#BirthdaySpecial #KathiRollHub`},
   {t:"5th Visit",e:"🔥",txt:`🔥 *5th Visit pe FREE Item!*\n\nHar 5th visit pe FREE Roll ya Momos!\n\nAbhi join karo:\n👉 [Customer Site Link]\n\n#FreeItem #KathiRollHub`},
   {t:"Refer & Earn",e:"💰",txt:`💰 *₹200 Cash Kamao!*\n\n✅ 1 dost = ₹50\n✅ 2 dost = ₹120\n✅ 3 dost = ₹200 + FREE order\n\n🔗 [Customer Site Link]\n\n#ReferAndEarn #KathiRollHub`},
   {t:"Zomato Award",e:"⭐",txt:`⭐ *Hum Jaipur ke Top 10 Rolls mein hain!*\n\nZomato Restaurant Awards 2025 — Top 10 in Rolls, Jaipur!\n\nYeh award aap logo ki wajah se mila!\n\nAur review dene ke liye:\n👉 [Google Maps Link]\n\n#ZomatoAwards #Top10 #KathiRollHub`},
-  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\nHum 24x7 OPEN hain!\n\nKathi Rolls | Momos | Chinese | Shakes\n\nMember ho? Extra discount milega!\n📱 [Customer Site Link]\n\n#24x7Open #KathiRollHub #Murlipura`},
+  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\nHum 24x7 OPEN hain!\n\nKathi Rolls | Momos | Chinese | Shakes\n\nMember ho? Extra discount milega!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#24x7Open #KathiRollHub #Murlipura`},
   {t:"Google Review",e:"⭐",txt:`⭐ *5★ Review do — FREE 30 pts pao!*\n\nGoogle pe review do:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\nScreenshot le aao — counter pe 30 bonus points milenge!\n\n#GoogleReview #KathiRollHub`},
-  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka sabse tasty!*\n\nDouble Paneer Roll — ₹130\nSingle Paneer Roll — ₹90\n\nMembers ko discount + points!\nJoin karo: [Customer Site Link]\n\n#PaneerRoll #KathiRollHub #Jaipur`},
-  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos\nStarting ₹60 only!\n\nMembers ko har visit pe points!\n📱 [Customer Site Link]\n\n#Momos #KathiRollHub #Murlipura`},
-  {t:"College Students",e:"🎓",txt:`🎓 *College ke baad kuch spicy chahiye?*\n\nThe Kathi Roll Hub — Murlipura\n🌯 Kathi Rolls from ₹50\n🥟 Momos from ₹60\n🧃 Shakes from ₹79\n\nLoyalty club join karo — pehli baar 10% OFF!\n📱 [Customer Site Link]\n\n#CollegeFood #Jaipur`},
-  {t:"Late Night",e:"🌃",txt:`🌃 *Late Night ka best option!*\n\n24x7 open — Murlipura, Jaipur\n\nKathi Rolls | Momos | Shakes\n\nMember bano — FREE birthday treat!\n📱 [Customer Site Link]\n\n#LateNightFood #Jaipur #KathiRollHub`},
+  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka sabse tasty!*\n\nDouble Paneer Roll — ₹130\nSingle Paneer Roll — ₹90\n\nMembers ko discount + points!\nJoin karo: [https://the-kathi-roll-hub-users.vercel.app/]\n\n#PaneerRoll #KathiRollHub #Jaipur`},
+  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos\nStarting ₹60 only!\n\nMembers ko har visit pe points!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#Momos #KathiRollHub #Murlipura`},
+  {t:"College Students",e:"🎓",txt:`🎓 *College ke baad kuch spicy chahiye?*\n\nThe Kathi Roll Hub — Murlipura\n🌯 Kathi Rolls from ₹50\n🥟 Momos from ₹60\n🧃 Shakes from ₹79\n\nLoyalty club join karo — pehli baar 10% OFF!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#CollegeFood #Jaipur`},
+  {t:"Late Night",e:"🌃",txt:`🌃 *Late Night ka best option!*\n\n24x7 open — Murlipura, Jaipur\n\nKathi Rolls | Momos | Shakes\n\nMember bano — FREE birthday treat!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#LateNightFood #Jaipur #KathiRollHub`},
   {t:"Instagram",e:"📸",txt:`📸 *Follow karo — Daily updates pao!*\n\nInstagram: @the_kathi_roll_hub_murlipuraa\n\nFollow karo — 25 bonus points milenge!\n(Admin verify karega)\n\n#KathiRollHub #Jaipur`},
   {t:"WhatsApp",e:"💬",txt:`💬 *WhatsApp pe jodo — Offers pehle pao!*\n\n8619721224 / 7737585713\n\nContact karo — 20 bonus points milenge!\n\n#KathiRollHub #Murlipura`},
-  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond:\n✨ Exclusive VIP offers\n✨ Priority service\n✨ Special day double points\n\nJoin karo: [Customer Site Link]\n\n#VIPMember #KathiRollHub`},
-  {t:"Morning",e:"🌅",txt:`🌅 *Subah ka nashta — Roll Hub se!*\n\n24x7 OPEN — Kabhii bhi aao!\n\nFREE Loyalty Membership:\n📱 [Customer Site Link]\n\n#GoodMorning #KathiRollHub #Jaipur`}
+  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond:\n✨ Exclusive VIP offers\n✨ Priority service\n✨ Special day double points\n\nJoin karo: [https://the-kathi-roll-hub-users.vercel.app/]\n\n#VIPMember #KathiRollHub`},
+  {t:"Morning",e:"🌅",txt:`🌅 *Subah ka nashta — Roll Hub se!*\n\n24x7 OPEN — Kabhii bhi aao!\n\nFREE Loyalty Membership:\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#GoodMorning #KathiRollHub #Jaipur`}
 ];
 
 function renderPosts(){document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`<div class="post-card"><h4>${p.e} Post ${i+1}: ${p.t}</h4><textarea class="post-text" rows="6" readonly>${p.txt}</textarea><div class="post-actions"><button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button><button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button></div></div>`).join('');}
@@ -568,78 +517,14 @@ function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthd
 function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);dlCSV([['Naam','Phone','Referrals','ID'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.id])],'referrals.csv');toast('✅ Done!');}
 function dlCSV(d,f){const csv='\ufeff'+d.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=f;a.click();}
 function changePw(){const np=document.getElementById('new-pw').value.trim();if(!np||np.length<6)return toast('❌ 6+ chars');localStorage.setItem('rkh_admin_pw',np);ADMIN_PW=np;toast('✅ Changed!');document.getElementById('new-pw').value='';}
-
-// ===== SETTINGS =====
-let shopSettings = {rupeePerPoint:10, welcomePoints:50, referralBonus:200, redeemValue:10};
-
-async function loadSettings(){
-  try{
-    const s = await shopDb.shopConfig().get();
-    if(s.exists) shopSettings = {...shopSettings, ...s.data()};
-  }catch(e){}
-  document.getElementById('set-rate').value = shopSettings.rupeePerPoint||10;
-  document.getElementById('set-welcome').value = shopSettings.welcomePoints||50;
-  document.getElementById('set-ref-bonus').value = shopSettings.referralBonus||200;
-  document.getElementById('set-redeem-val').value = shopSettings.redeemValue||10;
-  updateSettingsPreview();
-  updateEconomyCheck();
-}
-
-function updateSettingsPreview(){
-  const rate = parseInt(document.getElementById('set-rate').value)||10;
-  const welcome = parseInt(document.getElementById('set-welcome').value)||50;
-  const refBonus = parseInt(document.getElementById('set-ref-bonus').value)||200;
-  const redeem = parseInt(document.getElementById('set-redeem-val').value)||10;
-  const hint = document.getElementById('rate-hint');
-  if(hint) hint.textContent = `e.g. ₹${rate*10} spend = 10 pts`;
-  const p = document.getElementById('settings-preview');
-  if(p) p.innerHTML = `
-    ⭐ ₹${rate} pe 1 point milega<br>
-    🎁 Naye member ko ${welcome} welcome points<br>
-    👥 Referral karne pe ${refBonus} points bonus<br>
-    🎫 100 points redeem = ₹${redeem} discount<br>
-    📊 Effective discount rate: <strong style="color:var(--yellow)">${((redeem/rate)*10).toFixed(1)}%</strong> per spend
-  `;
-}
-
-async function saveSettings(){
-  const settings = {
-    rupeePerPoint: parseInt(document.getElementById('set-rate').value)||10,
-    welcomePoints: parseInt(document.getElementById('set-welcome').value)||50,
-    referralBonus: parseInt(document.getElementById('set-ref-bonus').value)||200,
-    redeemValue: parseInt(document.getElementById('set-redeem-val').value)||10,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  try{
-    await shopDb.shopConfig().set(settings, {merge:true});
-    shopSettings = settings;
-    updateEconomyCheck();
-    toast('✅ Settings saved! Customer site pe asar hoga.');
-  }catch(e){toast('❌ '+e.message);}
-}
-
-function updateEconomyCheck(){
-  const rate = shopSettings.rupeePerPoint||10;
-  const redeem = shopSettings.redeemValue||10;
-  const effectiveDisc = ((redeem/rate)*10).toFixed(1);
-  const el = document.getElementById('economy-check');
-  if(!el) return;
-  let color = '#66bb6a', msg = '✅ Safe zone';
-  if(effectiveDisc > 5){ color = '#EF9F27'; msg = '⚠️ Thoda zyada — monitor karein'; }
-  if(effectiveDisc > 8){ color = '#ef5350'; msg = '❌ Bahut zyada! Loss ho sakta hai'; }
-  el.innerHTML = `
-    <div style="color:${color};font-size:.9rem;font-weight:600;margin-bottom:.5rem;">${msg}</div>
-    ₹${rate} kharch karne pe 1 point<br>
-    100 points = ₹${redeem} discount<br>
-    Matlab: ₹${rate*100} spend karne ke baad = ₹${redeem} milega<br>
-    <strong style="color:${color}">Effective discount: ${effectiveDisc}% of spend</strong><br><br>
-    <span style="font-size:.72rem;">Industry standard: 1-2% safe hai. 5%+ se profit affect hota hai.</span>
-  `;
-}
-
-function changePw2(){const np=document.getElementById('new-pw2').value.trim();if(!np||np.length<6)return toast('❌ 6+ chars');localStorage.setItem('rkh_admin_pw',np);ADMIN_PW=np;toast('✅ Password changed!');document.getElementById('new-pw2').value='';}
-
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 </script>
+
+
+
+
+
+
+
 </body>
 </html>
