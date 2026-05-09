@@ -1,3 +1,13 @@
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -206,6 +216,9 @@ tr:hover td{background:rgba(255,255,255,.02);}
       </div>
     </div>
     <div class="scard" id="add-card" style="display:none;">
+      <div id="unverified-warning" style="display:none;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.25);border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.75rem;color:#ef5350;line-height:1.5;">
+        ⚠️ <strong>Phone unverified!</strong> Points add karne se pehle customer ka phone number manually confirm karo. "Verify Karo" button click karo.
+      </div>
       <h2>⭐ Points Add (₹10 = 1 pt)</h2>
       <div class="fg2">
         <div class="fg"><label>Amount (₹)</label><input class="fi" id="p-amt" type="number" placeholder="150" oninput="calcPts()"></div>
@@ -270,6 +283,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <select class="fi2" id="f-t" onchange="filterC()"><option value="">All Tiers</option><option>Silver</option><option>Gold</option><option>VIP Diamond</option></select>
         <select class="fi2" id="f-so" onchange="filterC()"><option value="recent">Latest</option><option value="pts">Points ↓</option><option value="visits">Visits ↓</option></select>
         <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="loadC()">🔄</button>
+        <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="filterUnverified()">❌ Unverified</button>
       </div>
       <div class="tw">
         <table>
@@ -402,6 +416,13 @@ async function loadC(){
   catch(e){document.getElementById('cust-tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#ef5350;padding:1rem;">Error: ${e.message}</td></tr>`;}
 }
 
+function filterUnverified(){
+  filtC=allC.filter(c=>!c.phoneVerified);
+  curPage=1;renderT();
+  document.getElementById('f-s').value='';
+  toast(`${filtC.length} unverified customers`);
+}
+
 function filterC(){
   const q=document.getElementById('f-s').value.toLowerCase();const t=document.getElementById('f-t').value;const so=document.getElementById('f-so').value;
   filtC=allC.filter(c=>{const mq=!q||c.name?.toLowerCase().includes(q)||c.phone?.includes(q)||c.id?.toLowerCase().includes(q);const mt=!t||c.tier===t;return mq&&mt;});
@@ -413,7 +434,7 @@ function renderT(){
   const s=(curPage-1)*PAGE;const p=filtC.slice(s,s+PAGE);const tb=document.getElementById('cust-tbody');
   document.getElementById('cc').textContent=`${filtC.length} customers`;
   if(!p.length){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Koi result nahi</td></tr>`;document.getElementById('pag').innerHTML='';return;}
-  tb.innerHTML=p.map(c=>{const ti=gT(c.points||0);const v=c.visits||0;return`<tr><td style="font-weight:500;">${c.name}<div style="font-size:.68rem;color:var(--muted);">${c.id}</div></td><td style="color:var(--muted);">${c.phone}</td><td style="font-weight:600;color:var(--yellow);">${(c.points||0).toLocaleString()}</td><td><span class="tp ${ti.c}">${ti.l}</span></td><td>${v} <span style="font-size:.65rem;color:var(--muted);">(${5-(v%5)||5} to free)</span></td><td style="font-size:.72rem;color:var(--muted);">${(c.dishes||[]).slice(0,2).join(', ')||'—'}</td><td style="font-size:.72rem;color:var(--muted);">${c.joinDateStr||'—'}</td><td><button class="ab" onclick="qP('${c.id}')">+ Pts</button></td></tr>`;}).join('');
+  tb.innerHTML=p.map(c=>{const ti=gT(c.points||0);const v=c.visits||0;const vBadge=c.phoneVerified?'<span style="color:#66bb6a;font-size:.6rem;">✅</span>':'<span style="color:#ef5350;font-size:.6rem;">❌</span>';return`<tr><td style="font-weight:500;">${c.name}<div style="font-size:.68rem;color:var(--muted);">${c.id}</div></td><td style="color:var(--muted);">${c.phone} ${vBadge}</td><td style="font-weight:600;color:var(--yellow);">${(c.points||0).toLocaleString()}</td><td><span class="tp ${ti.c}">${ti.l}</span></td><td>${v} <span style="font-size:.65rem;color:var(--muted);">(${5-(v%5)||5} to free)</span></td><td style="font-size:.72rem;color:var(--muted);">${(c.dishes||[]).slice(0,2).join(', ')||'—'}</td><td style="font-size:.72rem;color:var(--muted);">${c.joinDateStr||'—'}</td><td><button class="ab" onclick="qP('${c.id}')">+ Pts</button></td></tr>`;}).join('');
   const total=Math.ceil(filtC.length/PAGE);document.getElementById('pag').innerHTML=total>1?Array.from({length:total},(_,i)=>`<button class="pb ${i+1===curPage?'on':''}" onclick="gP(${i+1})">${i+1}</button>`).join(''):'';
 }
 
@@ -434,12 +455,30 @@ function searchCust(){
 function showCR(c){
   selC=c;const ti=gT(c.points||0);const v=c.visits||0;const nf=5-(v%5)||5;
   document.getElementById('cr-name').textContent=c.name;
-  document.getElementById('cr-meta').innerHTML=`📱 ${c.phone} | ID: ${c.id}<br>Visits: ${v} | City: ${c.city||'—'}`;
-  document.getElementById('cr-tier').innerHTML=`<span class="tp ${ti.c}">${ti.l}</span>`;
+  const verifiedBadge=c.phoneVerified
+    ?'<span style="color:#66bb6a;font-size:.7rem;font-weight:600;">✅ Phone Verified</span>'
+    :'<span style="color:#ef5350;font-size:.7rem;font-weight:600;">❌ Phone Unverified</span>';
+  document.getElementById('cr-meta').innerHTML=`📱 ${c.phone} | ID: ${c.id} ${verifiedBadge}<br>Visits: ${v} | City: ${c.city||'—'} | Join: ${c.joinDateStr||'—'}`;
+  document.getElementById('cr-tier').innerHTML=`<span class="tp ${ti.c}">${ti.l}</span>${!c.phoneVerified?` <button onclick="verifyPhone()" style="background:rgba(239,83,80,.15);border:1px solid rgba(239,83,80,.3);color:#ef5350;padding:.15rem .5rem;border-radius:6px;font-size:.68rem;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:.4rem;">📱 Verify Karo</button>`:''}`;
   document.getElementById('cr-pts').textContent=(c.points||0).toLocaleString();
   document.getElementById('cr-streak').textContent=v>=5&&v%5===0?'🎁 FREE item dena hai!':'🔥 '+v+'/'+(Math.floor(v/5)+1)*5+' — '+nf+' to free';
   document.getElementById('cr-dishes').innerHTML=(c.dishes||[]).map(d=>`<span class="cr-dish">${d}</span>`).join('');
   ['cr','add-card','red-card','bonus-card'].forEach(id=>document.getElementById(id).style.display='block');
+  const uw=document.getElementById('unverified-warning');
+  if(uw)uw.style.display=c.phoneVerified?'none':'block';
+}
+
+async function verifyPhone(){
+  if(!selC)return;
+  if(confirm(`${selC.name} ka phone ${selC.phone} verify karein? Customer physically present hai?`)){
+    try{
+      await shopDb.customer(selC.id).update({phoneVerified:true});
+      selC.phoneVerified=true;
+      showCR(selC);
+      toast('✅ Phone verified!');
+      loadC();
+    }catch(e){toast('❌ '+e.message);}
+  }
 }
 function hideCR(){['cr','add-card','red-card','bonus-card'].forEach(id=>document.getElementById(id).style.display='none');}
 
@@ -516,6 +555,8 @@ async function loadAlerts(){
     bdayT.forEach(c=>items.push({i:'🎂',t:`${c.name} (${c.phone}) — aaj birthday!`,a:'Wish Bhejo',f:()=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent('🎂 Happy Birthday '+c.name+' ji! FREE Roll ya Momos aapka wait kar raha hai! 🌯🎁')}`)}));
     freeR.forEach(c=>items.push({i:'🎁',t:`${c.name} — ${c.visits} visits! FREE item dena hai.`,a:'Diya?',f:()=>toast('Counter pe free item do aur Points tab mein bonus add karo!')}));
     nearVip.forEach(c=>items.push({i:'🎯',t:`${c.name} — sirf ${700-c.points} aur pts to VIP!`,a:'Motivate Karo',f:()=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent('⭐ '+c.name+' ji, sirf '+(700-c.points)+' aur points to VIP! Aaj aao — double points! 🌯')}`)}));
+    const unverified=custs.filter(c=>!c.phoneVerified);
+    if(unverified.length)items.push({i:'📱',t:`${unverified.length} customers ka phone verify nahi — Points tab mein jaao aur verify karo`,a:'Customers Dekho',f:()=>sw('customers',document.querySelectorAll('.tab')[3])});
     if(!items.length)items.push({i:'✅',t:'Koi urgent alert nahi! Sab smooth chal raha hai.',a:null});
     document.getElementById('alerts-list').innerHTML=items.map((a,i)=>`<div class="ar"><span class="ai">${a.i}</span><span class="at">${a.t}</span>${a.a?`<button class="ab" onclick="window._af[${i}]()">${a.a}</button>`:''}</div>`).join('');
     window._af=items.map(a=>a.f||(()=>{}));
@@ -563,7 +604,7 @@ const POSTS=[
 
 function renderPosts(){document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`<div class="post-card"><h4>${p.e} Post ${i+1}: ${p.t}</h4><textarea class="post-text" rows="6" readonly>${p.txt}</textarea><div class="post-actions"><button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button><button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button></div></div>`).join('');}
 
-function expAll(){if(!allC.length)return toast('❌ Load karein');const h=['ID','Naam','Phone','Birthday','City','Points','Tier','Visits','Fav Items','Join Date'];const r=allC.map(c=>[c.id,c.name,c.phone,c.birthday||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);dlCSV([h,...r],'rollhub_customers.csv');toast(`✅ ${allC.length} exported!`);}
+function expAll(){if(!allC.length)return toast('❌ Load karein');const h=['ID','Naam','Phone','Phone Verified','Birthday','City','Points','Tier','Visits','Fav Items','Join Date'];const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);dlCSV([h,...r],'rollhub_customers.csv');toast(`✅ ${allC.length} exported!`);}
 function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi nahi');dlCSV([['Naam','Phone','Birthday','Points'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0])],'birthday.csv');toast(`✅ ${b.length} members!`);}
 function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);dlCSV([['Naam','Phone','Referrals','ID'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.id])],'referrals.csv');toast('✅ Done!');}
 function dlCSV(d,f){const csv='\ufeff'+d.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=f;a.click();}
