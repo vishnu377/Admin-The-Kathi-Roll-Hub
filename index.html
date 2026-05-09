@@ -2,12 +2,6 @@
 
 
 
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -395,11 +389,26 @@ window.onload=()=>{
 
 function sw(n,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById('tc-'+n).classList.add('active');btn.classList.add('active');if(n==='alerts')loadAlerts();if(n==='referrals')loadRefs();if(n==='settings')loadSettings();}
 
-async function initApp(){await Promise.all([loadDash(),loadC(),loadMenu(),renderPosts(),loadSettings()]);}
+async function initApp(){
+  // Load independently so one failure doesn't block others
+  loadDash();
+  loadC();
+  loadMenu();
+  renderPosts();
+  loadSettings().catch(()=>{});
+}
 
 async function loadDash(){
   try{
-    const snap=await shopDb.customers().get();const custs=snap.docs.map(d=>d.data());const today=new Date();
+    let snap;
+    try{snap=await shopDb.customers().get();}
+    catch(e){
+      document.getElementById('st-total').textContent='!';
+      document.getElementById('top-members').innerHTML='<div style="color:#ef5350;font-size:.82rem;">❌ Firebase Rules fix karo — console.firebase.google.com</div>';
+      toast('❌ Permission error — Firebase Rules check karo');
+      return;
+    }
+    const custs=snap.docs.map(d=>d.data());const today=new Date();
     document.getElementById('st-total').textContent=custs.length;
     document.getElementById('st-today').textContent=custs.filter(c=>{if(!c.joinDate||!c.joinDate.toDate)return false;return c.joinDate.toDate().toDateString()===today.toDateString();}).length;
     document.getElementById('st-pts').textContent=custs.reduce((s,c)=>s+(c.points||0),0).toLocaleString('en-IN');
@@ -412,8 +421,17 @@ async function loadDash(){
 }
 
 async function loadC(){
-  try{const s=await shopDb.customers().get();allC=s.docs.map(d=>({id:d.id,...d.data()}));allC.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch(e){return 0;}});filtC=[...allC];renderT();}
-  catch(e){document.getElementById('cust-tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#ef5350;padding:1rem;">Error: ${e.message}</td></tr>`;}
+  try{
+    const s=await shopDb.customers().get();
+    allC=s.docs.map(d=>({id:d.id,...d.data()}));
+    allC.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch(e){return 0;}});
+    filtC=[...allC];renderT();
+  }catch(e){
+    const msg=e.code==='permission-denied'
+      ?'❌ Firebase Rules fix karo: console.firebase.google.com → Firestore → Rules → allow read, write: if true'
+      :'Error: '+e.message;
+    document.getElementById('cust-tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#ef5350;padding:1rem;font-size:.78rem;">${msg}</td></tr>`;
+  }
 }
 
 function filterUnverified(){
@@ -617,11 +635,20 @@ async function loadSettings(){
   try{
     const s = await shopDb.shopConfig().get();
     if(s.exists) shopSettings = {...shopSettings, ...s.data()};
-  }catch(e){}
-  document.getElementById('set-rate').value = shopSettings.rupeePerPoint||10;
-  document.getElementById('set-welcome').value = shopSettings.welcomePoints||50;
-  document.getElementById('set-ref-bonus').value = shopSettings.referralBonus||200;
-  document.getElementById('set-redeem-val').value = shopSettings.redeemValue||10;
+    // If doc doesn't exist, create it with defaults
+    else await shopDb.shopConfig().set(shopSettings).catch(()=>{});
+  }catch(e){
+    // Permission error — silently use defaults, don't crash
+    console.log('Settings load skipped:', e.code);
+  }
+  const rateEl=document.getElementById('set-rate');
+  const welcomeEl=document.getElementById('set-welcome');
+  const refEl=document.getElementById('set-ref-bonus');
+  const redeemEl=document.getElementById('set-redeem-val');
+  if(rateEl)rateEl.value=shopSettings.rupeePerPoint||10;
+  if(welcomeEl)welcomeEl.value=shopSettings.welcomePoints||50;
+  if(refEl)refEl.value=shopSettings.referralBonus||200;
+  if(redeemEl)redeemEl.value=shopSettings.redeemValue||10;
   updateSettingsPreview();
   updateEconomyCheck();
 }
@@ -684,3 +711,7 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 </script>
 </body>
 </html>
+
+
+
+
