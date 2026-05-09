@@ -185,8 +185,8 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <div class="scard">
       <h2>🔗 Quick Links</h2>
       <div style="font-size:.8rem;line-height:2.5;color:var(--muted);">
-        🌯 Customer Site: <a id="cust-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
-        🔧 Admin: <a id="admin-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
+        🌯 Customer Site: <a id="cust-link" href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">Loading...</a><br>
+        🔧 Admin: <a id="admin-link" href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">Loading...</a><br>
         📱 QR Print: <a id="qr-link" href="#" target="_blank" style="color:var(--yellow);">Loading...</a><br>
         📍 Google Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">The Kathi Roll Hub</a>
       </div>
@@ -493,21 +493,21 @@ async function loadRefs(){
 async function verRef(id){try{await shopDb.referrals().doc(id).update({status:'verified'});toast('✅ Verified!');loadRefs();}catch(e){toast('❌ '+e.message);}}
 
 const POSTS=[
-  {t:"Welcome",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday FREE Roll/Momos\n🔥 5th Visit pe Free Item!\n👥 3 dost refer = ₹200 cash\n\n👉 [Customer Site Link]\n\n#KathiRollHub #Jaipur #MurlipuraFood`},
+  {t:"Welcome",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday FREE Roll/Momos\n🔥 5th Visit pe Free Item!\n👥 3 dost refer = ₹200 cash\n\n👉 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#KathiRollHub #Jaipur #MurlipuraFood`},
   {t:"Birthday",e:"🎂",txt:`🎂 *Birthday wale members!*\n\nBirthday month mein FREE Roll ya Momos + 15% off!\n\nJoin karo:\n👉 [Customer Site Link]\n\n#BirthdaySpecial #KathiRollHub`},
   {t:"5th Visit",e:"🔥",txt:`🔥 *5th Visit pe FREE Item!*\n\nHar 5th visit pe FREE Roll ya Momos!\n\nAbhi join karo:\n👉 [Customer Site Link]\n\n#FreeItem #KathiRollHub`},
   {t:"Refer & Earn",e:"💰",txt:`💰 *₹200 Cash Kamao!*\n\n✅ 1 dost = ₹50\n✅ 2 dost = ₹120\n✅ 3 dost = ₹200 + FREE order\n\n🔗 [Customer Site Link]\n\n#ReferAndEarn #KathiRollHub`},
   {t:"Zomato Award",e:"⭐",txt:`⭐ *Hum Jaipur ke Top 10 Rolls mein hain!*\n\nZomato Restaurant Awards 2025 — Top 10 in Rolls, Jaipur!\n\nYeh award aap logo ki wajah se mila!\n\nAur review dene ke liye:\n👉 [Google Maps Link]\n\n#ZomatoAwards #Top10 #KathiRollHub`},
-  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\nHum 24x7 OPEN hain!\n\nKathi Rolls | Momos | Chinese | Shakes\n\nMember ho? Extra discount milega!\n📱 [Customer Site Link]\n\n#24x7Open #KathiRollHub #Murlipura`},
+  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\nHum 24x7 OPEN hain!\n\nKathi Rolls | Momos | Chinese | Shakes\n\nMember ho? Extra discount milega!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#24x7Open #KathiRollHub #Murlipura`},
   {t:"Google Review",e:"⭐",txt:`⭐ *5★ Review do — FREE 30 pts pao!*\n\nGoogle pe review do:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\nScreenshot le aao — counter pe 30 bonus points milenge!\n\n#GoogleReview #KathiRollHub`},
-  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka sabse tasty!*\n\nDouble Paneer Roll — ₹130\nSingle Paneer Roll — ₹90\n\nMembers ko discount + points!\nJoin karo: [Customer Site Link]\n\n#PaneerRoll #KathiRollHub #Jaipur`},
-  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos\nStarting ₹60 only!\n\nMembers ko har visit pe points!\n📱 [Customer Site Link]\n\n#Momos #KathiRollHub #Murlipura`},
-  {t:"College Students",e:"🎓",txt:`🎓 *College ke baad kuch spicy chahiye?*\n\nThe Kathi Roll Hub — Murlipura\n🌯 Kathi Rolls from ₹50\n🥟 Momos from ₹60\n🧃 Shakes from ₹79\n\nLoyalty club join karo — pehli baar 10% OFF!\n📱 [Customer Site Link]\n\n#CollegeFood #Jaipur`},
-  {t:"Late Night",e:"🌃",txt:`🌃 *Late Night ka best option!*\n\n24x7 open — Murlipura, Jaipur\n\nKathi Rolls | Momos | Shakes\n\nMember bano — FREE birthday treat!\n📱 [Customer Site Link]\n\n#LateNightFood #Jaipur #KathiRollHub`},
+  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka sabse tasty!*\n\nDouble Paneer Roll — ₹130\nSingle Paneer Roll — ₹90\n\nMembers ko discount + points!\nJoin karo: [https://the-kathi-roll-hub-users.vercel.app/]\n\n#PaneerRoll #KathiRollHub #Jaipur`},
+  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos\nStarting ₹60 only!\n\nMembers ko har visit pe points!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#Momos #KathiRollHub #Murlipura`},
+  {t:"College Students",e:"🎓",txt:`🎓 *College ke baad kuch spicy chahiye?*\n\nThe Kathi Roll Hub — Murlipura\n🌯 Kathi Rolls from ₹50\n🥟 Momos from ₹60\n🧃 Shakes from ₹79\n\nLoyalty club join karo — pehli baar 10% OFF!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#CollegeFood #Jaipur`},
+  {t:"Late Night",e:"🌃",txt:`🌃 *Late Night ka best option!*\n\n24x7 open — Murlipura, Jaipur\n\nKathi Rolls | Momos | Shakes\n\nMember bano — FREE birthday treat!\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#LateNightFood #Jaipur #KathiRollHub`},
   {t:"Instagram",e:"📸",txt:`📸 *Follow karo — Daily updates pao!*\n\nInstagram: @the_kathi_roll_hub_murlipuraa\n\nFollow karo — 25 bonus points milenge!\n(Admin verify karega)\n\n#KathiRollHub #Jaipur`},
   {t:"WhatsApp",e:"💬",txt:`💬 *WhatsApp pe jodo — Offers pehle pao!*\n\n8619721224 / 7737585713\n\nContact karo — 20 bonus points milenge!\n\n#KathiRollHub #Murlipura`},
-  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond:\n✨ Exclusive VIP offers\n✨ Priority service\n✨ Special day double points\n\nJoin karo: [Customer Site Link]\n\n#VIPMember #KathiRollHub`},
-  {t:"Morning",e:"🌅",txt:`🌅 *Subah ka nashta — Roll Hub se!*\n\n24x7 OPEN — Kabhii bhi aao!\n\nFREE Loyalty Membership:\n📱 [Customer Site Link]\n\n#GoodMorning #KathiRollHub #Jaipur`}
+  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond:\n✨ Exclusive VIP offers\n✨ Priority service\n✨ Special day double points\n\nJoin karo: [https://the-kathi-roll-hub-users.vercel.app/]\n\n#VIPMember #KathiRollHub`},
+  {t:"Morning",e:"🌅",txt:`🌅 *Subah ka nashta — Roll Hub se!*\n\n24x7 OPEN — Kabhii bhi aao!\n\nFREE Loyalty Membership:\n📱 [https://the-kathi-roll-hub-users.vercel.app/]\n\n#GoodMorning #KathiRollHub #Jaipur`}
 ];
 
 function renderPosts(){document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`<div class="post-card"><h4>${p.e} Post ${i+1}: ${p.t}</h4><textarea class="post-text" rows="6" readonly>${p.txt}</textarea><div class="post-actions"><button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button><button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button></div></div>`).join('');}
