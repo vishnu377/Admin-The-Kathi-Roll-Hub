@@ -1,10 +1,6 @@
 
 
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -712,15 +708,41 @@ tr:hover td{background:rgba(255,255,255,.03);}
       <p class="hint" style="color:#ef5350;opacity:.85;">Ye rules set nahi ki to koi bhi customer apne points browser console se change kar sakta hai!</p>
       <div style="background:var(--card);border-radius:10px;padding:.8rem;font-size:.73rem;color:var(--muted);font-family:monospace;line-height:1.8;white-space:pre-wrap;margin-bottom:.8rem;">rules_version = '2';
 service cloud.firestore {
-  match /databases/{db}/documents {
-    match /rollhub_customers/{id} {
-      allow read: if true;
-      allow write: if request.auth != null
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
         && request.auth.token.email == 'vishtechsoftwareservices@gmail.com';
     }
-    match /{collection}/{doc} {
+    match /rollhub_customers/{customerId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+    match /rollhub_socialTasks/{taskId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /rollhub_referrals/{refId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /rollhub_bills/{billId} {
+      allow read, write: if isAdmin();
+    }
+    match /rollhub_inventory/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /rollhub_transactions/{tId} {
+      allow read, write: if isAdmin();
+    }
+    match /rollhub_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /rollhub_help/{ticketId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
   }
 }</div>
@@ -733,6 +755,9 @@ service cloud.firestore {
 
 <script>
 let allC=[],filtC=[],selC=null,curPage=1;const PAGE=20;
+
+// XSS prevention — sanitize any user-generated text before innerHTML
+function esc(str){const d=document.createElement('div');d.textContent=String(str||'');return d.innerHTML;}
 let menuItems=[];
 let milestones=[],bdayReward={},refRewards={};
 let topMode='points';
@@ -866,6 +891,8 @@ async function finalizeBill(){
   const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
   const da=Math.floor(sub*dp/100);
   const rp=document.getElementById('b-redeem-chk')?.checked?parseInt(document.getElementById('b-redeem-pts')?.value||0):0;
+  // Validate: redeem points cannot exceed customer's actual points
+  if(rp>0&&rp>(billC.points||0))return toast(`❌ Customer ke paas sirf ${billC.points||0} pts hain — itna redeem nahi ho sakta`);
   const rv=Math.floor(rp*(shopSettings.redeemValue||10)/100);
   const final=Math.max(0,sub-da-rv);
   const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
@@ -947,7 +974,7 @@ async function loadTodayBills(){
     bills.sort((a,b)=>{try{return(b.date?.toMillis()||0)-(a.date?.toMillis()||0);}catch{return 0;}});
     document.getElementById('today-bills-list').innerHTML=bills.length?bills.slice(0,10).map(b=>`
       <div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:0.5px solid rgba(255,255,255,.04);font-size:.78rem;">
-        <div style="flex:1"><strong>${b.custName}</strong> — ${(b.items||[]).length} items</div>
+        <div style="flex:1"><strong>${esc(b.custName)}</strong> — ${(b.items||[]).length} items</div>
         <span style="color:var(--yellow);font-weight:600;">₹${b.finalAmount||0}</span>
         <span style="font-size:.68rem;color:var(--muted);">${b.payMode||'Cash'}</span>
         <span style="font-size:.68rem;font-weight:600;padding:.12rem .45rem;border-radius:4px;${b.payStatus==='unpaid'?'background:rgba(211,47,47,.15);color:#ef5350;':b.payStatus==='partial'?'background:rgba(255,152,0,.15);color:#FFA726;':'background:rgba(46,125,50,.15);color:#66bb6a;'}">${b.payStatus==='unpaid'?'Unpaid':b.payStatus==='partial'?'Partial':'Paid'}</span>
@@ -1238,7 +1265,7 @@ function showCR(c){
   document.getElementById('cr-streak').textContent=`🔥 ${c.visits||0} Visits | 👥 ${c.referralCount||0} Refs`;
   document.getElementById('cr-dishes').innerHTML=(c.dishes||[]).map(d=>`<span class="cd-chip">${d}</span>`).join('');
   const lvText=lv===0?'Aaj aaya/aayi':lv===1?'Kal aaya/aayi':`${lv} din pehle aaya/aayi`;
-  document.getElementById('cr-last-visit').innerHTML=`🕐 Last Visit: <strong>${lvText}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;💰 Total Spend: ₹${c.totalSpend||0}&nbsp;&nbsp;|&nbsp;&nbsp;📱 ${c.phone}`;
+  document.getElementById('cr-last-visit').innerHTML=`🕐 Last Visit: <strong>${esc(lvText)}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;💰 Total Spend: ₹${esc(c.totalSpend||0)}&nbsp;&nbsp;|&nbsp;&nbsp;📱 ${esc(c.phone)}`;
   // Personal offer card setup
   const poc=document.getElementById('po-code');if(poc)poc.value='BACK'+c.phone.slice(-4);
   const poText=document.getElementById('po-text');if(poText&&c.personalOffer)poText.value=c.personalOffer.msg||'';
@@ -1734,6 +1761,8 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 </script>
 </body>
 </html>
+
+
 
 
 
