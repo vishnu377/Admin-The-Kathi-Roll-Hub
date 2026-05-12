@@ -1,3 +1,16 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -588,18 +601,29 @@ tr:hover td{background:rgba(255,255,255,.03);}
       <div class="fg2">
         <div class="fg"><label>Payment Mode</label>
           <select class="fs" id="b-pay-mode">
-            <option>Cash</option><option>UPI</option><option>Card</option><option>Mixed</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI / PhonePe / GPay</option>
+            <option value="Card">Card</option>
+            <option value="Mixed">Mixed</option>
           </select>
         </div>
-        <div class="fg"><label>Note (optional)</label>
-          <input class="fi" id="b-note" placeholder="Kuch note...">
+        <div class="fg"><label>Payment Status</label>
+          <select class="fs" id="b-pay-status">
+            <option value="paid">✅ Paid — Paise mil gaye</option>
+            <option value="unpaid">⏳ Unpaid — Baad mein denge</option>
+            <option value="partial">⚠️ Partial — Kuch diya, kuch baaki</option>
+          </select>
         </div>
       </div>
-      <div style="display:flex;gap:.6rem;">
-        <button class="btn btn-y" style="flex:1;" onclick="finalizeBill()">✅ Bill Confirm Karein</button>
-        <button class="btn btn-green" style="flex:1;" onclick="billWhatsApp()">💬 WA Receipt</button>
-        <button class="btn btn-ghost" onclick="clearBill()">🗑️ Clear</button>
+      <div class="fg"><label>Note (optional)</label>
+        <input class="fi" id="b-note" placeholder="Table no., special instruction...">
       </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+        <button class="btn btn-y" style="flex:2;" onclick="finalizeBill()">✅ Bill Confirm</button>
+        <button class="btn btn-green" style="flex:2;" onclick="billWhatsApp()">💬 WA Receipt</button>
+        <button class="btn btn-ghost" style="flex:1;" onclick="clearBill()">🗑️</button>
+      </div>
+      <button class="btn btn-ghost btn-full" style="margin-top:.5rem;color:#FFA726;border-color:rgba(255,152,0,.3);" onclick="sendUnpaidReminder()">⏳ Unpaid Reminder Bhejo</button>
     </div>
     <div class="scard">
       <h2>📋 Aaj ke Bills</h2>
@@ -852,10 +876,11 @@ async function finalizeBill(){
   const final=Math.max(0,sub-da-rv);
   const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
   const pm=document.getElementById('b-pay-mode').value;
+  const ps=document.getElementById('b-pay-status')?.value||'paid';
   const note=document.getElementById('b-note').value||'';
   const bid='BILL'+Date.now().toString().slice(-8);
   try{
-    await shopDb.bills().doc(bid).set({billId:bid,customerId:billC.id,custName:billC.name,custPhone:billC.phone,items:billItems,subtotal:sub,discPct:dp,discAmt:da,redeemPts:rp,redeemVal:rv,finalAmount:final,earnPts:ep,payMode:pm,note,date:firebase.firestore.FieldValue.serverTimestamp(),dateStr:new Date().toLocaleDateString('en-IN')});
+    await shopDb.bills().doc(bid).set({billId:bid,customerId:billC.id,custName:billC.name,custPhone:billC.phone,items:billItems,subtotal:sub,discPct:dp,discAmt:da,redeemPts:rp,redeemVal:rv,finalAmount:final,earnPts:ep,payMode:pm,payStatus:ps,note,date:firebase.firestore.FieldValue.serverTimestamp(),dateStr:new Date().toLocaleDateString('en-IN')});
     await shopDb.customer(billC.id).update({points:firebase.firestore.FieldValue.increment(ep-rp),visits:firebase.firestore.FieldValue.increment(1),totalSpend:firebase.firestore.FieldValue.increment(final),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0});
     await shopDb.transactions().add({customerId:billC.id,custName:billC.name,type:'earn',points:ep,amount:final,note:`Bill ${bid}`,date:firebase.firestore.FieldValue.serverTimestamp()});
     if(rp>0)await shopDb.transactions().add({customerId:billC.id,custName:billC.name,type:'redeem',points:-rp,amount:0,note:`Redeem ${bid}`,date:firebase.firestore.FieldValue.serverTimestamp()});
@@ -877,7 +902,7 @@ function clearBill(keepCust=false){
 }
 
 function billWhatsApp(){
-  if(!billC||!billItems.length)return toast('⚠️ Customer aur items chahiye');
+  if(!billC||!billItems.length)return toast('Pehle customer aur items select karein');
   const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
   const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
   const da=Math.floor(sub*dp/100);
@@ -885,8 +910,32 @@ function billWhatsApp(){
   const rv=Math.floor(rp*(shopSettings.redeemValue||10)/100);
   const final=Math.max(0,sub-da-rv);
   const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
-  const il=billItems.map(b=>`  ${b.emoji} ${b.name} ×${b.qty} = ₹${b.price*b.qty}`).join('\n');
-  const msg=`🌯 *The Kathi Roll Hub — Receipt*\n\n👤 ${billC.name} ji\n📅 ${new Date().toLocaleDateString('en-IN')}\n\n*Items:*\n${il}\n\n─────────\nSubtotal: ₹${sub}${da>0?`\nDiscount (${dp}%): -₹${da}`:''}${rv>0?`\nPoints Redeem: -₹${rv}`:''}\n*Total: ₹${final}*\n\n⭐ Points Earned: +${ep}\n🏆 Total Points: ${(billC.points||0)+ep}\n\n🙏 Shukriya! Phir aana!\n— The Kathi Roll Hub 🌯`;
+  const ps=document.getElementById('b-pay-status')?.value||'paid';
+  const pm=document.getElementById('b-pay-mode')?.value||'Cash';
+  const note=document.getElementById('b-note')?.value||'';
+  const newPts=(billC.points||0)+ep-rp;
+  const tier=newPts>=700?'Diamond VIP':newPts>=300?'Gold':'Silver';
+  const nextTier=newPts>=700?'':newPts>=300?`${700-newPts} pts mein Diamond VIP!`:`${300-newPts} pts mein Gold!`;
+  const il=billItems.map(b=>{const n=b.name.length>16?b.name.slice(0,14)+'..':b.name;const pad=' '.repeat(Math.max(1,18-n.length));return`   ${n}${pad}x${b.qty}   Rs.${b.price*b.qty}`;}).join('\n');
+  const statusLine=ps==='paid'?`PAID via ${pm}`:ps==='partial'?'PARTIAL — Kuch baaki hai':'UNPAID — Payment pending';
+  const discLine=da>0?`Discount (${dp}%):    -Rs.${da}\n`:'';
+  const redeemLine=rv>0?`Points Redeem:    -Rs.${rv}\n`:'';
+  const subLine=da>0||rv>0?`Subtotal:          Rs.${sub}\n`:'';
+  const noteLine=note?`Note: ${note}\n\n`:'';
+  const nextLine=nextTier?`Next:            ${nextTier}\n`:'';
+  const msg=`*━━━━━━━━━━━━━━━━━━━━━━*\n    THE KATHI ROLL HUB\n    Murlipura, Jaipur\n    Ph: 8619721224\n*━━━━━━━━━━━━━━━━━━━━━━*\n\n*BILL RECEIPT*\nDate: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}\nCustomer: ${billC.name} ji\n\n*━━━ ITEMS ━━━*\n${il}\n*━━━━━━━━━━━━━*\n${subLine}${discLine}${redeemLine}*TOTAL:   Rs.${final}*\n*${statusLine}*\n*━━━━━━━━━━━━━*\n\n*LOYALTY POINTS*\nEarned: +${ep} pts\nBalance: ${newPts} pts\nTier: ${tier}\n${nextLine}*━━━━━━━━━━━━━*\n${noteLine}Dashboard:\nhttps://the-kathi-roll-hub-users.vercel.app/\n\nShukriya! Phir aana :)`;
+  window.open(`https://wa.me/91${billC.phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function sendUnpaidReminder(){
+  if(!billC)return toast('Customer select karein pehle');
+  const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
+  const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
+  const da=Math.floor(sub*dp/100);
+  const rv=0;
+  const final=Math.max(0,sub-da-rv);
+  const il=billItems.map(b=>`   ${b.name} x${b.qty}  Rs.${b.price*b.qty}`).join('\n');
+  const msg=`Namaste ${billC.name} ji!\n\nRoll Hub se reminder —\n\nAapka ${new Date().toLocaleDateString('en-IN')} ka bill pending hai:\n\n${il}\n\n*Total: Rs.${final}*\n\nJab suvidha ho payment kar dena.\nUPI: 8619721224@upi\n\nShukriya!\n— The Kathi Roll Hub`;
   window.open(`https://wa.me/91${billC.phone}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
@@ -907,6 +956,7 @@ async function loadTodayBills(){
         <div style="flex:1"><strong>${b.custName}</strong> — ${(b.items||[]).length} items</div>
         <span style="color:var(--yellow);font-weight:600;">₹${b.finalAmount||0}</span>
         <span style="font-size:.68rem;color:var(--muted);">${b.payMode||'Cash'}</span>
+        <span style="font-size:.68rem;font-weight:600;padding:.12rem .45rem;border-radius:4px;${b.payStatus==='unpaid'?'background:rgba(211,47,47,.15);color:#ef5350;':b.payStatus==='partial'?'background:rgba(255,152,0,.15);color:#FFA726;':'background:rgba(46,125,50,.15);color:#66bb6a;'}">${b.payStatus==='unpaid'?'Unpaid':b.payStatus==='partial'?'Partial':'Paid'}</span>
       </div>`).join(''):'<div style="color:var(--muted);font-size:.82rem;">Aaj koi bill nahi</div>';
   }catch(e){}
 }
