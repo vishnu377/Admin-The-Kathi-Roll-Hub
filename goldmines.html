@@ -321,7 +321,6 @@ tr:hover td{background:rgba(255,255,255,.03);}
           <button class="btn btn-ghost" onclick="document.getElementById('bonus-card').style.display='block'">🎯 Bonus</button>
           <button class="btn btn-ghost" onclick="document.getElementById('personal-offer-card').style.display='block'" style="color:#FFA726;">💌 Personal Offer</button>
           <button class="btn btn-ghost" onclick="verifyPhone()" id="verify-btn" style="color:#66bb6a;">✅ Verify</button>
-          <button class="btn btn-ghost" onclick="hideCR();document.getElementById('srch').value=''" style="color:#ef5350;margin-left:auto;">✕ Close</button>
         </div>
       </div>
     </div>
@@ -333,10 +332,6 @@ tr:hover td{background:rgba(255,255,255,.03);}
         <div class="fg"><label>Points (auto)</label><input class="fi" id="p-pts" type="number" placeholder="Auto"></div>
       </div>
       <div class="fg"><label>Note (optional)</label><input class="fi" id="p-note" placeholder="e.g. Paneer Roll 2x + Cold Coffee"></div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem;background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:8px;padding:.55rem .8rem;">
-        <input type="checkbox" id="p-count-visit" checked style="width:15px;height:15px;accent-color:var(--yellow);cursor:pointer;">
-        <label for="p-count-visit" style="font-size:.78rem;color:var(--text);cursor:pointer;">✅ Visit count karein (uncheck karo agar sirf bonus/correction hai)</label>
-      </div>
       <button class="btn btn-y btn-full" onclick="addPts()">✅ Points Add Karein</button>
     </div>
     <div class="scard" id="red-card" style="display:none;">
@@ -578,25 +573,6 @@ tr:hover td{background:rgba(255,255,255,.03);}
       <div class="fg"><input class="fi" id="new-pw2" type="password" placeholder="Naya password (6+ chars)..."></div>
       <button class="btn btn-ghost" onclick="changePw2()">🔐 Change Password</button>
     </div>
-    <div class="scard" style="border-color:rgba(239,83,80,.3);">
-      <h2 style="color:#ef5350;">🛡️ Firebase Security Rules — ZAROORI!</h2>
-      <p class="hint" style="color:#ef5350;opacity:.85;">Ye rules set nahi ki to koi bhi customer apne points browser console se change kar sakta hai!</p>
-      <div style="background:var(--card);border-radius:10px;padding:.8rem;font-size:.73rem;color:var(--muted);font-family:monospace;line-height:1.8;white-space:pre-wrap;margin-bottom:.8rem;">rules_version = '2';
-service cloud.firestore {
-  match /databases/{db}/documents {
-    match /rollhub_customers/{id} {
-      allow read: if true;
-      allow write: if request.auth != null
-        && request.auth.token.email == 'vishtechsoftwareservices@gmail.com';
-    }
-    match /{collection}/{doc} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-  }
-}</div>
-      <a href="https://console.firebase.google.com/project/the-kathi-roll-hub/firestore/rules" target="_blank" class="btn btn-red btn-full" style="text-decoration:none;display:block;text-align:center;">🔗 Firebase Console mein Rules Set Karo</a>
-    </div>
   </div>
 </div>
 
@@ -631,7 +607,6 @@ function sw(n,btn){
   if(n==='help')loadHelp();
   if(n==='referrals')loadRefs();
   if(n==='alerts')loadAlerts();
-  if(n==='export'&&!allC.length)loadC().then(()=>toast('✅ Data loaded — export ready!'));
 }
 
 async function initApp(){await loadSettings();loadDash();loadC();loadMenu();renderPosts();}
@@ -833,21 +808,17 @@ function showRV(){const p=parseInt(document.getElementById('r-pts').value)||0;co
 
 async function addPts(){
   if(!selC)return toast('❌ Customer select karein');
-  if(!selC.phoneVerified){if(!confirm('⚠️ Phone unverified hai! Phir bhi points add karein?'))return;}
   const amt=parseFloat(document.getElementById('p-amt').value)||0;
   const pts=parseInt(document.getElementById('p-pts').value)||Math.floor(amt/(shopSettings.rupeePerPoint||10));
   const note=document.getElementById('p-note').value||'Visit';
-  const countVisit=document.getElementById('p-count-visit')?.checked!==false;
   if(!pts||pts<=0)return toast('❌ Amount ya points enter karein');
   try{
-    const upd={points:firebase.firestore.FieldValue.increment(pts),totalSpend:firebase.firestore.FieldValue.increment(amt||0),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0};
-    if(countVisit){upd.visits=firebase.firestore.FieldValue.increment(1);}
-    await shopDb.customer(selC.id).update(upd);
+    await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(pts),visits:firebase.firestore.FieldValue.increment(1),totalSpend:firebase.firestore.FieldValue.increment(amt||0),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0});
     await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'earn',points:pts,amount:amt,note,date:firebase.firestore.FieldValue.serverTimestamp()});
     const newPts=(selC.points||0)+pts;await chkTier(selC.id,newPts);
-    selC.points=newPts;if(countVisit)selC.visits=(selC.visits||0)+1;selC.lastVisitDays=0;
+    selC.points=newPts;selC.visits=(selC.visits||0)+1;selC.lastVisitDays=0;
     const i=allC.findIndex(x=>x.id===selC.id);if(i>=0){allC[i]=selC;}
-    showCR(selC);toast(`✅ +${pts} pts${countVisit?' + visit counted':''}! Total: ${newPts}`);
+    showCR(selC);toast(`✅ +${pts} points added! Total: ${newPts}`);
     document.getElementById('p-amt').value='';document.getElementById('p-pts').value='';document.getElementById('p-note').value='';
   }catch(e){toast('❌ '+e.message);}
 }
@@ -1249,12 +1220,7 @@ function shareInsta(i){
 }
 
 // ===== EXPORT =====
-function expAll(){
-  if(!allC.length){toast('⏳ Loading data...');loadC().then(()=>{setTimeout(()=>expAll(),800);});return;}
-  const h=['ID','Naam','Phone','Verified','Birthday','Anniversary','City','Points','Tier','Visits','LastVisitDays','FavItems','JoinDate'];
-  const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.anniversary||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,c.lastVisitDays||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);
-  dlCSV([h,...r],'rollhub_all.csv');toast(`✅ ${allC.length} records exported!`);
-}
+function expAll(){if(!allC.length)return toast('❌ Dashboard se load karein pehle');const h=['ID','Naam','Phone','Verified','Birthday','Anniversary','City','Points','Tier','Visits','LastVisitDays','FavItems','JoinDate'];const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.anniversary||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,c.lastVisitDays||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);dlCSV([h,...r],'rollhub_all.csv');toast(`✅ ${allC.length} records exported!`);}
 function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi birthday nahi');dlCSV([['Naam','Phone','Birthday','Points','City'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0,c.city||''])],'birthday_this_month.csv');toast(`✅ ${b.length} birthdays exported!`);}
 function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);if(!r.length)return toast('❌ Koi referral nahi');dlCSV([['Naam','Phone','Referrals','Bonus Pts'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.referralBonus||0])],'referrals.csv');toast('✅ Done!');}
 function expInactive(){const ia=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));if(!ia.length)return toast('✅ Koi inactive nahi!');dlCSV([['Naam','Phone','Days Inactive','Points','City'],...ia.map(c=>[c.name,c.phone,c.lastVisitDays||0,c.points||0,c.city||''])],'inactive.csv');toast(`✅ ${ia.length} inactive exported!`);}
