@@ -662,11 +662,18 @@ async function loadDash(){
     const anniToday=allC.filter(c=>c.anniversary&&new Date(c.anniversary).getMonth()===todayMon&&new Date(c.anniversary).getDate()===todayDay);
     if(bdayToday.length){
       document.getElementById('bday-banner').style.display='block';
-      document.getElementById('bday-list').innerHTML=bdayToday.map(c=>`<li class="bday-item"><span>🎂 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text='+encodeURIComponent('🎂 Happy Birthday ${c.name} ji!\\n\\nBirthday pe Roll Hub pe aao — aapka special reward aapka wait kar raha hai!\\n\\n— The Kathi Roll Hub 🌯'),'_blank')">💬 Wish</button></li>`).join('');
+      document.getElementById('bday-list').innerHTML=bdayToday.map(c=>{
+        const safeName=c.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const waMsg=encodeURIComponent(`🎂 Happy Birthday ${c.name} ji!\n\nBirthday pe Roll Hub pe aao — aapka special reward aapka wait kar raha hai!\n\n— The Kathi Roll Hub 🌯`);
+        return`<li class="bday-item"><span>🎂 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text=${waMsg}','_blank')">💬 Wish</button></li>`;
+      }).join('');
     }
     if(anniToday.length){
       document.getElementById('anni-banner').style.display='block';
-      document.getElementById('anni-list').innerHTML=anniToday.map(c=>`<li class="bday-item"><span>💑 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text='+encodeURIComponent('💑 Happy Anniversary ${c.name} ji!\\n\\nAapki special day pe Roll Hub pe aao — romantic combo aapka wait kar raha hai!\\n\\n— The Kathi Roll Hub 🌯'),'_blank')">💬 Wish</button></li>`).join('');
+      document.getElementById('anni-list').innerHTML=anniToday.map(c=>{
+        const waMsg=encodeURIComponent(`💑 Happy Anniversary ${c.name} ji!\n\nAapki special day pe Roll Hub pe aao — romantic combo aapka wait kar raha hai!\n\n— The Kathi Roll Hub 🌯`);
+        return`<li class="bday-item"><span>💑 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text=${waMsg}','_blank')">💬 Wish</button></li>`;
+      }).join('');
     }
     showTopBy('points');
     loadUpcomingSpecials(allC);
@@ -710,8 +717,15 @@ function loadUpcomingSpecials(custs){
   el.innerHTML=upcoming.map(u=>`
     <div class="spec-row">
       <div><span style="margin-right:.4rem;">${u.emoji}</span><strong>${u.name}</strong> <span style="color:var(--muted);font-size:.75rem;">— ${u.type==='birthday'?'Birthday':'Anniversary'}, ${u.days===0?'Aaj!':u.days===1?'Kal':u.days+' din baad'}</span></div>
-      <button onclick="window.open('https://wa.me/91${u.phone}?text='+encodeURIComponent('${u.emoji} Happy ${u.type==='birthday'?'Birthday':'Anniversary'} ${u.name} ji! ${u.type==='birthday'?'🎂 Birthday pe aao — aapka special reward ready hai!':'💑 Anniversary pe aao — romantic special treat hai!'}\\n\\n— The Kathi Roll Hub 🌯'),'_blank')" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .65rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;">💬 Wish</button>
+      <button data-phone="${u.phone}" data-type="${u.type}" data-name="${u.name.replace(/"/g,'&quot;')}" data-emoji="${u.emoji}" onclick="wishCustomer(this)" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .65rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;">💬 Wish</button>
     </div>`).join('');
+}
+
+function wishCustomer(btn){
+  const phone=btn.dataset.phone;const type=btn.dataset.type;const name=btn.dataset.name;const emoji=btn.dataset.emoji;
+  const isBday=type==='birthday';
+  const msg=encodeURIComponent(`${emoji} Happy ${isBday?'Birthday':'Anniversary'} ${name} ji!\n\n${isBday?'Birthday pe Roll Hub pe aao — aapka special reward ready hai!':'Anniversary pe aao — romantic special treat hai!'}\n\n— The Kathi Roll Hub 🌯`);
+  window.open(`https://wa.me/91${phone}?text=${msg}`,'_blank');
 }
 
 function checkProfitWarning(){
@@ -1044,8 +1058,8 @@ async function saveWarnings(){
 // ===== HELP TICKETS =====
 async function loadHelp(){
   try{
-    const s=await shopDb.helpTickets().orderBy('createdAt','desc').limit(50).get();
-    const tickets=s.docs.map(d=>({id:d.id,...d.data()}));
+    const s=await shopDb.helpTickets().limit(50).get();
+    const tickets=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{try{return(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0);}catch{return 0;}});
     const open=tickets.filter(t=>t.status==='open');const resolved=tickets.filter(t=>t.status==='resolved');
     const catClass={complaint:'cat-complaint',query:'cat-query',suggestion:'cat-suggestion',compliment:'cat-compliment'};
     const renderTicket=(t)=>`
@@ -1255,9 +1269,18 @@ function expAll(){
   const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.anniversary||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,c.lastVisitDays||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);
   dlCSV([h,...r],'rollhub_all.csv');toast(`✅ ${allC.length} records exported!`);
 }
-function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi birthday nahi');dlCSV([['Naam','Phone','Birthday','Points','City'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0,c.city||''])],'birthday_this_month.csv');toast(`✅ ${b.length} birthdays exported!`);}
-function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);if(!r.length)return toast('❌ Koi referral nahi');dlCSV([['Naam','Phone','Referrals','Bonus Pts'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.referralBonus||0])],'referrals.csv');toast('✅ Done!');}
-function expInactive(){const ia=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));if(!ia.length)return toast('✅ Koi inactive nahi!');dlCSV([['Naam','Phone','Days Inactive','Points','City'],...ia.map(c=>[c.name,c.phone,c.lastVisitDays||0,c.points||0,c.city||''])],'inactive.csv');toast(`✅ ${ia.length} inactive exported!`);}
+function expBday(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expBday,800));return;}
+  const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi birthday nahi');dlCSV([['Naam','Phone','Birthday','Points','City'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0,c.city||''])],'birthday_this_month.csv');toast(`✅ ${b.length} birthdays exported!`);
+}
+function expRefs(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expRefs,800));return;}
+  const r=allC.filter(c=>(c.referralCount||0)>0);if(!r.length)return toast('❌ Koi referral nahi');dlCSV([['Naam','Phone','Referrals','Bonus Pts'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.referralBonus||0])],'referrals.csv');toast('✅ Done!');
+}
+function expInactive(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expInactive,800));return;}
+  const ia=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));if(!ia.length)return toast('✅ Koi inactive nahi!');dlCSV([['Naam','Phone','Days Inactive','Points','City'],...ia.map(c=>[c.name,c.phone,c.lastVisitDays||0,c.points||0,c.city||''])],'inactive.csv');toast(`✅ ${ia.length} inactive exported!`);
+}
 function expUpcoming(){
   const today=new Date();const upcoming=[];
   allC.forEach(c=>{
