@@ -5,12 +5,6 @@
 
 
 
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -1587,7 +1581,31 @@ async function loadRefs(){
     document.getElementById('ref-done').innerHTML=!done.length?'<div style="color:var(--muted);font-size:.82rem;">Abhi koi verified nahi</div>':done.slice(0,20).map(r=>`<div style="padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--muted);">✅ ${r.referrer} → ${r.newCust} (+${r.bonus||50} pts)</div>`).join('');
   }catch(e){toast('❌ '+e.message);}
 }
-async function verRef(id){try{await shopDb.referrals().doc(id).update({status:'verified'});toast('✅ Verified!');loadRefs();}catch(e){toast('❌ '+e.message);}}
+async function verRef(id){
+  try{
+    const refDoc=await shopDb.referrals().doc(id).get();
+    if(!refDoc.exists)return toast('❌ Referral nahi mila');
+    const r=refDoc.data();
+    if(r.status==='verified')return toast('⚠️ Pehle se verified hai');
+    // Credit points to referrer
+    await shopDb.customer(r.referrer).update({
+      points:firebase.firestore.FieldValue.increment(r.bonus||50),
+      referralCount:firebase.firestore.FieldValue.increment(1),
+      referralBonus:firebase.firestore.FieldValue.increment(r.bonus||50)
+    });
+    await shopDb.transactions().add({
+      customerId:r.referrer,custName:'Referrer',type:'bonus',
+      points:r.bonus||50,note:`Referral bonus — ${r.newCustName}`,
+      date:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await shopDb.referrals().doc(id).update({status:'verified'});
+    // Sync allC
+    const ci=allC.findIndex(x=>x.id===r.referrer);
+    if(ci>=0){allC[ci].points=(allC[ci].points||0)+(r.bonus||50);allC[ci].referralCount=(allC[ci].referralCount||0)+1;}
+    toast(`✅ Verified! ${r.bonus||50} pts credited to referrer`);
+    loadRefs();
+  }catch(e){toast('❌ '+e.message);}
+}
 
 // ===== SETTINGS =====
 async function loadSettings(){
@@ -1716,3 +1734,13 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
