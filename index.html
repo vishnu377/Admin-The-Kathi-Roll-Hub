@@ -1,18 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -45,9 +30,11 @@ const shopDb={
 };
 </script>
 <style>
-:root{--bg:#111;--surface:#1C1C1C;--card:#252525;--border:rgba(255,214,0,.15);--yellow:#FFD600;--yellow2:#FFC000;--red:#D32F2F;--red2:#B71C1C;--green:#2e7d32;--text:#F5F5F5;--muted:#9E9E9E;--dim:#555;}
+:root{--bg:#111;--surface:#1C1C1C;--card:#252525;--border:rgba(255,214,0,.15);--yellow:#FFD600;--yellow2:#FFC000;--red:#D32F2F;--green:#2e7d32;--text:#F5F5F5;--muted:#9E9E9E;--dim:#555;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
 .login-wrap{min-height:100vh;background:radial-gradient(ellipse at 40%,#1a0e00,#111);display:flex;align-items:center;justify-content:center;padding:2rem;}
 .login-box{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:2.5rem 2rem;width:100%;max-width:360px;}
 .lb-logo{text-align:center;margin-bottom:1.8rem;}
@@ -59,147 +46,195 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .lb-btn{width:100%;background:var(--yellow);border:none;border-radius:11px;padding:.85rem;color:#111;font-weight:700;font-size:.95rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .lb-err{color:#ef5350;font-size:.78rem;margin-top:.4rem;display:none;}
 #app{display:none;}
+
+/* TOPBAR */
 .topbar{background:linear-gradient(135deg,#111,#1a1200);border-bottom:2px solid var(--yellow);padding:.9rem 1.4rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
 .tb-left h1{font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--yellow);}
 .tb-left p{font-size:.7rem;color:var(--muted);}
 .live-badge{display:flex;align-items:center;gap:.4rem;background:rgba(46,125,50,.2);border:1px solid rgba(46,125,50,.35);color:#66bb6a;padding:.3rem .8rem;border-radius:50px;font-size:.72rem;font-weight:600;}
-.live-dot{width:6px;height:6px;border-radius:50%;background:#66bb6a;animation:blink 1.3s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.logout-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--muted);padding:.3rem .8rem;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.tb-right{display:flex;align-items:center;gap:.6rem;}
+.btn-logout{background:rgba(211,47,47,.15);border:1px solid rgba(211,47,47,.3);color:#ef5350;padding:.35rem .8rem;border-radius:50px;font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* TABS */
 .tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:57px;z-index:99;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{padding:.85rem 1rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;}
 .tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
-.tc{padding:1.3rem;display:none;}
-.tc.active{display:block;}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:1.3rem;}
-@media(min-width:600px){.sg{grid-template-columns:repeat(4,1fr);}}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;position:relative;overflow:hidden;}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--yellow);}
-.sc .sv{font-family:'Oswald',sans-serif;font-size:1.65rem;font-weight:700;color:var(--yellow);}
-.sc .sl{font-size:.68rem;color:var(--muted);margin-top:.2rem;}
-.scard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:.9rem;}
-.scard h2{font-size:.9rem;font-weight:600;color:var(--yellow);margin-bottom:.9rem;}
-.scard p.hint{font-size:.74rem;color:var(--muted);margin-bottom:.9rem;}
+.tc{display:none;padding:1rem;max-width:880px;margin:0 auto;}
+.tc.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.2rem;margin-bottom:1rem;}
+.scard h2{font-family:'Oswald',sans-serif;font-size:1.05rem;color:var(--yellow);margin-bottom:.7rem;}
+.hint{font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5;}
+
+/* STAT GRID */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:.9rem;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem .7rem;text-align:center;}
+.sv{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;color:var(--yellow);}
+.sl{font-size:.65rem;color:var(--muted);margin-top:.2rem;}
+
+/* SPECIAL BANNERS */
+.special-banner{background:linear-gradient(135deg,rgba(211,47,47,.15),rgba(183,28,28,.08));border:1.5px solid rgba(211,47,47,.3);border-radius:14px;padding:1rem 1.2rem;margin-bottom:.9rem;display:none;}
+.special-banner.anni{background:linear-gradient(135deg,rgba(106,27,154,.15),rgba(74,20,140,.08));border-color:rgba(179,136,255,.3);}
+.special-banner h3{font-family:'Oswald',sans-serif;font-size:.95rem;color:var(--yellow);margin-bottom:.5rem;}
+.bday-list{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
+.bday-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .7rem;font-size:.78rem;}
+.bday-item .wa-wish{background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .6rem;border-radius:50px;font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* FORMS */
 .fg{margin-bottom:.75rem;}
-.fg label{display:block;font-size:.7rem;font-weight:500;color:var(--muted);margin-bottom:.28rem;}
-.fi,.fs{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.65rem .85rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;}
-.fi:focus,.fs:focus{border-color:var(--yellow);}
+.fg label{display:block;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.3rem;}
+.fi{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.fi:focus{border-color:var(--yellow);}
 .fi::placeholder{color:var(--dim);}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
-.fg3{display:grid;grid-template-columns:65px 1fr 1fr;gap:.75rem;align-items:end;}
-.fg4{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;}
-.btn{padding:.7rem 1.3rem;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;}
-.btn-y{background:var(--yellow);color:#111;}
-.btn-green{background:var(--green);color:white;}
-.btn-red{background:var(--red);color:white;}
-.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);}
-.btn:hover{opacity:.9;transform:translateY(-1px);}
-.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-.btn-full{width:100%;justify-content:center;}
-.cr{background:rgba(255,214,0,.07);border:2px solid var(--yellow);border-radius:14px;padding:1rem;margin:.75rem 0;display:none;}
-.cr-name{font-size:1rem;font-weight:600;color:var(--yellow);}
-.cr-meta{font-size:.73rem;color:var(--muted);margin-top:.2rem;line-height:1.6;}
-.cr-pts{font-family:'Oswald',sans-serif;font-size:2.2rem;font-weight:700;color:var(--text);}
-.cr-dishes{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;}
-.cr-dish{background:rgba(255,214,0,.12);color:var(--yellow);padding:.18rem .55rem;border-radius:50px;font-size:.68rem;}
-.profit-badge{font-size:.72rem;padding:.25rem .65rem;border-radius:6px;font-weight:600;margin-top:.4rem;display:inline-block;}
-.ps{background:rgba(46,125,50,.15);color:#66bb6a;}
-.pw{background:rgba(255,214,0,.15);color:var(--yellow);}
-.pd{background:rgba(183,28,28,.15);color:#ef5350;}
-table{width:100%;border-collapse:collapse;font-size:.77rem;min-width:540px;}
-th{background:rgba(255,214,0,.12);color:var(--yellow);padding:.6rem .8rem;text-align:left;font-weight:600;}
-td{padding:.65rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);}
-tr:hover td{background:rgba(255,255,255,.02);}
-.tw{overflow-x:auto;}
-.tp{display:inline-block;padding:.13rem .55rem;border-radius:50px;font-size:.64rem;font-weight:700;}
-.ts{background:rgba(255,214,0,.15);color:var(--yellow);}
-.tg{background:rgba(255,214,0,.25);color:#FFC000;}
-.tv{background:rgba(211,47,47,.2);color:#FF8A80;}
-.mir{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.85rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.7rem;}
-.mi-tb{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
-.mi-disc{width:50px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.28rem .4rem;color:var(--text);font-size:.8rem;outline:none;text-align:center;}
-.tsw{position:relative;width:38px;height:20px;flex-shrink:0;}
-.tsw input{opacity:0;width:0;height:0;}
-.tsw span{position:absolute;inset:0;background:var(--dim);border-radius:10px;transition:background .2s;cursor:pointer;}
-.tsw input:checked+span{background:var(--green);}
-.tsw span::before{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;left:3px;top:3px;transition:transform .2s;}
-.tsw input:checked+span::before{transform:translateX(18px);}
-.del-btn{background:rgba(183,28,28,.15);border:1px solid rgba(183,28,28,.3);color:#ef5350;padding:.28rem .55rem;border-radius:7px;font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.post-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem;margin-bottom:.7rem;}
-.post-card h4{font-size:.83rem;font-weight:600;color:var(--yellow);margin-bottom:.5rem;}
-.post-text{width:100%;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.7rem;font-size:.76rem;color:var(--text);resize:none;font-family:'DM Sans',sans-serif;line-height:1.5;margin-bottom:.5rem;}
-.post-actions{display:flex;gap:.5rem;}
-.ar{display:flex;align-items:center;gap:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.85rem;margin-bottom:.65rem;}
-.ai{font-size:1.1rem;flex-shrink:0;}
-.at{flex:1;font-size:.78rem;color:var(--text);line-height:1.5;}
-.ab{background:rgba(255,214,0,.12);border:1px solid var(--border);color:var(--yellow);padding:.32rem .75rem;border-radius:7px;font-size:.7rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
-.fr{display:flex;gap:.6rem;margin-bottom:.9rem;flex-wrap:wrap;}
-.fi2{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.5rem .75rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;}
+.fs{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.fi2{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.55rem .8rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;}
 .fi2:focus{border-color:var(--yellow);}
-.pag{display:flex;gap:.4rem;justify-content:center;margin-top:.9rem;flex-wrap:wrap;}
-.pb{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.32rem .7rem;border-radius:7px;font-size:.73rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.pb.on,.pb:hover{background:var(--yellow);border-color:var(--yellow);color:#111;}
-.bday-banner{background:rgba(255,214,0,.1);border:1px solid rgba(255,214,0,.3);border-radius:13px;padding:1rem;margin-bottom:.9rem;display:none;}
-.bday-banner h3{font-size:.86rem;color:var(--yellow);margin-bottom:.35rem;}
-.bday-list{list-style:none;font-size:.78rem;color:var(--muted);}
-.bday-list li{padding:.18rem 0;display:flex;align-items:center;gap:.5rem;}
-.wa-link{background:var(--green);color:white;padding:.18rem .55rem;border-radius:6px;font-size:.68rem;text-decoration:none;cursor:pointer;margin-left:auto;}
-.toast{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--card);border:1px solid var(--yellow);color:var(--yellow);padding:.7rem 1.1rem;border-radius:12px;font-size:.8rem;z-index:9999;opacity:0;transition:opacity .3s;}
-.toast.show{opacity:1;}
-.rvr{display:flex;align-items:center;gap:.75rem;background:rgba(46,125,50,.07);border:1px solid rgba(46,125,50,.2);border-radius:10px;padding:.75rem;margin-bottom:.55rem;}
-.rvr .rvt{flex:1;font-size:.78rem;color:var(--text);line-height:1.5;}
-.rvr .rvb{background:var(--green);border:none;border-radius:7px;padding:.32rem .75rem;color:white;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.str{display:flex;align-items:center;gap:.75rem;background:rgba(41,182,246,.07);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:.75rem;margin-bottom:.55rem;}
-.str .st{flex:1;font-size:.78rem;color:var(--text);}
-.str .sb{background:rgba(41,182,246,.2);border:none;border-radius:7px;padding:.32rem .75rem;color:#81D4FA;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.sr{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between;}
-/* Help ticket styles */
-.ticket{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem;margin-bottom:.65rem;}
-.ticket.open{border-color:rgba(255,214,0,.4);}
-.ticket.resolved{border-color:rgba(46,125,50,.3);opacity:.7;}
-.ticket-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
-.ticket-name{font-size:.85rem;font-weight:600;color:var(--yellow);}
-.ticket-time{font-size:.68rem;color:var(--muted);}
-.ticket-msg{font-size:.8rem;color:var(--text);line-height:1.5;margin-bottom:.7rem;}
-.ticket-cat{font-size:.65rem;padding:.18rem .55rem;border-radius:50px;background:rgba(255,214,0,.12);color:var(--yellow);font-weight:700;display:inline-block;margin-bottom:.5rem;}
-/* Milestone reward styles */
-.milestone-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:.6rem;}
-.milestone-row .ml-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;}
-.ml-visit{font-family:'Oswald',sans-serif;font-size:1.1rem;color:var(--yellow);font-weight:700;}
-.ml-status{font-size:.65rem;padding:.15rem .5rem;border-radius:50px;}
-.ml-on{background:rgba(46,125,50,.2);color:#66bb6a;}
-.ml-off{background:rgba(85,85,85,.3);color:var(--dim);}
-/* Warning badge */
-.warn-box{background:rgba(211,47,47,.12);border:1px solid rgba(211,47,47,.3);border-radius:12px;padding:1rem;margin-bottom:.9rem;}
-.warn-box h3{font-size:.85rem;color:#ef5350;margin-bottom:.5rem;}
-.warn-box p{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.fg3{display:grid;grid-template-columns:80px 1fr 1fr;gap:.6rem;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;}
+.fr{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;align-items:center;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:10px;padding:.6rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.btn-y{background:var(--yellow);color:#111;}
+.btn-green{background:rgba(46,125,50,.8);color:white;}
+.btn-ghost{background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border);}
+.btn-red{background:rgba(211,47,47,.8);color:white;}
+.btn-full{width:100%;}
+.btn-ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;border:none;border-radius:10px;padding:.3rem .7rem;font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;}
+
+/* CUSTOMER TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.77rem;min-width:580px;}
+thead tr{background:rgba(255,214,0,.07);}
+th{padding:.65rem .8rem;text-align:left;color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+td{padding:.6rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.03);}
+.ts{background:rgba(96,125,139,.15);color:#90A4AE;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.tg{background:rgba(255,193,7,.12);color:#FFD54F;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.tv{background:rgba(100,181,246,.12);color:#90CAF9;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.lv-badge{font-size:.68rem;font-weight:700;padding:.15rem .45rem;border-radius:4px;}
+.lv-ok{background:rgba(46,125,50,.15);color:#66bb6a;}
+.lv-warn{background:rgba(255,152,0,.15);color:#FFA726;}
+.lv-bad{background:rgba(211,47,47,.15);color:#ef5350;}
+.pag{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem;}
+.pgb{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:7px;padding:.3rem .65rem;font-size:.75rem;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.pgb.active{background:var(--yellow);color:#111;font-weight:700;border-color:var(--yellow);}
+
+/* CUSTOMER RECORD */
+.cr{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:.8rem;display:none;}
+.cr-name{font-family:'Oswald',sans-serif;font-size:1.3rem;color:var(--yellow);}
+.cr-meta{font-size:.75rem;color:var(--muted);margin-top:.2rem;}
+.cr-pts{font-family:'Oswald',sans-serif;font-size:1.8rem;font-weight:700;color:var(--yellow);}
+.cr-dishes{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;}
+.cd-chip{background:rgba(255,214,0,.08);border:1px solid var(--border);color:var(--muted);padding:.18rem .5rem;border-radius:50px;font-size:.68rem;}
+.cr-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;}
+
+/* MENU */
+.menu-item-row{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.menu-item-row:last-child{border:none;}
+.mi-info{flex:1;}
+.mi-name{font-size:.88rem;font-weight:600;}
+.mi-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+.mi-toggle{background:none;border:1px solid var(--border);border-radius:8px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.mi-toggle.on{background:rgba(46,125,50,.2);border-color:rgba(46,125,50,.4);color:#66bb6a;}
+.mi-toggle.off{background:rgba(211,47,47,.1);border-color:rgba(211,47,47,.25);color:#ef5350;}
+
+/* MILESTONE */
+.ms-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.ms-row:last-child{border:none;}
+.ms-badge{background:var(--yellow);color:#111;font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:700;padding:.2rem .6rem;border-radius:6px;flex-shrink:0;}
+.ms-info{flex:1;font-size:.82rem;}
+.ms-status{font-size:.68rem;padding:.18rem .5rem;border-radius:6px;font-weight:600;}
+.ms-on{background:rgba(46,125,50,.2);color:#66bb6a;}
+.ms-off{background:rgba(255,255,255,.07);color:var(--muted);}
+
+/* REFERRAL / SOCIAL TASK ROWS */
+.rvr{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rvr:last-child{border:none;}
+.rvt{flex:1;font-size:.78rem;}
+.rvb{background:var(--yellow);border:none;border-radius:8px;padding:.28rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;color:#111;font-family:'DM Sans',sans-serif;}
+
+/* HELP TICKETS */
+.ticket-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem;margin-bottom:.6rem;}
+.tkt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;}
+.tkt-cat{font-size:.68rem;font-weight:700;padding:.18rem .5rem;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;}
+.cat-complaint{background:rgba(211,47,47,.2);color:#ef5350;}
+.cat-query{background:rgba(255,214,0,.1);color:var(--yellow);}
+.cat-suggestion{background:rgba(46,125,50,.15);color:#66bb6a;}
+.cat-compliment{background:rgba(100,181,246,.12);color:#90CAF9;}
+.tkt-msg{font-size:.8rem;color:var(--text);line-height:1.5;margin:.4rem 0;}
+.tkt-meta{font-size:.7rem;color:var(--muted);}
+.tkt-actions{display:flex;gap:.5rem;margin-top:.6rem;}
+
+/* POSTS */
+.post-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.8rem;}
+.post-card h4{font-size:.85rem;font-weight:600;color:var(--yellow);margin-bottom:.6rem;}
+.post-text{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.7rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.75rem;resize:none;outline:none;line-height:1.5;margin-bottom:.6rem;}
+.post-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+
+/* UPCOMING SPECIALS */
+.spec-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;}
+.spec-row:last-child{border:none;}
+
+/* ALERT ITEM */
+.alert-item{display:flex;align-items:center;gap:.75rem;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;}
+.ai-icon{font-size:1.3rem;flex-shrink:0;}
+.ai-info{flex:1;}
+.ai-title{font-size:.82rem;font-weight:600;}
+.ai-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
+.ai-btn{background:var(--yellow);border:none;border-radius:8px;padding:.3rem .8rem;font-size:.72rem;font-weight:600;cursor:pointer;color:#111;font-family:'DM Sans',sans-serif;flex-shrink:0;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--yellow);color:var(--yellow);padding:.65rem 1.3rem;border-radius:50px;font-size:.8rem;font-weight:600;z-index:9999;transition:transform .3s ease;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* INACTIVE LIST */
+.inactive-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;}
+.inactive-row:last-child{border:none;}
+.ir-days{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:#ef5350;flex-shrink:0;min-width:36px;text-align:center;}
+.ir-info{flex:1;}
+.ir-name{font-weight:600;color:var(--text);}
+.ir-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
 </style>
 </head>
 <body>
-<div class="login-wrap" id="login-screen">
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
   <div class="login-box">
     <div class="lb-logo">
-      <div class="icon">🌯 THE KATHI<br>ROLL HUB</div>
-      <p>Owner Admin Panel — Murlipura, Jaipur</p>
+      <div class="icon">🌯 THE KATHI ROLL HUB</div>
+      <p>Admin Panel — Owner Only</p>
     </div>
     <div class="lb">
+      <label>Email</label>
+      <input type="email" id="l-email" placeholder="admin@email.com" value="vishtechsoftwareservices@gmail.com">
       <label>Password</label>
-      <input type="password" id="pw" placeholder="Apna password...">
-      <div class="lb-err" id="lb-err">❌ Galat password</div>
-      <button class="lb-btn" onclick="doLogin()">🔐 Login Karein</button>
+      <input type="password" id="l-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lb-err" id="l-err"></div>
+      <button class="lb-btn" onclick="doLogin()" style="margin-top:.4rem;">🔐 Login</button>
     </div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="tb-left"><h1>🌯 ROLL HUB ADMIN</h1><p>Powered by <strong style="color:var(--yellow);">VishTech</strong></p></div>
-    <div style="display:flex;align-items:center;gap:.8rem;">
-      <div class="live-badge"><div class="live-dot"></div>Live</div>
-      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    <div class="tb-left">
+      <h1>🌯 KATHI ROLL HUB — ADMIN</h1>
+      <p id="tb-sub">Murlipura, Jaipur · 24x7 Open</p>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge"><span style="width:7px;height:7px;border-radius:50%;background:#66bb6a;display:inline-block;animation:pulse 1.5s ease infinite;"></span> LIVE</div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+
   <div class="tabs">
     <button class="tab active" onclick="sw('dashboard',this)">📊 Dashboard</button>
     <button class="tab" onclick="sw('points',this)">⭐ Points</button>
@@ -214,9 +249,16 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <button class="tab" onclick="sw('settings',this)">⚙️ Settings</button>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- ===== DASHBOARD ===== -->
   <div class="tc active" id="tc-dashboard">
-    <div class="bday-banner" id="bday-banner"><h3>🎂 Aaj ke Birthday Members!</h3><ul class="bday-list" id="bday-list"></ul></div>
+    <div class="special-banner" id="bday-banner">
+      <h3>🎂 Aaj ke Birthday Members!</h3>
+      <ul class="bday-list" id="bday-list"></ul>
+    </div>
+    <div class="special-banner anni" id="anni-banner">
+      <h3>💑 Aaj Anniversary wale Members!</h3>
+      <ul class="bday-list" id="anni-list"></ul>
+    </div>
     <div id="profit-warning-dash"></div>
     <div class="sg">
       <div class="sc"><div class="sv" id="st-total">—</div><div class="sl">Total Members</div></div>
@@ -224,41 +266,77 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="sc"><div class="sv" id="st-pts">—</div><div class="sl">Total Points</div></div>
       <div class="sc"><div class="sv" id="st-refs">—</div><div class="sl">Referrals</div></div>
     </div>
-    <div class="scard"><h2>🏆 Top 5 Members</h2><div id="top-members" style="color:var(--muted);font-size:.85rem;">Loading...</div></div>
+    <div class="sg" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:.9rem;">
+      <div class="sc"><div class="sv" id="st-inactive" style="color:#ef5350;">—</div><div class="sl">Inactive (15d+)</div></div>
+      <div class="sc"><div class="sv" id="st-gold" style="color:#FFD54F;">—</div><div class="sl">Gold Members</div></div>
+      <div class="sc"><div class="sv" id="st-vip" style="color:#90CAF9;">—</div><div class="sl">VIP Members</div></div>
+    </div>
+    <div class="scard">
+      <h2>🏆 Top Members</h2>
+      <div style="display:flex;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('points')">⭐ Points</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('visits')">🔥 Visits</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('referrals')">👥 Referrals</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('spend')">💰 Spend</button>
+      </div>
+      <div id="top-members" style="color:var(--muted);font-size:.85rem;">Loading...</div>
+    </div>
+    <div class="scard">
+      <h2>📅 Upcoming Specials — Next 7 Days</h2>
+      <div id="upcoming-specials" style="color:var(--muted);font-size:.82rem;">Loading...</div>
+    </div>
     <div class="scard">
       <h2>🔗 Quick Links</h2>
       <div style="font-size:.8rem;line-height:2.5;color:var(--muted);">
-        🌯 Customer: <a href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">the-kathi-roll-hub-users.vercel.app</a><br>
-        📍 Google Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">The Kathi Roll Hub</a>
+        🌯 Customer App: <a href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">the-kathi-roll-hub-users.vercel.app</a><br>
+        🔐 Admin Panel: <a href="https://hi-roll-hub.vercel.app/" target="_blank" style="color:var(--yellow);">hi-roll-hub.vercel.app</a><br>
+        📍 Google Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">The Kathi Roll Hub — Review Link</a>
       </div>
     </div>
   </div>
 
-  <!-- POINTS -->
+  <!-- ===== POINTS ===== -->
   <div class="tc" id="tc-points">
     <div class="scard">
       <h2>🔍 Customer Dhundho</h2>
       <div class="fg"><label>Phone ya Member ID (RKH...)</label><input class="fi" id="srch" placeholder="9876543210 ya RKH123456" oninput="searchCust()"></div>
       <div class="cr" id="cr">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
-          <div style="flex:1"><div class="cr-name" id="cr-name">—</div><div class="cr-meta" id="cr-meta">—</div><div id="cr-tier" style="margin-top:.3rem;"></div><div class="cr-dishes" id="cr-dishes"></div></div>
-          <div style="text-align:right;flex-shrink:0;margin-left:.5rem;"><div class="cr-pts" id="cr-pts">0</div><div style="font-size:.68rem;color:var(--muted);">Points</div><div id="cr-streak" style="font-size:.72rem;color:var(--yellow);margin-top:.3rem;"></div></div>
+          <div style="flex:1">
+            <div class="cr-name" id="cr-name">—</div>
+            <div class="cr-meta" id="cr-meta">—</div>
+            <div id="cr-tier" style="margin-top:.3rem;"></div>
+            <div class="cr-dishes" id="cr-dishes"></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:.5rem;">
+            <div class="cr-pts" id="cr-pts">0</div>
+            <div style="font-size:.68rem;color:var(--muted);">Points</div>
+            <div id="cr-streak" style="font-size:.72rem;color:var(--yellow);margin-top:.3rem;"></div>
+          </div>
+        </div>
+        <div id="cr-last-visit" style="background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .7rem;margin-bottom:.6rem;font-size:.75rem;color:var(--muted);"></div>
+        <div class="cr-actions">
+          <button class="btn btn-y" onclick="document.getElementById('add-card').style.display='block';document.getElementById('add-card').scrollIntoView({behavior:'smooth'})">⭐ Points Add</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('red-card').style.display='block'">🎁 Redeem</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('bonus-card').style.display='block'">🎯 Bonus</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('personal-offer-card').style.display='block'" style="color:#FFA726;">💌 Personal Offer</button>
+          <button class="btn btn-ghost" onclick="verifyPhone()" id="verify-btn" style="color:#66bb6a;">✅ Verify</button>
         </div>
       </div>
     </div>
     <div class="scard" id="add-card" style="display:none;">
-      <div id="unverified-warning" style="display:none;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.25);border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.75rem;color:#ef5350;line-height:1.5;">⚠️ <strong>Phone unverified!</strong> Pehle verify karo.</div>
+      <div id="unverified-warning" style="display:none;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.25);border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.75rem;color:#ef5350;line-height:1.5;">⚠️ <strong>Phone unverified!</strong> Pehle verify karo tab hi points add karo.</div>
       <h2>⭐ Points Add</h2>
       <div class="fg2">
         <div class="fg"><label>Amount (₹)</label><input class="fi" id="p-amt" type="number" placeholder="150" oninput="calcPts()"></div>
         <div class="fg"><label>Points (auto)</label><input class="fi" id="p-pts" type="number" placeholder="Auto"></div>
       </div>
-      <div class="fg"><label>Note</label><input class="fi" id="p-note" placeholder="e.g. Paneer Roll 2x..."></div>
+      <div class="fg"><label>Note (optional)</label><input class="fi" id="p-note" placeholder="e.g. Paneer Roll 2x + Cold Coffee"></div>
       <button class="btn btn-y btn-full" onclick="addPts()">✅ Points Add Karein</button>
     </div>
     <div class="scard" id="red-card" style="display:none;">
       <h2>🎁 Redeem Points</h2>
-      <div class="fg"><input class="fi" id="r-pts" type="number" placeholder="100" oninput="showRV()"></div>
+      <div class="fg"><input class="fi" id="r-pts" type="number" placeholder="100 pts" oninput="showRV()"></div>
       <div id="rv" style="font-size:.82rem;color:var(--yellow);margin-bottom:.8rem;font-weight:600;"></div>
       <button class="btn btn-green btn-full" onclick="redeemPts()">🎁 Redeem Karein</button>
     </div>
@@ -271,21 +349,36 @@ tr:hover td{background:rgba(255,255,255,.02);}
             <option>Birthday reward diya</option>
             <option>Milestone visit reward diya</option>
             <option>Google review verified</option>
-            <option>Zomato follow</option>
+            <option>Zomato follow verified</option>
+            <option>Instagram follow verified</option>
             <option>Festival special</option>
-            <option>Complaint resolved</option>
+            <option>Complaint resolved — goodwill</option>
+            <option>Manual correction</option>
           </select>
         </div>
       </div>
       <button class="btn btn-ghost btn-full" onclick="addBonus()">🎯 Bonus Add</button>
     </div>
+    <div class="scard" id="personal-offer-card" style="display:none;">
+      <h2>💌 Personal Offer Bhejo</h2>
+      <p class="hint">Is customer ke liye ek special offer — unki app pe bhi dikhega (agar 15+ din inactive hain)</p>
+      <div class="fg"><label>Offer Message</label><input class="fi" id="po-text" placeholder="Sirf aapke liye: aaj 20% off! Bas yeh code dikhao."></div>
+      <div class="fg2">
+        <div class="fg"><label>Discount %</label><input class="fi" id="po-disc" type="number" placeholder="20"></div>
+        <div class="fg"><label>Code (auto-set)</label><input class="fi" id="po-code" placeholder="BACK{phone4}" readonly style="color:var(--yellow)"></div>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+        <button class="btn btn-y" onclick="sendPersonalOffer()">📤 WhatsApp pe Bhejo</button>
+        <button class="btn btn-green" onclick="savePersonalOfferDb()">💾 App mein bhi Save</button>
+      </div>
+    </div>
   </div>
 
-  <!-- MENU -->
+  <!-- ===== MENU ===== -->
   <div class="tc" id="tc-menu">
     <div class="scard">
       <h2>➕ Item Add Karo</h2>
-      <p class="hint">Cost price daalte hi — margin auto dikhega. Offer ON/OFF owner control kare.</p>
+      <p class="hint">Cost price daalte hi margin auto dikhega. Offer ON karo to user ki app pe discount dikhega.</p>
       <div class="fg3">
         <div class="fg"><label>Emoji</label><input class="fi" id="mi-emoji" placeholder="🌯" maxlength="2" style="text-align:center;font-size:1.2rem;"></div>
         <div class="fg"><label>Item Naam *</label><input class="fi" id="mi-name" placeholder="Paneer Roll"></div>
@@ -299,101 +392,90 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <div class="fg"><label>Offer % (Silver)</label><input class="fi" id="mi-disc" type="number" placeholder="0" oninput="calcM()"></div>
       </div>
       <div class="fg4">
-        <div class="fg"><label>Gold %</label><input class="fi" id="mi-dg" type="number" placeholder="0"></div>
-        <div class="fg"><label>VIP %</label><input class="fi" id="mi-dv" type="number" placeholder="0"></div>
-        <div class="fg"><label>Active?</label><select class="fs" id="mi-active"><option value="true">✅ Yes</option><option value="false">❌ No</option></select></div>
+        <div class="fg"><label>Gold Offer %</label><input class="fi" id="mi-dg" type="number" placeholder="0"></div>
+        <div class="fg"><label>VIP Offer %</label><input class="fi" id="mi-dv" type="number" placeholder="0"></div>
+        <div class="fg"><label>User App pe Show?</label><select class="fs" id="mi-active"><option value="true">✅ Haan — App pe dikhega</option><option value="false">❌ Nahi — Hide rahega</option></select></div>
       </div>
-      <div id="margin-display" style="margin-bottom:.8rem;"></div>
-      <button class="btn btn-y btn-full" onclick="addItem()">🌯 Add to Menu</button>
+      <div id="margin-display" style="margin-bottom:.8rem;font-size:.78rem;color:var(--muted);background:rgba(255,255,255,.04);border-radius:8px;padding:.6rem .8rem;min-height:28px;"></div>
+      <button class="btn btn-y btn-full" onclick="addItem()">🌯 Menu Mein Add Karo</button>
     </div>
-    <div class="scard"><h2>🌯 Current Menu</h2><div id="menu-list"><div style="text-align:center;color:var(--muted);font-size:.82rem;padding:1.5rem;">Loading...</div></div></div>
+    <div class="scard">
+      <h2>🌯 Current Menu</h2>
+      <p class="hint">👁️ = User app pe dikhega, 🙈 = Hidden. Discount ON karne pe user ko tier ke hisaab se offer dikhega.</p>
+      <div id="menu-list"><div style="text-align:center;color:var(--muted);padding:1.5rem;">Loading...</div></div>
+    </div>
   </div>
 
-  <!-- REWARDS TAB — NEW! -->
+  <!-- ===== REWARDS ===== -->
   <div class="tc" id="tc-rewards">
-    <!-- Visit Milestones -->
     <div class="scard">
-      <h2>🔥 Visit Milestones — Aap Set Karo</h2>
-      <p class="hint">Kisi bhi visit number pe reward set karo. Customer wahan pahunche to admin ko alert aayega.</p>
+      <h2>🔥 Visit Milestones</h2>
+      <p class="hint">Kisi bhi visit pe reward set karo — customer ki app pe automatically dikhega aur popup aayega!</p>
       <div id="milestone-list"></div>
-      <div style="display:flex;gap:.7rem;margin-top:.7rem;flex-wrap:wrap;">
-        <input class="fi" id="ms-visit" type="number" placeholder="Visit no. (e.g. 5)" style="width:140px;">
-        <input class="fi" id="ms-reward" placeholder="Reward (e.g. Free Paneer Roll)" style="flex:1;">
-        <button class="btn btn-y" onclick="addMilestone()">➕ Add</button>
+      <div style="display:flex;gap:.7rem;margin-top:.8rem;flex-wrap:wrap;align-items:flex-end;">
+        <div class="fg" style="margin:0;"><label>Visit No.</label><input class="fi" id="ms-visit" type="number" placeholder="5" style="width:90px;"></div>
+        <div class="fg" style="margin:0;flex:1;"><label>Reward (Customer ko dikhega)</label><input class="fi" id="ms-reward" placeholder="Free Paneer Roll ya Momos"></div>
+        <button class="btn btn-y" onclick="addMilestone()" style="align-self:flex-end;">➕ Add</button>
       </div>
     </div>
-
-    <!-- Birthday Reward -->
     <div class="scard">
-      <h2>🎂 Birthday Reward — Aap Decide Karo</h2>
-      <p class="hint">Customer ki birthday pe kya milega — aap tay karo.</p>
-      <div class="fg">
-        <label>Birthday pe kya milega?</label>
-        <input class="fi" id="bday-reward-text" placeholder="e.g. Free Paneer Roll + 15% off poore order pe">
+      <h2>🎂 Birthday Reward</h2>
+      <p class="hint">Customer ki app pe yahi text dikhega. Aap decide karo — kya dena hai birthday pe!</p>
+      <div class="fg"><label>Birthday pe kya milega? (App pe dikhega)</label><input class="fi" id="bday-reward-text" placeholder="Free Paneer Roll + 15% off poore order pe"></div>
+      <div class="fg2">
+        <div class="fg"><label>Discount %</label><input class="fi" id="bday-disc" type="number" placeholder="15"></div>
+        <div class="fg"><label>Bonus Points</label><input class="fi" id="bday-pts" type="number" placeholder="50"></div>
+      </div>
+      <button class="btn btn-y btn-full" onclick="saveBdayReward()">💾 Save — User App Update Hoga</button>
+    </div>
+    <div class="scard">
+      <h2>👥 Referral Reward System</h2>
+      <p class="hint">Har referral pe alag reward — customer ki app pe live dikhega. Max referrals bhi aap set karo.</p>
+      <div class="fg2">
+        <div class="fg"><label>Max Referrals (per customer)</label><input class="fi" id="ref-max" type="number" placeholder="3"></div>
+        <div class="fg"><label>1st Refer — Points</label><input class="fi" id="ref1-pts" type="number" placeholder="50"></div>
       </div>
       <div class="fg2">
-        <div class="fg">
-          <label>Discount %</label>
-          <input class="fi" id="bday-disc" type="number" placeholder="15">
-        </div>
-        <div class="fg">
-          <label>Bonus Points</label>
-          <input class="fi" id="bday-pts" type="number" placeholder="50">
-        </div>
+        <div class="fg"><label>2nd Refer — Points</label><input class="fi" id="ref2-pts" type="number" placeholder="70"></div>
+        <div class="fg"><label>3rd Refer — Points</label><input class="fi" id="ref3-pts" type="number" placeholder="100"></div>
       </div>
-      <button class="btn btn-y btn-full" onclick="saveBdayReward()">💾 Birthday Reward Save</button>
+      <div class="fg"><label>3rd Refer Special Item (optional)</label><input class="fi" id="ref3-item" placeholder="e.g. Free Aloo Roll ya Momos"></div>
+      <button class="btn btn-y btn-full" onclick="saveRefRewards()">💾 Save — User App Update Hoga</button>
     </div>
-
-    <!-- Referral Reward -->
-    <div class="scard">
-      <h2>👥 Referral Reward — Aap Set Karo</h2>
-      <p class="hint">Dost ko refer karne pe customer ko kya milega.</p>
-      <div class="fg4">
-        <div class="fg"><label>1st Refer Points</label><input class="fi" id="ref1-pts" type="number" placeholder="50"></div>
-        <div class="fg"><label>2nd Refer Points</label><input class="fi" id="ref2-pts" type="number" placeholder="70"></div>
-        <div class="fg"><label>3rd Refer Points</label><input class="fi" id="ref3-pts" type="number" placeholder="100"></div>
-      </div>
-      <div class="fg">
-        <label>3rd Refer Special Item (optional)</label>
-        <input class="fi" id="ref3-item" placeholder="e.g. Free Aloo Roll">
-      </div>
-      <button class="btn btn-y btn-full" onclick="saveRefRewards()">💾 Referral Reward Save</button>
-    </div>
-
-    <!-- Profit Warning Settings -->
     <div class="scard">
       <h2>⚠️ Profit Warning System</h2>
-      <p class="hint">Agar discount se loss ho raha ho to VishTech aur aap dono ko alert milega.</p>
       <div class="fg2">
-        <div class="fg">
-          <label>Warning threshold (discount %)</label>
-          <input class="fi" id="warn-pct" type="number" placeholder="5" value="5">
-          <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem;">Agar effective discount % isse zyada ho to warning</div>
-        </div>
-        <div class="fg">
-          <label>Critical threshold (%)</label>
-          <input class="fi" id="crit-pct" type="number" placeholder="8" value="8">
-          <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem;">Agar isse zyada ho to red alert</div>
-        </div>
+        <div class="fg"><label>Warning % (yellow)</label><input class="fi" id="warn-pct" type="number" placeholder="5" value="5"></div>
+        <div class="fg"><label>Critical % (red)</label><input class="fi" id="crit-pct" type="number" placeholder="8" value="8"></div>
       </div>
       <div id="current-discount-check" style="font-size:.8rem;color:var(--muted);padding:.7rem;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:.8rem;"></div>
-      <button class="btn btn-y btn-full" onclick="saveWarnings()">💾 Warning Settings Save</button>
+      <button class="btn btn-y btn-full" onclick="saveWarnings()">💾 Save Warning Settings</button>
     </div>
   </div>
 
-  <!-- CUSTOMERS -->
+  <!-- ===== CUSTOMERS ===== -->
   <div class="tc" id="tc-customers">
     <div class="scard">
       <div class="fr">
-        <input class="fi2" style="flex:1;min-width:140px;" id="f-s" placeholder="🔍 Naam, Phone, ID..." oninput="filterC()">
-        <select class="fi2" id="f-t" onchange="filterC()"><option value="">All Tiers</option><option>Silver</option><option>Gold</option><option>VIP Diamond</option></select>
-        <select class="fi2" id="f-so" onchange="filterC()"><option value="recent">Latest</option><option value="pts">Points ↓</option><option value="visits">Visits ↓</option></select>
+        <input class="fi2" style="flex:1;min-width:130px;" id="f-s" placeholder="🔍 Naam, Phone, ID..." oninput="filterC()">
+        <select class="fi2" id="f-t" onchange="filterC()">
+          <option value="">All Tiers</option>
+          <option>Silver</option><option>Gold</option><option>VIP Diamond</option>
+        </select>
+        <select class="fi2" id="f-so" onchange="filterC()">
+          <option value="recent">Latest First</option>
+          <option value="pts">Points ↓</option>
+          <option value="visits">Visits ↓</option>
+          <option value="inactive">Inactive First</option>
+          <option value="lastvisit">Last Visit</option>
+        </select>
         <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="loadC()">🔄</button>
         <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="filterUnverified()">❌ Unverified</button>
+        <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;color:#ef5350;" onclick="filterInactive()">😴 Inactive</button>
       </div>
       <div class="tw">
         <table>
-          <thead><tr><th>Naam</th><th>Phone</th><th>Points</th><th>Tier</th><th>Visits</th><th>Fav</th><th>Join</th><th>Action</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Phone</th><th>Points</th><th>Tier</th><th>Visits</th><th>Last Visit</th><th>Fav</th><th>Action</th></tr></thead>
           <tbody id="cust-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Loading...</td></tr></tbody>
         </table>
       </div>
@@ -402,18 +484,27 @@ tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 
-  <!-- ALERTS -->
+  <!-- ===== ALERTS ===== -->
   <div class="tc" id="tc-alerts">
     <div class="scard"><h2>🚨 Smart Alerts</h2><div id="alerts-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div></div>
+    <div class="scard">
+      <h2>😴 Inactive Customers — Win Back</h2>
+      <p class="hint">15+ din se nahi aaye. Personalized offer bhejo — unki app pe bhi dikhega!</p>
+      <div id="inactive-list"></div>
+    </div>
     <div class="scard"><h2>📊 Segment Summary</h2><div id="seg-summary"></div></div>
-    <div class="scard"><h2>📱 Social Tasks — Verify Karein</h2><p class="hint">Customer ne kiya — aap verify karo — points credit honge</p><div id="st-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div></div>
+    <div class="scard">
+      <h2>📱 Social Tasks — Verify Karein</h2>
+      <p class="hint">Customer ne Instagram/Google/WhatsApp task kiya — verify karo, points auto-credit honge.</p>
+      <div id="st-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
   </div>
 
-  <!-- HELP TICKETS — NEW! -->
+  <!-- ===== HELP ===== -->
   <div class="tc" id="tc-help">
     <div class="scard">
-      <h2>💬 Customer Help Requests</h2>
-      <p class="hint">Customers ne koi problem report ki — yahan dikhegi. Reply karo ya resolve karo.</p>
+      <h2>💬 Open Help Requests</h2>
+      <p class="hint">Customers ne complaint/query/suggestion bheja — reply karo ya resolve karo.</p>
       <div id="help-open"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
     </div>
     <div class="scard">
@@ -422,61 +513,65 @@ tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 
-  <!-- REFERRALS -->
+  <!-- ===== REFERRALS ===== -->
   <div class="tc" id="tc-referrals">
     <div class="scard"><h2>⏳ Pending — Verify Karo</h2><div id="ref-pending"></div></div>
-    <div class="scard"><h2>✅ Verified</h2><div id="ref-done"></div></div>
+    <div class="scard"><h2>✅ Verified Referrals</h2><div id="ref-done"></div></div>
   </div>
 
-  <!-- POSTS -->
+  <!-- ===== POSTS ===== -->
   <div class="tc" id="tc-posts">
-    <div class="scard" style="margin-bottom:.5rem;"><h2>📱 15 Ready Posts</h2><p class="hint">Copy karo ya WhatsApp share karo</p></div>
+    <div class="scard" style="margin-bottom:.5rem;">
+      <h2>📱 Ready Social Media Posts</h2>
+      <p class="hint">Copy → WhatsApp pe share karo. Ya Instagram pe directly share karo (caption auto-copy ho jayega).</p>
+    </div>
     <div id="posts-list"></div>
   </div>
 
-  <!-- EXPORT -->
+  <!-- ===== EXPORT ===== -->
   <div class="tc" id="tc-export">
     <div class="scard">
-      <h2>📥 Data Export</h2>
-      <button class="btn btn-y btn-full" onclick="expAll()" style="margin-bottom:.7rem;">📊 All Customers CSV</button>
-      <button class="btn btn-ghost btn-full" onclick="expBday()" style="margin-bottom:.7rem;">🎂 Birthday List</button>
-      <button class="btn btn-ghost btn-full" onclick="expRefs()">🔗 Referral Report</button>
+      <h2>📥 Data Export — CSV</h2>
+      <p class="hint">Excel mein open kar sakte hain — sab data milega.</p>
+      <button class="btn btn-y btn-full" onclick="expAll()" style="margin-bottom:.7rem;">📊 All Customers Export</button>
+      <button class="btn btn-ghost btn-full" onclick="expBday()" style="margin-bottom:.7rem;">🎂 Birthday List (Is Mahine)</button>
+      <button class="btn btn-ghost btn-full" onclick="expRefs()" style="margin-bottom:.7rem;">🔗 Referral Report</button>
+      <button class="btn btn-ghost btn-full" onclick="expInactive()" style="margin-bottom:.7rem;">😴 Inactive Customers</button>
+      <button class="btn btn-ghost btn-full" onclick="expUpcoming()">📅 Upcoming Specials (7 Days)</button>
     </div>
   </div>
 
-  <!-- SETTINGS -->
+  <!-- ===== SETTINGS ===== -->
   <div class="tc" id="tc-settings">
     <div class="scard">
-      <h2>⚙️ Points Rate</h2>
+      <h2>⚙️ Points & Shop Settings</h2>
       <div class="fg2">
         <div class="fg">
           <label>₹ per 1 Point</label>
           <input class="fi" id="set-rate" type="number" placeholder="10" min="5" max="100" oninput="updateSettingsPreview()">
           <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;" id="rate-hint"></div>
         </div>
-        <div class="fg">
-          <label>Welcome Points</label>
-          <input class="fi" id="set-welcome" type="number" placeholder="50" oninput="updateSettingsPreview()">
-        </div>
+        <div class="fg"><label>Welcome Points</label><input class="fi" id="set-welcome" type="number" placeholder="50" oninput="updateSettingsPreview()"></div>
       </div>
       <div class="fg2">
-        <div class="fg">
-          <label>100 pts = ₹ Discount</label>
-          <input class="fi" id="set-redeem-val" type="number" placeholder="10" oninput="updateSettingsPreview()">
-        </div>
-        <div class="fg">
-          <label>Shop Name</label>
-          <input class="fi" id="set-shopname" placeholder="The Kathi Roll Hub">
+        <div class="fg"><label>100 pts = ₹ Discount</label><input class="fi" id="set-redeem-val" type="number" placeholder="10" oninput="updateSettingsPreview()"></div>
+        <div class="fg"><label>Shop Name</label><input class="fi" id="set-shopname" placeholder="The Kathi Roll Hub"></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>Help WhatsApp No.</label><input class="fi" id="set-help-wa" placeholder="8619721224"></div>
+        <div class="fg"><label>Help Active?</label>
+          <select class="fs" id="set-help-active"><option value="1">✅ Active — Customer dekh sakta hai</option><option value="0">❌ OFF — Hidden</option></select>
         </div>
       </div>
+      <div class="fg"><label>Help Section Message (Customer ko dikhega)</label><input class="fi" id="set-help-msg" placeholder="Koi bhi problem? Hum help karenge!"></div>
       <div id="settings-preview" style="background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.9rem;font-size:.78rem;color:var(--muted);line-height:1.8;"></div>
       <div id="economy-check" style="margin-bottom:.9rem;"></div>
-      <button class="btn btn-y btn-full" onclick="saveSettings()">💾 Settings Save</button>
+      <button class="btn btn-y btn-full" onclick="saveSettings()">💾 Save — User App pe Live Update Hoga</button>
     </div>
     <div class="scard">
       <h2>🔐 Password Change</h2>
       <div class="fg"><input class="fi" id="new-pw2" type="password" placeholder="Naya password (6+ chars)..."></div>
-      <button class="btn btn-ghost" onclick="changePw2()">🔐 Change</button>
+      <button class="btn btn-ghost" onclick="changePw2()">🔐 Change Password</button>
     </div>
   </div>
 </div>
@@ -484,104 +579,123 @@ tr:hover td{background:rgba(255,255,255,.02);}
 <div class="toast" id="toast"></div>
 
 <script>
-let allC=[],filtC=[],selC=null,curPage=1;const PAGE=20;let menuItems=[];
-let shopSettings={rupeePerPoint:10,welcomePoints:50,redeemValue:10,shopName:'The Kathi Roll Hub',warnPct:5,critPct:8};
+let allC=[],filtC=[],selC=null,curPage=1;const PAGE=20;
+let menuItems=[];
 let milestones=[],bdayReward={},refRewards={};
+let topMode='points';
+let shopSettings={rupeePerPoint:10,welcomePoints:50,redeemValue:10,shopName:'The Kathi Roll Hub',warnPct:5,critPct:8,helpWa:'8619721224',helpMsg:'Koi bhi problem? Hum help karenge!',helpActive:1};
 
 // ===== AUTH =====
-firebase.auth().onAuthStateChanged((user)=>{
-  if(user){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    initApp();
-  }else{
-    document.getElementById('login-screen').style.display='flex';
-    document.getElementById('app').style.display='none';
-  }
+firebase.auth().onAuthStateChanged(u=>{
+  if(u){document.getElementById('login-wrap').style.display='none';document.getElementById('app').style.display='block';initApp();}
+  else{document.getElementById('login-wrap').style.display='flex';document.getElementById('app').style.display='none';}
 });
-
 async function doLogin(){
-  const email='vishtechsoftwareservices@gmail.com';
-  const password=document.getElementById('pw').value;
-  const btn=document.querySelector('.lb-btn');
-  const errEl=document.getElementById('lb-err');
-  btn.disabled=true;btn.textContent='⏳ Login ho raha hai...';
-  errEl.style.display='none';
-  try{
-    await firebase.auth().signInWithEmailAndPassword(email,password);
-  }catch(e){
-    errEl.style.display='block';
-    errEl.textContent='❌ Galat password!';
-    btn.disabled=false;btn.textContent='🔐 Login Karein';
-  }
+  const e=document.getElementById('l-email').value.trim();const p=document.getElementById('l-pw').value;
+  const err=document.getElementById('l-err');err.style.display='none';
+  try{await firebase.auth().signInWithEmailAndPassword(e,p);}
+  catch(ex){err.textContent='❌ '+ex.message;err.style.display='block';}
 }
-
-async function doLogout(){
-  if(confirm('Logout?')){await firebase.auth().signOut();location.reload();}
-}
-
-window.onload=()=>{
-  document.getElementById('pw').addEventListener('keyup',e=>{if(e.key==='Enter')doLogin();});
-};
+async function doLogout(){if(confirm('Logout karein?')){await firebase.auth().signOut();location.reload();}}
 
 function sw(n,btn){
-  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tc-'+n).classList.add('active');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tc-'+n).classList.add('active');btn.classList.add('active');
-  if(n==='alerts')loadAlerts();
-  if(n==='referrals')loadRefs();
-  if(n==='settings')loadSettings();
+  if(btn)btn.classList.add('active');
   if(n==='rewards')loadRewardsTab();
   if(n==='help')loadHelp();
+  if(n==='referrals')loadRefs();
+  if(n==='alerts')loadAlerts();
 }
 
-async function initApp(){
-  await loadSettings();
-  loadDash();loadC();loadMenu();renderPosts();
-}
+async function initApp(){await loadSettings();loadDash();loadC();loadMenu();renderPosts();}
 
 // ===== DASHBOARD =====
 async function loadDash(){
   try{
-    const snap=await shopDb.customers().get();
-    const custs=snap.docs.map(d=>d.data());
-    const today=new Date();
-    document.getElementById('st-total').textContent=custs.length;
-    document.getElementById('st-today').textContent=custs.filter(c=>{
-      if(!c.joinDate||!c.joinDate.toDate)return false;
-      return c.joinDate.toDate().toDateString()===today.toDateString();
-    }).length;
-    document.getElementById('st-pts').textContent=custs.reduce((s,c)=>s+(c.points||0),0).toLocaleString('en-IN');
-    document.getElementById('st-refs').textContent=custs.reduce((s,c)=>s+(c.referralCount||0),0);
-    // Birthday banner
-    const bdayT=custs.filter(c=>{if(!c.birthday)return false;const b=new Date(c.birthday);return b.getDate()===today.getDate()&&b.getMonth()===today.getMonth();});
-    if(bdayT.length){
+    const s=await shopDb.customers().get();
+    allC=s.docs.map(d=>({id:d.id,...d.data()}));
+    filtC=[...allC];
+    const today=new Date();const todayStr=today.toLocaleDateString('en-IN');
+    const totalPts=allC.reduce((a,c)=>a+(c.points||0),0);
+    const totalRefs=allC.reduce((a,c)=>a+(c.referralCount||0),0);
+    const todayReg=allC.filter(c=>c.joinDateStr===todayStr).length;
+    const inactive=allC.filter(c=>(c.lastVisitDays||0)>=15);
+    const gold=allC.filter(c=>(c.points||0)>=300&&(c.points||0)<700);
+    const vip=allC.filter(c=>(c.points||0)>=700);
+    document.getElementById('st-total').textContent=allC.length;
+    document.getElementById('st-today').textContent=todayReg;
+    document.getElementById('st-pts').textContent=totalPts.toLocaleString();
+    document.getElementById('st-refs').textContent=totalRefs;
+    document.getElementById('st-inactive').textContent=inactive.length;
+    document.getElementById('st-gold').textContent=gold.length;
+    document.getElementById('st-vip').textContent=vip.length;
+    // Birthday & anniversary banners
+    const todayMon=today.getMonth(),todayDay=today.getDate();
+    const bdayToday=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===todayMon&&new Date(c.birthday).getDate()===todayDay);
+    const anniToday=allC.filter(c=>c.anniversary&&new Date(c.anniversary).getMonth()===todayMon&&new Date(c.anniversary).getDate()===todayDay);
+    if(bdayToday.length){
       document.getElementById('bday-banner').style.display='block';
-      document.getElementById('bday-list').innerHTML=bdayT.map(c=>`<li>🎂 <strong>${c.name}</strong> — ${c.phone} <span class="wa-link" onclick="window.open('https://wa.me/91${c.phone}?text='+encodeURIComponent('🎂 Happy Birthday ${c.name} ji! ${bdayReward.text||'FREE Roll aapka wait kar raha hai!'} 🌯🎁'))">WhatsApp</span></li>`).join('');
+      document.getElementById('bday-list').innerHTML=bdayToday.map(c=>`<li class="bday-item"><span>🎂 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text='+encodeURIComponent('🎂 Happy Birthday ${c.name} ji!\\n\\nBirthday pe Roll Hub pe aao — aapka special reward aapka wait kar raha hai!\\n\\n— The Kathi Roll Hub 🌯'),'_blank')">💬 Wish</button></li>`).join('');
     }
-    // Top 5
-    const top5=[...custs].sort((a,b)=>(b.points||0)-(a.points||0)).slice(0,5);
-    document.getElementById('top-members').innerHTML=top5.length?top5.map((c,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.8rem;"><span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${c.name} <span style="font-size:.68rem;color:var(--muted);">${c.phone}</span></span><span style="font-weight:600;color:var(--yellow);">${(c.points||0).toLocaleString()} pts</span></div>`).join(''):'<div style="color:var(--muted);">Abhi koi member nahi</div>';
-    // Profit warning on dashboard
+    if(anniToday.length){
+      document.getElementById('anni-banner').style.display='block';
+      document.getElementById('anni-list').innerHTML=anniToday.map(c=>`<li class="bday-item"><span>💑 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text='+encodeURIComponent('💑 Happy Anniversary ${c.name} ji!\\n\\nAapki special day pe Roll Hub pe aao — romantic combo aapka wait kar raha hai!\\n\\n— The Kathi Roll Hub 🌯'),'_blank')">💬 Wish</button></li>`).join('');
+    }
+    showTopBy('points');
+    loadUpcomingSpecials(allC);
     checkProfitWarning();
-  }catch(e){toast('❌ '+e.message);}
+    renderT();
+  }catch(e){toast('❌ Dashboard load error: '+e.message);}
+}
+
+function showTopBy(mode){
+  topMode=mode;
+  const sorted=[...allC].sort((a,b)=>{
+    if(mode==='points')return(b.points||0)-(a.points||0);
+    if(mode==='visits')return(b.visits||0)-(a.visits||0);
+    if(mode==='referrals')return(b.referralCount||0)-(a.referralCount||0);
+    if(mode==='spend')return(b.totalSpend||0)-(a.totalSpend||0);
+    return 0;
+  });
+  const medals=['🥇','🥈','🥉','4.','5.','6.','7.','8.'];
+  const valFn=c=>mode==='points'?`${c.points||0} pts`:mode==='visits'?`${c.visits||0} visits`:mode==='referrals'?`${c.referralCount||0} refs`:`₹${c.totalSpend||0}`;
+  document.getElementById('top-members').innerHTML=sorted.slice(0,8).map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:.7rem;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <span style="font-size:1rem;min-width:22px;">${medals[i]||''}</span>
+      <div style="flex:1"><div style="font-size:.82rem;font-weight:600;">${c.name}</div><div style="font-size:.7rem;color:var(--muted);">${c.phone}</div></div>
+      <span style="font-size:.82rem;color:var(--yellow);font-weight:700;">${valFn(c)}</span>
+      <button onclick="qP('${c.id}')" style="background:rgba(255,214,0,.1);border:1px solid var(--border);color:var(--yellow);padding:.2rem .55rem;border-radius:6px;font-size:.68rem;cursor:pointer;font-family:DM Sans,sans-serif;">⭐</button>
+    </div>`).join('')||'<div style="color:var(--muted);">Koi data nahi</div>';
+}
+
+function loadUpcomingSpecials(custs){
+  const today=new Date();
+  const upcoming=[];
+  custs.forEach(c=>{
+    // Birthday
+    if(c.birthday){const b=new Date(c.birthday);const nb=new Date(today.getFullYear(),b.getMonth(),b.getDate());if(nb<today)nb.setFullYear(today.getFullYear()+1);const dl=Math.ceil((nb-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push({type:'birthday',name:c.name,phone:c.phone,days:dl,emoji:'🎂'});}
+    // Anniversary
+    if(c.anniversary){const a=new Date(c.anniversary);const na=new Date(today.getFullYear(),a.getMonth(),a.getDate());if(na<today)na.setFullYear(today.getFullYear()+1);const dl=Math.ceil((na-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push({type:'anniversary',name:c.name,phone:c.phone,days:dl,emoji:'💑'});}
+  });
+  upcoming.sort((a,b)=>a.days-b.days);
+  const el=document.getElementById('upcoming-specials');
+  if(!upcoming.length){el.innerHTML='<span style="color:var(--muted);">Next 7 din mein koi birthday/anniversary nahi.</span>';return;}
+  el.innerHTML=upcoming.map(u=>`
+    <div class="spec-row">
+      <div><span style="margin-right:.4rem;">${u.emoji}</span><strong>${u.name}</strong> <span style="color:var(--muted);font-size:.75rem;">— ${u.type==='birthday'?'Birthday':'Anniversary'}, ${u.days===0?'Aaj!':u.days===1?'Kal':u.days+' din baad'}</span></div>
+      <button onclick="window.open('https://wa.me/91${u.phone}?text='+encodeURIComponent('${u.emoji} Happy ${u.type==='birthday'?'Birthday':'Anniversary'} ${u.name} ji! ${u.type==='birthday'?'🎂 Birthday pe aao — aapka special reward ready hai!':'💑 Anniversary pe aao — romantic special treat hai!'}\\n\\n— The Kathi Roll Hub 🌯'),'_blank')" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .65rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;">💬 Wish</button>
+    </div>`).join('');
 }
 
 function checkProfitWarning(){
-  const rate=shopSettings.rupeePerPoint||10;
-  const redeem=shopSettings.redeemValue||10;
-  const eff=((redeem/rate)*10);
-  const warn=shopSettings.warnPct||5;
-  const crit=shopSettings.critPct||8;
-  const el=document.getElementById('profit-warning-dash');
-  if(!el)return;
-  if(eff>crit){
-    el.innerHTML=`<div class="warn-box"><h3>🚨 CRITICAL: Profit Risk!</h3><p>Aapka effective discount ${eff.toFixed(1)}% hai — yeh bahut zyada hai. Business loss ho sakta hai. Settings tab mein jaake points rate adjust karein ya VishTech se contact karein.</p></div>`;
-  }else if(eff>warn){
-    el.innerHTML=`<div style="background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.2);border-radius:12px;padding:.9rem;margin-bottom:.9rem;"><p style="font-size:.78rem;color:var(--yellow);">⚠️ Discount rate ${eff.toFixed(1)}% hai — thoda monitor karein.</p></div>`;
-  }else{
-    el.innerHTML='';
-  }
+  const rate=shopSettings.rupeePerPoint||10;const redeem=shopSettings.redeemValue||10;
+  const eff=((redeem/rate)*10);const w=shopSettings.warnPct||5;const cr=shopSettings.critPct||8;
+  const pw=document.getElementById('profit-warning-dash');
+  if(eff>cr&&pw)pw.innerHTML=`<div style="background:rgba(211,47,47,.15);border:1.5px solid rgba(211,47,47,.3);border-radius:12px;padding:.8rem 1rem;margin-bottom:.9rem;font-size:.8rem;color:#ef5350;">🚨 <strong>Loss Risk!</strong> Effective discount ${eff.toFixed(1)}% — critical threshold ${cr}% se zyada hai! Settings check karo.</div>`;
+  else if(eff>w&&pw)pw.innerHTML=`<div style="background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.9rem;font-size:.8rem;color:var(--yellow);">⚠️ Effective discount ${eff.toFixed(1)}% — monitor karo.</div>`;
+  else if(pw)pw.innerHTML='';
 }
 
 // ===== CUSTOMERS =====
@@ -589,295 +703,313 @@ async function loadC(){
   try{
     const s=await shopDb.customers().get();
     allC=s.docs.map(d=>({id:d.id,...d.data()}));
-    allC.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch(e){return 0;}});
-    filtC=[...allC];renderT();
-  }catch(e){
-    document.getElementById('cust-tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#ef5350;padding:1rem;font-size:.78rem;">❌ Firebase Rules check karo</td></tr>`;
-  }
+    filtC=[...allC];curPage=1;renderT();
+  }catch(e){toast('❌ '+e.message);}
 }
 
-function filterUnverified(){filtC=allC.filter(c=>!c.phoneVerified);curPage=1;renderT();document.getElementById('f-s').value='';toast(`${filtC.length} unverified`);}
+function filterUnverified(){filtC=allC.filter(c=>!c.phoneVerified);curPage=1;renderT();toast(`${filtC.length} unverified`);}
+function filterInactive(){filtC=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));curPage=1;renderT();toast(`${filtC.length} inactive`);}
 
 function filterC(){
-  const q=document.getElementById('f-s').value.toLowerCase();
-  const t=document.getElementById('f-t').value;
+  const q=(document.getElementById('f-s').value||'').toLowerCase().trim();
+  const tier=document.getElementById('f-t').value;
   const so=document.getElementById('f-so').value;
-  filtC=allC.filter(c=>{
-    const mq=!q||c.name?.toLowerCase().includes(q)||c.phone?.includes(q)||c.id?.toLowerCase().includes(q);
-    const mt=!t||c.tier===t;return mq&&mt;
-  });
-  if(so==='pts')filtC.sort((a,b)=>(b.points||0)-(a.points||0));
-  else if(so==='visits')filtC.sort((a,b)=>(b.visits||0)-(a.visits||0));
-  else filtC.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch(e){return 0;}});
-  curPage=1;renderT();
+  let arr=[...allC];
+  if(q)arr=arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.id||'').toLowerCase().includes(q));
+  if(tier)arr=arr.filter(c=>(c.tier||'Silver')===tier);
+  if(so==='pts')arr.sort((a,b)=>(b.points||0)-(a.points||0));
+  else if(so==='visits')arr.sort((a,b)=>(b.visits||0)-(a.visits||0));
+  else if(so==='inactive')arr.sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
+  else if(so==='lastvisit')arr.sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
+  else arr.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch{return 0;}});
+  filtC=arr;curPage=1;renderT();
 }
 
 function renderT(){
-  const s=(curPage-1)*PAGE;const p=filtC.slice(s,s+PAGE);const tb=document.getElementById('cust-tbody');
-  document.getElementById('cc').textContent=`${filtC.length} customers`;
-  if(!p.length){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Koi result nahi</td></tr>`;document.getElementById('pag').innerHTML='';return;}
-  tb.innerHTML=p.map(c=>{
-    const ti=gT(c.points||0);const v=c.visits||0;
-    const vBadge=c.phoneVerified?'<span style="color:#66bb6a;font-size:.6rem;">✅</span>':'<span style="color:#ef5350;font-size:.6rem;">❌</span>';
-    // Check milestone
-    const ms=milestones.find(m=>m.visit==v&&m.active);
-    const msAlert=ms?`<span style="color:var(--yellow);font-size:.6rem;"> 🎁${ms.reward}</span>`:'';
-    return`<tr><td style="font-weight:500;">${c.name}<div style="font-size:.68rem;color:var(--muted);">${c.id}</div></td><td style="color:var(--muted);">${c.phone} ${vBadge}</td><td style="font-weight:600;color:var(--yellow);">${(c.points||0).toLocaleString()}</td><td><span class="tp ${ti.c}">${ti.l}</span></td><td>${v}${msAlert}</td><td style="font-size:.72rem;color:var(--muted);">${(c.dishes||[]).slice(0,1).join(',')||'—'}</td><td style="font-size:.72rem;color:var(--muted);">${c.joinDateStr||'—'}</td><td><button class="ab" onclick="qP('${c.id}')">+ Pts</button></td></tr>`;
+  const start=(curPage-1)*PAGE,end=start+PAGE,page=filtC.slice(start,end);
+  const tbody=document.getElementById('cust-tbody');
+  if(!page.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Koi customer nahi mila</td></tr>`;document.getElementById('pag').innerHTML='';return;}
+  tbody.innerHTML=page.map(c=>{
+    const lv=c.lastVisitDays||0;
+    let lvHtml='';
+    if(lv===0)lvHtml='<span class="lv-badge lv-ok">Aaj</span>';
+    else if(lv===1)lvHtml='<span class="lv-badge lv-ok">Kal</span>';
+    else if(lv<15)lvHtml=`<span class="lv-badge lv-warn">${lv}d</span>`;
+    else lvHtml=`<span class="lv-badge lv-bad">🔴 ${lv}d</span>`;
+    const tier=gT(c.points||0);
+    const favs=(c.dishes||[]).slice(0,2).join(', ')+(c.dishes?.length>2?'…':'');
+    return`<tr>
+      <td><strong>${c.name}</strong>${c.phoneVerified?'<span style="font-size:.65rem;color:#66bb6a;margin-left:.3rem;">✅</span>':''}</td>
+      <td>${c.phone}</td>
+      <td style="color:var(--yellow);font-weight:700;">${c.points||0}</td>
+      <td><span class="${tier.c}">${tier.l}</span></td>
+      <td>${c.visits||0}</td>
+      <td>${lvHtml}</td>
+      <td style="font-size:.7rem;color:var(--muted);">${favs||'—'}</td>
+      <td><button onclick="qP('${c.id}')" style="background:rgba(255,214,0,.12);border:none;border-radius:6px;padding:.25rem .65rem;font-size:.72rem;cursor:pointer;color:var(--yellow);font-family:DM Sans,sans-serif;">⭐ Points</button></td>
+    </tr>`;
   }).join('');
-  const total=Math.ceil(filtC.length/PAGE);
-  document.getElementById('pag').innerHTML=total>1?Array.from({length:total},(_,i)=>`<button class="pb ${i+1===curPage?'on':''}" onclick="gP(${i+1})">${i+1}</button>`).join(''):'';
+  // Pagination
+  const pages=Math.ceil(filtC.length/PAGE);
+  document.getElementById('pag').innerHTML=Array.from({length:pages},(_,i)=>`<button class="pgb ${i+1===curPage?'active':''}" onclick="gP(${i+1})">${i+1}</button>`).join('');
+  document.getElementById('cc').textContent=`${filtC.length} customers — Page ${curPage}/${pages}`;
 }
 
 function gP(p){curPage=p;renderT();}
 function gT(pts){if(pts>=700)return{l:'💎 VIP',c:'tv'};if(pts>=300)return{l:'🥇 Gold',c:'tg'};return{l:'🥈 Silver',c:'ts'};}
-function qP(id){const c=allC.find(x=>x.id===id);if(!c)return;sw('points',document.querySelectorAll('.tab')[1]);document.getElementById('srch').value=c.phone;showCR(c);toast(`✅ ${c.name} select ho gaya`);}
 
-let sT;
+function qP(id){
+  const c=allC.find(x=>x.id===id);if(!c)return;
+  sw('points',document.querySelectorAll('.tab')[1]);
+  document.getElementById('srch').value=c.phone;
+  showCR(c);
+  toast(`✅ ${c.name} select ho gaya`);
+}
+
 function searchCust(){
-  clearTimeout(sT);const q=document.getElementById('srch').value.trim();if(q.length<3){hideCR();return;}
-  sT=setTimeout(async()=>{
-    try{
-      let c;
-      if(q.toUpperCase().startsWith('RKH')){const d=await shopDb.customer(q.toUpperCase()).get();if(d.exists)c={id:d.id,...d.data()};}
-      else{const s=await shopDb.customers().where('phone','==',q).get();if(!s.empty)c={id:s.docs[0].id,...s.docs[0].data()};}
-      if(c)showCR(c);else{hideCR();toast('❌ Customer nahi mila');}
-    }catch(e){toast('Error: '+e.message);}
-  },500);
+  const q=document.getElementById('srch').value.trim();
+  if(q.length<5)return;
+  const c=allC.find(x=>x.phone===q||x.id===q);
+  if(c)showCR(c);
 }
 
 function showCR(c){
-  selC=c;const ti=gT(c.points||0);const v=c.visits||0;const nf=5-(v%5)||5;
+  selC=c;
+  const lv=c.lastVisitDays||0;
+  document.getElementById('cr').style.display='block';
   document.getElementById('cr-name').textContent=c.name;
-  const vBadge=c.phoneVerified?'<span style="color:#66bb6a;font-size:.7rem;font-weight:600;">✅ Verified</span>':'<span style="color:#ef5350;font-size:.7rem;font-weight:600;">❌ Unverified</span>';
-  document.getElementById('cr-meta').innerHTML=`📱 ${c.phone} | ID: ${c.id} ${vBadge}<br>Visits: ${v} | City: ${c.city||'—'}`;
-  // Check if at milestone
-  const ms=milestones.find(m=>m.visit==v&&m.active);
-  const msNote=ms?`<div style="background:rgba(255,214,0,.1);border:1px solid rgba(255,214,0,.2);border-radius:8px;padding:.5rem .8rem;margin-top:.5rem;font-size:.75rem;color:var(--yellow);">🎁 ${v}th visit milestone! Reward: <strong>${ms.reward}</strong> — diya?</div>`:'';
-  document.getElementById('cr-tier').innerHTML=`<span class="tp ${ti.c}">${ti.l}</span>${!c.phoneVerified?` <button onclick="verifyPhone()" style="background:rgba(239,83,80,.15);border:1px solid rgba(239,83,80,.3);color:#ef5350;padding:.15rem .5rem;border-radius:6px;font-size:.68rem;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:.4rem;">📱 Verify</button>`:''}${msNote}`;
-  document.getElementById('cr-pts').textContent=(c.points||0).toLocaleString();
-  document.getElementById('cr-streak').textContent='🔥 '+v+' visits';
-  document.getElementById('cr-dishes').innerHTML=(c.dishes||[]).map(d=>`<span class="cr-dish">${d}</span>`).join('');
-  ['cr','add-card','red-card','bonus-card'].forEach(id=>document.getElementById(id).style.display='block');
-  const uw=document.getElementById('unverified-warning');
-  if(uw)uw.style.display=c.phoneVerified?'none':'block';
+  document.getElementById('cr-meta').textContent=`📱 ${c.phone} | ID: ${c.id} | ${c.city||'City N/A'} | Joined: ${c.joinDateStr||'—'}`;
+  const tier=gT(c.points||0);
+  document.getElementById('cr-tier').innerHTML=`<span class="${tier.c}">${tier.l}</span> ${c.phoneVerified?'<span style="font-size:.72rem;color:#66bb6a;">✅ Verified</span>':'<span style="font-size:.72rem;color:#ef5350;">❌ Unverified</span>'}`;
+  document.getElementById('cr-pts').textContent=c.points||0;
+  document.getElementById('cr-streak').textContent=`🔥 ${c.visits||0} Visits | 👥 ${c.referralCount||0} Refs`;
+  document.getElementById('cr-dishes').innerHTML=(c.dishes||[]).map(d=>`<span class="cd-chip">${d}</span>`).join('');
+  const lvText=lv===0?'Aaj aaya/aayi':lv===1?'Kal aaya/aayi':`${lv} din pehle aaya/aayi`;
+  document.getElementById('cr-last-visit').innerHTML=`🕐 Last Visit: <strong>${lvText}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;💰 Total Spend: ₹${c.totalSpend||0}&nbsp;&nbsp;|&nbsp;&nbsp;📱 ${c.phone}`;
+  // Personal offer card setup
+  const poc=document.getElementById('po-code');if(poc)poc.value='BACK'+c.phone.slice(-4);
+  const poText=document.getElementById('po-text');if(poText&&c.personalOffer)poText.value=c.personalOffer.msg||'';
+  document.getElementById('add-card').style.display='block';
+  document.getElementById('red-card').style.display='block';
+  document.getElementById('bonus-card').style.display='block';
+  document.getElementById('personal-offer-card').style.display='block';
+  // Unverified warning
+  document.getElementById('unverified-warning').style.display=c.phoneVerified?'none':'block';
 }
 
 async function verifyPhone(){
   if(!selC)return;
-  if(confirm(`${selC.name} ka phone verify karein?`)){
-    try{await shopDb.customer(selC.id).update({phoneVerified:true});selC.phoneVerified=true;showCR(selC);toast('✅ Verified!');loadC();}
-    catch(e){toast('❌ '+e.message);}
-  }
+  try{await shopDb.customer(selC.id).update({phoneVerified:true});selC.phoneVerified=true;const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].phoneVerified=true;showCR(selC);toast('✅ Verified!');}
+  catch(e){toast('❌ '+e.message);}
 }
-function hideCR(){['cr','add-card','red-card','bonus-card'].forEach(id=>document.getElementById(id).style.display='none');}
-
-function calcPts(){
-  const a=parseFloat(document.getElementById('p-amt').value)||0;
-  const rate=shopSettings.rupeePerPoint||10;
-  document.getElementById('p-pts').value=Math.floor(a/rate);
-}
-function showRV(){const p=parseInt(document.getElementById('r-pts').value)||0;document.getElementById('rv').textContent=p>0?`${p} pts = ₹${Math.floor(p/(100/(shopSettings.redeemValue||10)))} discount`:''; }
+function hideCR(){['cr','add-card','red-card','bonus-card','personal-offer-card'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
+function calcPts(){const amt=parseFloat(document.getElementById('p-amt').value)||0;const pts=Math.floor(amt/(shopSettings.rupeePerPoint||10));document.getElementById('p-pts').value=pts||'';}
+function showRV(){const p=parseInt(document.getElementById('r-pts').value)||0;const rate=shopSettings.redeemValue||10;document.getElementById('rv').textContent=p>0?`${p} pts = ₹${Math.floor(p*(rate/100))} discount`:'';}
 
 async function addPts(){
-  if(!selC)return;
+  if(!selC)return toast('❌ Customer select karein');
   const amt=parseFloat(document.getElementById('p-amt').value)||0;
-  const pts=parseInt(document.getElementById('p-pts').value)||0;
-  if(pts<=0)return toast('❌ Points likhein');
+  const pts=parseInt(document.getElementById('p-pts').value)||Math.floor(amt/(shopSettings.rupeePerPoint||10));
+  const note=document.getElementById('p-note').value||'Visit';
+  if(!pts||pts<=0)return toast('❌ Amount ya points enter karein');
   try{
-    const nv=(selC.visits||0)+1;
-    await shopDb.customer(selC.id).update({
-      points:firebase.firestore.FieldValue.increment(pts),
-      totalSpend:firebase.firestore.FieldValue.increment(amt),
-      visits:firebase.firestore.FieldValue.increment(1),
-      lastVisit:firebase.firestore.FieldValue.serverTimestamp(),
-      lastVisitDays:0
-    });
-    await shopDb.transactions().add({customerId:selC.id,customerName:selC.name,type:'earn',points:pts,amount:amt,note:document.getElementById('p-note').value||'Purchase',date:firebase.firestore.FieldValue.serverTimestamp()});
-    const np=(selC.points||0)+pts;
-    document.getElementById('cr-pts').textContent=np.toLocaleString();
-    selC.points=np;selC.visits=nv;
-    await chkTier(selC.id,np);
-    // Milestone check
-    const ms=milestones.find(m=>m.visit==nv&&m.active);
-    let msg=`✅ ${pts} pts! Total: ${np}`;
-    if(ms)msg+=` 🎁 ${nv}th visit milestone — "${ms.reward}" dena hai!`;
-    toast(msg);
-    ['p-amt','p-pts','p-note'].forEach(id=>document.getElementById(id).value='');
-    loadC();loadDash();
+    await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(pts),visits:firebase.firestore.FieldValue.increment(1),totalSpend:firebase.firestore.FieldValue.increment(amt||0),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0});
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'earn',points:pts,amount:amt,note,date:firebase.firestore.FieldValue.serverTimestamp()});
+    const newPts=(selC.points||0)+pts;await chkTier(selC.id,newPts);
+    selC.points=newPts;selC.visits=(selC.visits||0)+1;selC.lastVisitDays=0;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0){allC[i]=selC;}
+    showCR(selC);toast(`✅ +${pts} points added! Total: ${newPts}`);
+    document.getElementById('p-amt').value='';document.getElementById('p-pts').value='';document.getElementById('p-note').value='';
   }catch(e){toast('❌ '+e.message);}
 }
 
 async function redeemPts(){
-  if(!selC)return;
+  if(!selC)return toast('❌ Customer select karein');
   const pts=parseInt(document.getElementById('r-pts').value)||0;
-  if(pts<=0)return toast('❌ Points likhein');
-  if(pts>(selC.points||0))return toast('❌ Max: '+(selC.points||0)+' pts');
+  if(pts<=0)return toast('❌ Points enter karein');
+  if(pts>(selC.points||0))return toast(`❌ Sirf ${selC.points} pts hain`);
   try{
     await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(-pts)});
-    await shopDb.transactions().add({customerId:selC.id,type:'redeem',points:-pts,note:'Redemption',date:firebase.firestore.FieldValue.serverTimestamp()});
-    const np=(selC.points||0)-pts;
-    document.getElementById('cr-pts').textContent=np.toLocaleString();selC.points=np;
-    const discAmt=Math.floor(pts/(100/(shopSettings.redeemValue||10)));
-    toast(`✅ ${pts} pts redeem! ₹${discAmt} discount.`);
-    document.getElementById('r-pts').value='';document.getElementById('rv').textContent='';
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'redeem',points:-pts,note:'Redemption',date:firebase.firestore.FieldValue.serverTimestamp()});
+    selC.points=(selC.points||0)-pts;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].points=selC.points;
+    showCR(selC);toast(`✅ ${pts} pts redeemed! Remaining: ${selC.points}`);
+    document.getElementById('r-pts').value='';
   }catch(e){toast('❌ '+e.message);}
 }
 
 async function addBonus(){
-  if(!selC)return;
+  if(!selC)return toast('❌ Customer select karein');
   const pts=parseInt(document.getElementById('b-pts').value)||0;
-  const r=document.getElementById('b-reason').value;
-  if(pts<=0)return toast('❌ Points likhein');
+  const reason=document.getElementById('b-reason').value;
+  if(pts<=0)return toast('❌ Points enter karein');
   try{
     await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(pts)});
-    await shopDb.transactions().add({customerId:selC.id,type:'bonus',points:pts,note:r,date:firebase.firestore.FieldValue.serverTimestamp()});
-    const np=(selC.points||0)+pts;document.getElementById('cr-pts').textContent=np.toLocaleString();selC.points=np;
-    toast(`✅ ${pts} bonus pts!`);document.getElementById('b-pts').value='';
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'bonus',points:pts,note:reason,date:firebase.firestore.FieldValue.serverTimestamp()});
+    selC.points=(selC.points||0)+pts;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].points=selC.points;
+    showCR(selC);toast(`🎯 +${pts} bonus pts! Reason: ${reason}`);
+    document.getElementById('b-pts').value='';
   }catch(e){toast('❌ '+e.message);}
 }
 
 async function chkTier(id,pts){let t='Silver';if(pts>=700)t='VIP Diamond';else if(pts>=300)t='Gold';await shopDb.customer(id).update({tier:t}).catch(()=>{});}
 
+function sendPersonalOffer(){
+  if(!selC)return;
+  const msg=document.getElementById('po-text').value||'Aapke liye special offer!';
+  const disc=document.getElementById('po-disc').value||'10';
+  const code='BACK'+selC.phone.slice(-4);
+  const wa=`Namaste ${selC.name} ji! 😊\n\nHum aapko yaad kar rahe hain — ${selC.lastVisitDays||0} din ho gaye Roll Hub nahi aaye!\n\n🎁 Sirf aapke liye: *${msg}*\n\n💰 Code: *${code}* — ${disc}% OFF!\n\nCounter pe yeh code dikhao — discount milega!\n\n🌯 The Kathi Roll Hub, Murlipura\n24x7 Open!`;
+  window.open(`https://wa.me/91${selC.phone}?text=${encodeURIComponent(wa)}`,'_blank');
+}
+
+async function savePersonalOfferDb(){
+  if(!selC)return;
+  const msg=document.getElementById('po-text').value||'Aapke liye special offer!';
+  const disc=document.getElementById('po-disc').value||'10';
+  const code='BACK'+selC.phone.slice(-4);
+  try{
+    await shopDb.customer(selC.id).update({personalOffer:{msg,disc:parseInt(disc),code,savedAt:firebase.firestore.FieldValue.serverTimestamp()}});
+    toast('✅ Saved! Customer ki app pe dikhega (agar 15d+ inactive hain)');
+  }catch(e){toast('❌ '+e.message);}
+}
+
 // ===== MENU =====
 function calcM(){
-  const p=parseFloat(document.getElementById('mi-price').value)||0;
-  const c=parseFloat(document.getElementById('mi-cost').value)||0;
-  const d=parseFloat(document.getElementById('mi-disc').value)||0;
-  if(!p)return;
-  const mg=p>0?((p-c)/p*100):0;
-  const ad=d?((p*(1-d/100)-c)/(p*(1-d/100))*100):mg;
+  const price=parseFloat(document.getElementById('mi-price').value)||0;
+  const cost=parseFloat(document.getElementById('mi-cost').value)||0;
+  const disc=parseFloat(document.getElementById('mi-disc').value)||0;
   const el=document.getElementById('margin-display');if(!el)return;
-  let cls='ps',msg='✅ Safe';if(ad<20){cls='pd';msg='❌ Loss!';}else if(ad<35){cls='pw';msg='⚠️ Caution';}
-  el.innerHTML=c>0?`<span class="profit-badge ${cls}">${msg} — Gross: ${mg.toFixed(0)}%, After offer: ${ad.toFixed(0)}%</span>`:'<span style="font-size:.72rem;color:var(--muted);">Cost daalte hi margin dikhega</span>';
+  if(!price){el.textContent='';return;}
+  const margin=price>0?((price-cost)/price*100).toFixed(1):0;
+  const afterDisc=price*(1-disc/100);
+  const netProfit=cost>0?afterDisc-cost:0;
+  el.innerHTML=`📊 Margin: <strong style="color:${parseFloat(margin)>30?'#66bb6a':parseFloat(margin)>15?'var(--yellow)':'#ef5350'}">${margin}%</strong>&nbsp;&nbsp;|&nbsp;&nbsp;After ${disc}% off: ₹${afterDisc.toFixed(0)}&nbsp;&nbsp;|&nbsp;&nbsp;Net profit: ₹${netProfit.toFixed(0)}`;
 }
 
 async function loadMenu(){
   try{const s=await shopDb.menu().get();menuItems=s.exists?(s.data().items||[]):[];renderMenu();}
-  catch(e){menuItems=[];renderMenu();}
+  catch(e){toast('❌ Menu load error');}
 }
 
 function renderMenu(){
-  const l=document.getElementById('menu-list');
-  if(!menuItems.length){l.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:.82rem;padding:1.5rem;">Koi item nahi.</div>`;return;}
-  l.innerHTML=menuItems.map((item,i)=>{
-    const mg=item.cost&&item.price?(((item.price-item.cost)/item.price)*100).toFixed(0):null;
-    const da=item.discountPct&&item.cost?((item.price*(1-item.discountPct/100)-item.cost)/(item.price*(1-item.discountPct/100))*100).toFixed(0):null;
-    return`<div class="mir"><span style="font-size:1.5rem;flex-shrink:0">${item.emoji||'🌯'}</span><div style="flex:1;min-width:100px"><div style="font-size:.86rem;font-weight:500;color:var(--text)">${item.name}</div><div style="font-size:.7rem;color:var(--muted)">₹${item.price} · ${item.category||''}</div>${mg?`<span class="profit-badge ${da&&da<20?'pd':da&&da<35?'pw':'ps'}" style="margin-top:.2rem;">Margin: ${mg}%${item.discountPct?' → '+da+'% after':''}</span>`:''}</div><div class="mi-tb"><input class="mi-disc" type="number" value="${item.discountPct||0}" min="0" max="70" id="md-${i}">%<label class="tsw"><input type="checkbox" ${item.discountActive?'checked':''} onchange="tI(${i},this.checked)"><span></span></label><button class="btn btn-y" style="padding:.28rem .6rem;font-size:.7rem;" onclick="sD(${i})">Save</button><button class="del-btn" onclick="dI(${i})">🗑️</button></div></div>`;
-  }).join('');
+  const el=document.getElementById('menu-list');
+  if(!menuItems.length){el.innerHTML='<div style="color:var(--muted);text-align:center;padding:1.5rem;">Menu empty hai — items add karo!</div>';return;}
+  el.innerHTML=menuItems.map((item,i)=>`
+    <div class="menu-item-row">
+      <span style="font-size:1.5rem;">${item.emoji||'🌯'}</span>
+      <div class="mi-info">
+        <div class="mi-name">${item.name}</div>
+        <div class="mi-sub">₹${item.price} | Cost: ₹${item.cost||0} | ${item.category||'—'} | Offer: ${item.discountPct||0}% (Silver) / ${item.discountGold||0}% (Gold) / ${item.discountVip||0}% (VIP)</div>
+      </div>
+      <input type="number" value="${item.discountPct||0}" min="0" max="50" style="width:55px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.25rem .5rem;color:var(--text);font-size:.75rem;text-align:center;" onchange="sD(${i},this.value)" title="Silver offer %">
+      <button class="mi-toggle ${item.discountActive?'on':'off'}" onclick="tI(${i},${!item.discountActive})">${item.discountActive?'👁️ App pe':'🙈 Hidden'}</button>
+      <button onclick="dI(${i})" style="background:rgba(211,47,47,.15);border:1px solid rgba(211,47,47,.2);border-radius:6px;padding:.28rem .6rem;font-size:.72rem;cursor:pointer;color:#ef5350;font-family:DM Sans,sans-serif;">🗑️</button>
+    </div>`).join('');
 }
 
 async function addItem(){
-  const n=document.getElementById('mi-name').value.trim();const p=parseFloat(document.getElementById('mi-price').value)||0;
-  if(!n)return toast('❌ Naam likhein');if(p<=0)return toast('❌ Price likhein');
-  menuItems.push({name:n,price:p,cost:parseFloat(document.getElementById('mi-cost').value)||0,emoji:document.getElementById('mi-emoji').value||'🌯',category:document.getElementById('mi-cat').value,discountPct:parseInt(document.getElementById('mi-disc').value)||0,discountGold:parseInt(document.getElementById('mi-dg').value)||0,discountVip:parseInt(document.getElementById('mi-dv').value)||0,discountActive:document.getElementById('mi-active').value==='true'});
-  await sM();renderMenu();['mi-name','mi-price','mi-cost','mi-emoji','mi-disc','mi-dg','mi-dv'].forEach(id=>document.getElementById(id).value='');document.getElementById('margin-display').innerHTML='';toast('✅ Item add!');
+  const name=document.getElementById('mi-name').value.trim();
+  const price=parseFloat(document.getElementById('mi-price').value)||0;
+  if(!name||!price)return toast('❌ Naam aur price zaroor daalein');
+  const item={
+    emoji:document.getElementById('mi-emoji').value||'🌯',
+    name,price,
+    cost:parseFloat(document.getElementById('mi-cost').value)||0,
+    category:document.getElementById('mi-cat').value,
+    discountPct:parseInt(document.getElementById('mi-disc').value)||0,
+    discountGold:parseInt(document.getElementById('mi-dg').value)||0,
+    discountVip:parseInt(document.getElementById('mi-dv').value)||0,
+    discountActive:document.getElementById('mi-active').value==='true'
+  };
+  menuItems.push(item);await sM();renderMenu();
+  ['mi-name','mi-price','mi-cost','mi-disc','mi-dg','mi-dv','mi-emoji'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  toast(`✅ ${name} added!${item.discountActive?' User app pe dikhega.':''}`);
 }
-async function tI(i,v){menuItems[i].discountActive=v;await sM();renderMenu();toast(v?'✅ Offer ON':'⚠️ OFF');}
-async function sD(i){menuItems[i].discountPct=parseInt(document.getElementById('md-'+i).value)||0;await sM();toast('✅ Saved!');}
+
+async function tI(i,v){menuItems[i].discountActive=v;await sM();renderMenu();toast(v?'✅ Offer ON — User app pe dikhega':'⚠️ OFF — Hidden');}
+async function sD(i,val){menuItems[i].discountPct=parseInt(val)||0;await sM();toast('✅ Saved!');}
 async function dI(i){if(!confirm('Delete?'))return;menuItems.splice(i,1);await sM();renderMenu();toast('🗑️ Deleted');}
-async function sM(){await shopDb.menu().set({items:menuItems}).catch(e=>toast('Error: '+e.message));}
+async function sM(){await shopDb.menu().set({items:menuItems}).catch(e=>toast('❌ '+e.message));}
 
 // ===== REWARDS TAB =====
 async function loadRewardsTab(){
-  // Load from Firestore
-  try{
-    const s=await shopDb.shopConfig().get();
-    if(s.exists){
-      const d=s.data();
-      milestones=d.milestones||[];
-      bdayReward=d.bdayReward||{};
-      refRewards=d.refRewards||{};
-    }
-  }catch(e){}
-  renderMilestones();
-  // Fill birthday fields
-  if(document.getElementById('bday-reward-text'))document.getElementById('bday-reward-text').value=bdayReward.text||'';
-  if(document.getElementById('bday-disc'))document.getElementById('bday-disc').value=bdayReward.disc||15;
-  if(document.getElementById('bday-pts'))document.getElementById('bday-pts').value=bdayReward.pts||50;
-  // Fill referral fields
-  if(document.getElementById('ref1-pts'))document.getElementById('ref1-pts').value=refRewards.r1||50;
-  if(document.getElementById('ref2-pts'))document.getElementById('ref2-pts').value=refRewards.r2||70;
-  if(document.getElementById('ref3-pts'))document.getElementById('ref3-pts').value=refRewards.r3||100;
-  if(document.getElementById('ref3-item'))document.getElementById('ref3-item').value=refRewards.item3||'';
-  // Profit check
-  const rate=shopSettings.rupeePerPoint||10;const redeem=shopSettings.redeemValue||10;
-  const eff=((redeem/rate)*10).toFixed(1);
-  const w=shopSettings.warnPct||5;const cr=shopSettings.critPct||8;
-  const el=document.getElementById('current-discount-check');
-  if(el){
-    const col=eff>cr?'#ef5350':eff>w?'var(--yellow)':'#66bb6a';
-    el.innerHTML=`<strong style="color:${col}">Current effective discount: ${eff}%</strong><br><span style="font-size:.72rem;color:var(--muted);">Warning at ${w}%, Critical at ${cr}%</span>`;
+  const s=await shopDb.shopConfig().get().catch(()=>null);
+  if(s&&s.exists){
+    const d=s.data();
+    milestones=d.milestones||[];bdayReward=d.bdayReward||{};refRewards=d.refRewards||{};
+    const brt=document.getElementById('bday-reward-text');if(brt)brt.value=bdayReward.text||'';
+    const bd=document.getElementById('bday-disc');if(bd)bd.value=bdayReward.disc||15;
+    const bp=document.getElementById('bday-pts');if(bp)bp.value=bdayReward.pts||50;
+    const rm=document.getElementById('ref-max');if(rm)rm.value=refRewards.maxRefs||3;
+    const r1=document.getElementById('ref1-pts');if(r1)r1.value=refRewards.r1||50;
+    const r2=document.getElementById('ref2-pts');if(r2)r2.value=refRewards.r2||70;
+    const r3=document.getElementById('ref3-pts');if(r3)r3.value=refRewards.r3||100;
+    const ri=document.getElementById('ref3-item');if(ri)ri.value=refRewards.item3||'';
+    const wp=document.getElementById('warn-pct');if(wp)wp.value=d.warnPct||5;
+    const cp=document.getElementById('crit-pct');if(cp)cp.value=d.critPct||8;
   }
-  if(document.getElementById('warn-pct'))document.getElementById('warn-pct').value=shopSettings.warnPct||5;
-  if(document.getElementById('crit-pct'))document.getElementById('crit-pct').value=shopSettings.critPct||8;
+  renderMilestones();
+  const rate=shopSettings.rupeePerPoint||10;const redeem=shopSettings.redeemValue||10;
+  const el=document.getElementById('current-discount-check');
+  if(el){const eff=((redeem/rate)*10);el.innerHTML=`Current effective discount: <strong style="color:${eff>8?'#ef5350':eff>5?'var(--yellow)':'#66bb6a'}">${eff.toFixed(1)}%</strong>`;}
 }
 
 function renderMilestones(){
   const el=document.getElementById('milestone-list');
-  if(!el)return;
-  if(!milestones.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem;margin-bottom:.7rem;">Koi milestone nahi. Neeche add karo.</div>';return;}
+  if(!milestones.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0;">Abhi koi milestone nahi — add karo!</div>';return;}
   el.innerHTML=milestones.map((m,i)=>`
-    <div class="milestone-row">
-      <div class="ml-top">
-        <div class="ml-visit">${m.visit}th Visit</div>
-        <span class="ml-status ${m.active?'ml-on':'ml-off'}">${m.active?'✅ Active':'❌ Off'}</span>
-      </div>
-      <div style="font-size:.78rem;color:var(--text);margin-bottom:.5rem;">🎁 Reward: <strong>${m.reward}</strong></div>
-      <div style="display:flex;gap:.5rem;">
-        <button class="btn btn-ghost" style="padding:.25rem .6rem;font-size:.7rem;" onclick="toggleMilestone(${i})">${m.active?'OFF karo':'ON karo'}</button>
-        <button class="del-btn" onclick="delMilestone(${i})">🗑️</button>
-      </div>
+    <div class="ms-row">
+      <span class="ms-badge">${m.visit}th</span>
+      <div class="ms-info">${m.reward}</div>
+      <span class="ms-status ${m.active?'ms-on':'ms-off'}">${m.active?'✅ ON':'⚫ OFF'}</span>
+      <button onclick="toggleMilestone(${i})" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:7px;padding:.22rem .6rem;font-size:.7rem;cursor:pointer;color:var(--muted);font-family:DM Sans,sans-serif;">${m.active?'Turn OFF':'Turn ON'}</button>
+      <button onclick="delMilestone(${i})" style="background:rgba(211,47,47,.12);border:none;border-radius:7px;padding:.22rem .6rem;font-size:.7rem;cursor:pointer;color:#ef5350;font-family:DM Sans,sans-serif;">🗑️</button>
     </div>`).join('');
 }
 
 function addMilestone(){
   const v=parseInt(document.getElementById('ms-visit').value);
   const r=document.getElementById('ms-reward').value.trim();
-  if(!v||v<1)return toast('❌ Visit number likhein');
-  if(!r)return toast('❌ Reward likhein');
-  if(milestones.find(m=>m.visit===v))return toast('❌ Yeh visit number already hai');
+  if(!v||v<1)return toast('❌ Visit number daalein');
+  if(!r)return toast('❌ Reward text daalein');
+  if(milestones.find(m=>m.visit===v))return toast('❌ Is visit ka milestone pehle se hai');
   milestones.push({visit:v,reward:r,active:true});
   milestones.sort((a,b)=>a.visit-b.visit);
   saveMilestones();
   document.getElementById('ms-visit').value='';document.getElementById('ms-reward').value='';
-  toast('✅ Milestone add!');
 }
-
-function toggleMilestone(i){milestones[i].active=!milestones[i].active;saveMilestones();toast(milestones[i].active?'✅ ON':'⚠️ OFF');}
+function toggleMilestone(i){milestones[i].active=!milestones[i].active;saveMilestones();toast(milestones[i].active?'✅ ON — App pe dikhega':'⚠️ OFF');}
 function delMilestone(i){if(!confirm('Delete?'))return;milestones.splice(i,1);saveMilestones();toast('🗑️ Deleted');}
-
-async function saveMilestones(){
-  await shopDb.shopConfig().set({milestones},{merge:true}).catch(e=>toast('❌ '+e.message));
-  renderMilestones();
-}
+async function saveMilestones(){await shopDb.shopConfig().set({milestones},{merge:true}).catch(e=>toast('❌ '+e.message));renderMilestones();toast('✅ Saved! User app pe update hoga.');}
 
 async function saveBdayReward(){
-  bdayReward={
-    text:document.getElementById('bday-reward-text').value.trim(),
-    disc:parseInt(document.getElementById('bday-disc').value)||15,
-    pts:parseInt(document.getElementById('bday-pts').value)||50
-  };
+  const text=document.getElementById('bday-reward-text').value.trim();
+  if(!text)return toast('❌ Kuch likhein');
+  bdayReward={text,disc:parseInt(document.getElementById('bday-disc').value)||15,pts:parseInt(document.getElementById('bday-pts').value)||50};
   await shopDb.shopConfig().set({bdayReward},{merge:true}).catch(e=>toast('❌ '+e.message));
-  toast('✅ Birthday reward saved!');
+  toast('✅ Birthday reward saved! User app update hoga.');
 }
 
 async function saveRefRewards(){
   refRewards={
+    maxRefs:parseInt(document.getElementById('ref-max').value)||3,
     r1:parseInt(document.getElementById('ref1-pts').value)||50,
     r2:parseInt(document.getElementById('ref2-pts').value)||70,
     r3:parseInt(document.getElementById('ref3-pts').value)||100,
-    item3:document.getElementById('ref3-item').value.trim()
+    item3:document.getElementById('ref3-item').value.trim()||''
   };
   await shopDb.shopConfig().set({refRewards},{merge:true}).catch(e=>toast('❌ '+e.message));
-  toast('✅ Referral rewards saved!');
+  toast('✅ Referral rewards saved! User app update hoga.');
 }
 
 async function saveWarnings(){
-  shopSettings.warnPct=parseInt(document.getElementById('warn-pct').value)||5;
-  shopSettings.critPct=parseInt(document.getElementById('crit-pct').value)||8;
-  await shopDb.shopConfig().set({warnPct:shopSettings.warnPct,critPct:shopSettings.critPct},{merge:true});
-  toast('✅ Warning settings saved!');
-  checkProfitWarning();
+  const warnPct=parseInt(document.getElementById('warn-pct').value)||5;
+  const critPct=parseInt(document.getElementById('crit-pct').value)||8;
+  await shopDb.shopConfig().set({warnPct,critPct},{merge:true}).catch(e=>toast('❌ '+e.message));
+  shopSettings.warnPct=warnPct;shopSettings.critPct=critPct;
+  toast('✅ Warning settings saved!');checkProfitWarning();
 }
 
 // ===== HELP TICKETS =====
@@ -885,89 +1017,96 @@ async function loadHelp(){
   try{
     const s=await shopDb.helpTickets().orderBy('createdAt','desc').limit(50).get();
     const tickets=s.docs.map(d=>({id:d.id,...d.data()}));
-    const open=tickets.filter(t=>t.status==='open');
-    const resolved=tickets.filter(t=>t.status==='resolved');
-    const cats={complaint:'🚫',query:'❓',suggestion:'💡',compliment:'❤️'};
+    const open=tickets.filter(t=>t.status==='open');const resolved=tickets.filter(t=>t.status==='resolved');
+    const catClass={complaint:'cat-complaint',query:'cat-query',suggestion:'cat-suggestion',compliment:'cat-compliment'};
     const renderTicket=(t)=>`
-      <div class="ticket ${t.status}">
-        <div class="ticket-header">
-          <div class="ticket-name">${t.custName||'Customer'} <span style="font-size:.68rem;color:var(--muted);">${t.custPhone||''}</span></div>
-          <div class="ticket-time" style="font-size:.65rem;color:var(--muted);">${t.createdAt?.toDate?t.createdAt.toDate().toLocaleDateString('en-IN'):''}</div>
+      <div class="ticket-row">
+        <div class="tkt-head">
+          <span class="tkt-cat ${catClass[t.category]||'cat-query'}">${t.category}</span>
+          <span style="font-size:.7rem;color:var(--muted);">${t.custName} | ${t.custPhone}</span>
         </div>
-        <div class="ticket-cat">${cats[t.category]||'📝'} ${t.category||'query'}</div>
-        <div class="ticket-msg">${t.message}</div>
-        ${t.status==='open'?`<div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-          <button class="btn btn-y" style="padding:.3rem .7rem;font-size:.72rem;" onclick="resolveTicket('${t.id}','${t.custPhone}','${t.custName}')">✅ Resolve</button>
-          <button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.72rem;" onclick="whatsappReply('${t.custPhone}','${t.custName}','${t.message.substring(0,50)}')">💬 WhatsApp Reply</button>
-        </div>`:'<span style="font-size:.7rem;color:#66bb6a;">✅ Resolved</span>'}
+        <div class="tkt-msg">${t.message}</div>
+        <div class="tkt-meta">ID: ${t.custId}</div>
+        <div class="tkt-actions">
+          <button class="btn btn-ghost" style="padding:.28rem .7rem;font-size:.72rem;" onclick="waReply('${t.custPhone}','${t.custName}','${(t.message||'').slice(0,30).replace(/'/g,"\\'")}')">💬 WA Reply</button>
+          ${t.status==='open'?`<button class="btn btn-green" style="padding:.28rem .7rem;font-size:.72rem;" onclick="resolveTicket('${t.id}')">✅ Resolve</button>`:''}
+        </div>
       </div>`;
-    document.getElementById('help-open').innerHTML=open.length?open.map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Koi open ticket nahi!</div>';
-    document.getElementById('help-resolved').innerHTML=resolved.length?resolved.slice(0,10).map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">Abhi koi resolved nahi</div>';
-  }catch(e){
-    document.getElementById('help-open').innerHTML='<div style="color:var(--muted);font-size:.82rem;">Help tickets load ho rahe hain...</div>';
-  }
+    document.getElementById('help-open').innerHTML=open.length?open.map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Koi open ticket nahi</div>';
+    document.getElementById('help-resolved').innerHTML=resolved.length?resolved.map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">Abhi koi resolved nahi</div>';
+  }catch(e){toast('❌ Help load error: '+e.message);}
 }
 
-async function resolveTicket(id,phone,name){
-  try{
-    await shopDb.helpTickets().doc(id).update({status:'resolved',resolvedAt:firebase.firestore.FieldValue.serverTimestamp()});
-    toast('✅ Ticket resolved!');loadHelp();
-  }catch(e){toast('❌ '+e.message);}
+async function resolveTicket(id){
+  try{await shopDb.helpTickets().doc(id).update({status:'resolved'});toast('✅ Resolved!');loadHelp();}
+  catch(e){toast('❌ '+e.message);}
 }
-
-function whatsappReply(phone,name,preview){
-  const msg=`Namaste ${name} ji! Aapki problem hamne dekhi — "${preview}..." — hum jald se jald solve karenge. The Kathi Roll Hub 🌯`;
-  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`);
+function waReply(phone,name,preview){
+  const msg=`Namaste ${name} ji! 😊\n\nAapki "${preview}..." wali query mil gayi — hum jald resolve karenge!\n\n— The Kathi Roll Hub 🌯`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 // ===== ALERTS =====
 async function loadAlerts(){
   try{
-    const snap=await shopDb.customers().get();const custs=snap.docs.map(d=>d.data());const today=new Date();
-    const inactive=custs.filter(c=>(c.lastVisitDays||0)>=15);
-    const bdayT=custs.filter(c=>{if(!c.birthday)return false;const b=new Date(c.birthday);return b.getDate()===today.getDate()&&b.getMonth()===today.getMonth();});
-    const nearVip=custs.filter(c=>(c.points||0)>=600&&(c.points||0)<700);
+    const s=await shopDb.customers().get();const custs=s.docs.map(d=>({id:d.id,...d.data()}));
+    const inactive=custs.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
     const unverified=custs.filter(c=>!c.phoneVerified);
-    // Milestone alerts
-    const msAlerts=[];
-    milestones.forEach(m=>{
-      if(!m.active)return;
-      custs.filter(c=>(c.visits||0)===m.visit).forEach(c=>{
-        msAlerts.push({i:'🎁',t:`${c.name} — ${m.visit}th visit! "${m.reward}" dena hai!`,a:'WhatsApp',f:()=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent(`🎁 ${c.name} ji, aapki ${m.visit}th visit pe special reward: ${m.reward}! 🌯`)}`)});
-      });
-    });
-    const items=[...msAlerts];
-    if(inactive.length)items.push({i:'😴',t:`${inactive.length} customers 15+ din se nahi aaye`,a:'Win-Back',f:()=>{inactive.slice(0,3).forEach(c=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent('😢 '+c.name+' ji, Roll Hub yaad aa raha hai! Aaj aao 🌯')}`));toast('📤 WhatsApp!');}});
-    bdayT.forEach(c=>items.push({i:'🎂',t:`${c.name} (${c.phone}) — aaj birthday!`,a:'Wish',f:()=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent('🎂 Happy Birthday '+c.name+' ji! '+( bdayReward.text||'FREE Roll aapka wait kar raha hai!')+'🌯')}`)}));
-    nearVip.forEach(c=>items.push({i:'🎯',t:`${c.name} — sirf ${700-(c.points||0)} pts to VIP!`,a:'Motivate',f:()=>window.open(`https://wa.me/91${c.phone}?text=${encodeURIComponent('⭐ '+c.name+' ji, sirf '+(700-(c.points||0))+' aur points to VIP! 🌯')}`)}));
-    if(unverified.length)items.push({i:'📱',t:`${unverified.length} unverified phones`,a:'Customers',f:()=>sw('customers',document.querySelectorAll('.tab')[4])});
-    if(!items.length)items.push({i:'✅',t:'Sab smooth! Koi urgent alert nahi.',a:null});
-    document.getElementById('alerts-list').innerHTML=items.map((a,i)=>`<div class="ar"><span class="ai">${a.i}</span><span class="at">${a.t}</span>${a.a?`<button class="ab" onclick="window._af[${i}]()">${a.a}</button>`:''}</div>`).join('');
-    window._af=items.map(a=>a.f||(()=>{}));
-    document.getElementById('seg-summary').innerHTML=[
-      {i:'💎',l:'VIP',n:custs.filter(c=>(c.points||0)>=700).length},
-      {i:'🥇',l:'Gold',n:custs.filter(c=>(c.points||0)>=300&&(c.points||0)<700).length},
-      {i:'🥈',l:'Silver',n:custs.filter(c=>(c.points||0)<300).length},
-      {i:'😴',l:'Inactive',n:inactive.length},
-      {i:'📱',l:'Unverified',n:unverified.length},
-      {i:'👥',l:'Referrals',n:custs.reduce((s,c)=>s+(c.referralCount||0),0)},
-    ].map(s=>`<div class="sr"><div style="font-size:.8rem">${s.i} ${s.l}</div><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:var(--yellow)">${s.n}</div></div>`).join('');
+    const vipCount=custs.filter(c=>(c.points||0)>=700).length;
+    const items=[];
+    if(inactive.length)items.push({i:'😴',t:`${inactive.length} customers 15+ din se nahi aaye`,sub:'Win-Back bhejo!',a:'Win-Back',f:()=>{}});
+    if(unverified.length)items.push({i:'📱',t:`${unverified.length} unverified phones`,sub:'Verify karna zaroori hai',a:'Customers',f:()=>{sw('customers',document.querySelectorAll('.tab')[4]);filterUnverified();}});
+    if(vipCount>0)items.push({i:'💎',t:`${vipCount} VIP members hain`,sub:'Unhe exclusive attention do',a:'View',f:()=>{sw('customers',document.querySelectorAll('.tab')[4]);}});
+    // Check for milestone alerts
+    const msAlert=custs.filter(c=>{const v=c.visits||0;return milestones.some(m=>m.active&&parseInt(m.visit)===v);});
+    if(msAlert.length)items.push({i:'🔥',t:`${msAlert.length} customers milestone pe hain!`,sub:'Reward claim karne aayenge',a:'View',f:()=>{}});
+    document.getElementById('alerts-list').innerHTML=items.length?items.map(ai=>`
+      <div class="alert-item">
+        <div class="ai-icon">${ai.i}</div>
+        <div class="ai-info"><div class="ai-title">${ai.t}</div><div class="ai-sub">${ai.sub}</div></div>
+        <button class="ai-btn" onclick="(${ai.f.toString()})()">${ai.a}</button>
+      </div>`).join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Sab theek hai! Koi urgent alert nahi.</div>';
+    // Inactive list
+    document.getElementById('inactive-list').innerHTML=inactive.slice(0,20).map(c=>`
+      <div class="inactive-row">
+        <div class="ir-days">${c.lastVisitDays||0}d</div>
+        <div class="ir-info">
+          <div class="ir-name">${c.name}</div>
+          <div class="ir-sub">${c.phone} | ${c.points||0} pts | ${c.city||'—'}</div>
+        </div>
+        <button onclick="sendWinBack('${c.phone}','${c.name}',${c.lastVisitDays||0})" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.28rem .65rem;border-radius:8px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">💬 WA</button>
+      </div>`).join('')||'<div style="color:var(--muted);font-size:.82rem;">✅ Koi inactive customer nahi!</div>';
+    // Segment summary
+    const silver=custs.filter(c=>(c.points||0)<300).length;const gold=custs.filter(c=>(c.points||0)>=300&&(c.points||0)<700).length;const vip=vipCount;
+    document.getElementById('seg-summary').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#90A4AE;">${silver}</div><div style="font-size:.7rem;color:var(--muted);">🥈 Silver</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#FFD54F;">${gold}</div><div style="font-size:.7rem;color:var(--muted);">🥇 Gold</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#90CAF9;">${vip}</div><div style="font-size:.7rem;color:var(--muted);">💎 VIP</div></div>
+      </div>
+      <div style="margin-top:.7rem;font-size:.75rem;color:var(--muted);">Total: ${custs.length} | Inactive: ${inactive.length} | Unverified: ${unverified.length}</div>`;
     // Social tasks
-    const ts=await shopDb.socialTasks().where('status','==','pending').get();
-    const tasks=ts.docs.map(d=>({id:d.id,...d.data()}));
-    const stl=document.getElementById('st-list');
-    if(!tasks.length){stl.innerHTML='<div style="color:var(--muted);font-size:.82rem;">Koi pending nahi.</div>';return;}
-    const cm={};for(const t of tasks){if(!cm[t.custId]){try{const cd=await shopDb.customer(t.custId).get();if(cd.exists)cm[t.custId]=cd.data();}catch(e){}}}
-    stl.innerHTML=tasks.map(t=>`<div class="str"><span style="font-size:1.1rem;">${{ig:'📸',gg:'⭐',wa:'💬',zom:'🍴'}[t.taskId]||'📱'}</span><div class="st"><strong>${cm[t.custId]?.name||t.custId}</strong> — ${{ig:'Instagram follow',gg:'Google review',wa:'WhatsApp',zom:'Zomato'}[t.taskId]||t.taskId}<br><span style="font-size:.7rem;color:var(--muted);">+${t.points} pts</span></div><button class="sb" onclick="verST('${t.id}','${t.custId}',${t.points})">✅ Credit</button></div>`).join('');
-  }catch(e){toast('❌ '+e.message);}
+    const st=await shopDb.socialTasks().where('status','==','pending').get();
+    const stItems=st.docs.map(d=>({id:d.id,...d.data()}));
+    const taskNames={ig:'Instagram Follow',gg:'Google Review',wa:'WhatsApp Contact',zom:'Zomato Follow'};
+    document.getElementById('st-list').innerHTML=stItems.length?stItems.map(t=>`
+      <div class="rvr">
+        <div class="rvt"><strong>${t.custId}</strong> — ${taskNames[t.taskId]||t.taskId}<br><span style="font-size:.7rem;color:var(--muted);">Reward: ${t.points} pts</span></div>
+        <button class="rvb" onclick="verST('${t.id}','${t.custId}',${t.points})">✅ Verify</button>
+      </div>`)
+    .join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Koi pending task nahi</div>';
+  }catch(e){toast('❌ Alerts error: '+e.message);}
+}
+
+function sendWinBack(phone,name,days){
+  const code='BACK'+phone.slice(-4);
+  const msg=`😊 *${name} ji, yaad aa rahe hain!*\n\n${days} din ho gaye Roll Hub nahi aaye — hum miss kar rahe hain!\n\n🎁 Sirf aapke liye: *${code}* code dikhao — special discount pao!\n\n🌯 The Kathi Roll Hub, Murlipura, Jaipur\n24x7 Open | Zomato Top 10`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 async function verST(tid,cid,pts){
-  try{
-    await shopDb.socialTasks().doc(tid).update({status:'verified'});
-    await shopDb.customer(cid).update({points:firebase.firestore.FieldValue.increment(pts)});
-    toast(`✅ ${pts} pts credited!`);loadAlerts();
-  }catch(e){toast('❌ '+e.message);}
+  try{await shopDb.socialTasks().doc(tid).update({status:'verified'});await shopDb.customer(cid).update({points:firebase.firestore.FieldValue.increment(pts)});toast(`✅ ${pts} pts credited!`);loadAlerts();}
+  catch(e){toast('❌ '+e.message);}
 }
 
 // ===== REFERRALS =====
@@ -975,36 +1114,35 @@ async function loadRefs(){
   try{
     const s=await shopDb.referrals().get();
     const refs=s.docs.map(d=>({id:d.id,...d.data()}));
-    refs.sort((a,b)=>{try{return(b.date?.toMillis()||0)-(a.date?.toMillis()||0);}catch(e){return 0;}});
-    const pend=refs.filter(r=>r.status==='pending');
-    const done=refs.filter(r=>r.status==='verified');
-    document.getElementById('ref-pending').innerHTML=!pend.length?'<div style="color:var(--muted);font-size:.82rem;">✅ Koi pending nahi</div>':pend.map(r=>`<div class="rvr"><span>👥</span><div class="rvt"><strong>${r.referrer}</strong> → <strong>${r.newCustName||r.newCust}</strong> (${r.newCustPhone||''})<br><span style="font-size:.7rem;color:var(--muted);">Bonus: ${r.bonus||50} pts</span></div><button class="rvb" onclick="verRef('${r.id}')">✅ Verify</button></div>`).join('');
-    document.getElementById('ref-done').innerHTML=!done.length?'<div style="color:var(--muted);font-size:.82rem;">Abhi koi verified nahi</div>':done.slice(0,15).map(r=>`<div style="padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--muted);">✅ ${r.referrer} → ${r.newCust}</div>`).join('');
+    refs.sort((a,b)=>{try{return(b.date?.toMillis()||0)-(a.date?.toMillis()||0);}catch{return 0;}});
+    const pend=refs.filter(r=>r.status==='pending');const done=refs.filter(r=>r.status==='verified');
+    document.getElementById('ref-pending').innerHTML=!pend.length?'<div style="color:var(--muted);font-size:.82rem;">✅ Koi pending nahi</div>':pend.map(r=>`
+      <div class="rvr">
+        <div class="rvt"><strong>${r.referrer}</strong> → <strong>${r.newCustName||r.newCust}</strong> (${r.newCustPhone||''})<br><span style="font-size:.7rem;color:var(--muted);">Bonus: ${r.bonus||50} pts</span></div>
+        <button class="rvb" onclick="verRef('${r.id}')">✅ Verify</button>
+      </div>`).join('');
+    document.getElementById('ref-done').innerHTML=!done.length?'<div style="color:var(--muted);font-size:.82rem;">Abhi koi verified nahi</div>':done.slice(0,20).map(r=>`<div style="padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--muted);">✅ ${r.referrer} → ${r.newCust} (+${r.bonus||50} pts)</div>`).join('');
   }catch(e){toast('❌ '+e.message);}
 }
-
 async function verRef(id){try{await shopDb.referrals().doc(id).update({status:'verified'});toast('✅ Verified!');loadRefs();}catch(e){toast('❌ '+e.message);}}
 
 // ===== SETTINGS =====
 async function loadSettings(){
   try{
     const s=await shopDb.shopConfig().get();
-    if(s.exists){
-      const d=s.data();
-      shopSettings={...shopSettings,...d};
-      milestones=d.milestones||[];
-      bdayReward=d.bdayReward||{};
-      refRewards=d.refRewards||{};
-    }else{
-      await shopDb.shopConfig().set(shopSettings).catch(()=>{});
-    }
-  }catch(e){console.log('Settings:',e.code);}
-  const r=document.getElementById('set-rate');const w=document.getElementById('set-welcome');
-  const rv=document.getElementById('set-redeem-val');const sn=document.getElementById('set-shopname');
-  if(r)r.value=shopSettings.rupeePerPoint||10;
-  if(w)w.value=shopSettings.welcomePoints||50;
-  if(rv)rv.value=shopSettings.redeemValue||10;
-  if(sn)sn.value=shopSettings.shopName||'The Kathi Roll Hub';
+    if(s.exists){const d=s.data();shopSettings={...shopSettings,...d};milestones=d.milestones||[];bdayReward=d.bdayReward||{};refRewards=d.refRewards||{};}
+    else{await shopDb.shopConfig().set(shopSettings).catch(()=>{});}
+  }catch(e){}
+  ['set-rate','set-welcome','set-redeem-val','set-shopname','set-help-wa','set-help-msg'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const map={
+      'set-rate':shopSettings.rupeePerPoint||10,'set-welcome':shopSettings.welcomePoints||50,
+      'set-redeem-val':shopSettings.redeemValue||10,'set-shopname':shopSettings.shopName||'The Kathi Roll Hub',
+      'set-help-wa':shopSettings.helpWa||'8619721224','set-help-msg':shopSettings.helpMsg||''
+    };
+    el.value=map[id]||'';
+  });
+  const ha=document.getElementById('set-help-active');if(ha)ha.value=shopSettings.helpActive??1;
   updateSettingsPreview();
 }
 
@@ -1012,18 +1150,12 @@ function updateSettingsPreview(){
   const rate=parseInt(document.getElementById('set-rate')?.value)||10;
   const welcome=parseInt(document.getElementById('set-welcome')?.value)||50;
   const redeem=parseInt(document.getElementById('set-redeem-val')?.value)||10;
-  const hint=document.getElementById('rate-hint');
-  if(hint)hint.textContent=`₹${rate*10} spend = 10 pts`;
+  const hint=document.getElementById('rate-hint');if(hint)hint.textContent=`₹${rate*10} spend = 10 pts`;
   const p=document.getElementById('settings-preview');
-  if(p)p.innerHTML=`⭐ ₹${rate} pe 1 point<br>🎁 New member: ${welcome} points<br>🎫 100 pts = ₹${redeem} discount<br>📊 Effective rate: <strong style="color:var(--yellow)">${((redeem/rate)*10).toFixed(1)}%</strong>`;
+  if(p)p.innerHTML=`⭐ ₹${rate} spend pe 1 point<br>🎁 New member: ${welcome} points<br>🎫 100 pts = ₹${redeem} discount<br>📊 Effective rate: <strong style="color:var(--yellow)">${((redeem/rate)*10).toFixed(1)}%</strong>`;
   const eff=((redeem/rate)*10);const w=shopSettings.warnPct||5;const cr=shopSettings.critPct||8;
   const ec=document.getElementById('economy-check');
-  if(ec){
-    let col='#66bb6a',msg='✅ Safe';
-    if(eff>cr){col='#ef5350';msg='❌ Loss risk!';}
-    else if(eff>w){col='var(--yellow)';msg='⚠️ Monitor karein';}
-    ec.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:.7rem;font-size:.78rem;color:${col};">${msg} — Effective discount: ${eff.toFixed(1)}%</div>`;
-  }
+  if(ec){let col='#66bb6a',msg='✅ Safe — Margin theek hai';if(eff>cr){col='#ef5350';msg='❌ Loss risk! Reward zyada hai.';}else if(eff>w){col='var(--yellow)';msg='⚠️ Monitor karein';}ec.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:.7rem;font-size:.78rem;color:${col};">${msg} — Effective discount: ${eff.toFixed(1)}%</div>`;}
 }
 
 async function saveSettings(){
@@ -1032,48 +1164,75 @@ async function saveSettings(){
     welcomePoints:parseInt(document.getElementById('set-welcome').value)||50,
     redeemValue:parseInt(document.getElementById('set-redeem-val').value)||10,
     shopName:document.getElementById('set-shopname').value||'The Kathi Roll Hub',
+    helpWa:document.getElementById('set-help-wa').value||'8619721224',
+    helpMsg:document.getElementById('set-help-msg').value||'Koi bhi problem? Hum help karenge!',
+    helpActive:parseInt(document.getElementById('set-help-active')?.value)||1,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
-  try{
-    await shopDb.shopConfig().set(settings,{merge:true});
-    shopSettings={...shopSettings,...settings};
-    toast('✅ Settings saved!');
-    updateSettingsPreview();checkProfitWarning();
-  }catch(e){toast('❌ '+e.message);}
+  try{await shopDb.shopConfig().set(settings,{merge:true});shopSettings={...shopSettings,...settings};toast('✅ Settings saved! User app pe live update hoga.');updateSettingsPreview();checkProfitWarning();}
+  catch(e){toast('❌ '+e.message);}
 }
 
 async function changePw2(){
-  const np=document.getElementById('new-pw2').value.trim();
-  if(!np||np.length<6)return toast('❌ 6+ chars');
+  const np=document.getElementById('new-pw2').value.trim();if(!np||np.length<6)return toast('❌ 6+ chars');
   try{await firebase.auth().currentUser.updatePassword(np);toast('✅ Password changed!');document.getElementById('new-pw2').value='';}
   catch(e){toast('❌ '+e.message);}
 }
 
 // ===== POSTS =====
 const POSTS=[
-  {t:"Welcome",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday pe FREE treat\n🔥 Milestone visits pe rewards!\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#KathiRollHub #Jaipur`},
-  {t:"Birthday",e:"🎂",txt:`🎂 *Birthday Special!*\n\nBirthday month mein aao — special reward aapka wait kar raha hai!\n\nJoin karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#BirthdaySpecial #KathiRollHub`},
-  {t:"Milestone Rewards",e:"🔥",txt:`🔥 *Har visit pe rewards!*\n\nSirf 5th visit nahi — har milestone pe kuch special!\n\nAbhi join karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#Rewards #KathiRollHub`},
-  {t:"Refer & Earn",e:"💰",txt:`💰 *Refer Karo — Earn Karo!*\n\nDoston ko refer karo aur points + rewards pao!\n\n🔗 https://the-kathi-roll-hub-users.vercel.app/\n\n#ReferAndEarn #KathiRollHub`},
-  {t:"Help Feature",e:"💬",txt:`💬 *Koi bhi problem? Hum hain!*\n\nHamara Loyalty Club sirf points nahi — aapki help bhi karta hai!\n\nApp mein Help section mein apni problem batao — hum turant respond karenge.\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#CustomerFirst #KathiRollHub`},
-  {t:"Zomato Award",e:"⭐",txt:`⭐ *Zomato Top 10 in Rolls — Jaipur 2025!*\n\nYeh award aap logo ki wajah se mila!\n\nReview do:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\n#ZomatoAwards #KathiRollHub`},
-  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\nHum 24x7 OPEN hain!\n\nMember ho? Extra discount!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#24x7Open #KathiRollHub`},
-  {t:"Google Review",e:"⭐",txt:`⭐ *5★ Review do — Bonus points pao!*\n\nGoogle pe review:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\nScreenshot le aao — bonus points milenge!\n\n#GoogleReview #KathiRollHub`},
-  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond!\n✨ Exclusive offers\n✨ Priority service\n✨ Special rewards\n\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#VIPMember #KathiRollHub`},
-  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka sabse tasty!*\n\nMembers ko discount + points!\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#PaneerRoll #KathiRollHub`},
-  {t:"Momos",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos\nStarting ₹60!\n\nMembers ko points:\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#Momos #KathiRollHub`},
-  {t:"College",e:"🎓",txt:`🎓 *College ke baad kuch spicy?*\n\nKathi Rolls | Momos | Chinese | Shakes\n\nLoyalty club join karo — 10% OFF!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#CollegeFood #Jaipur`},
-  {t:"Late Night",e:"🌃",txt:`🌃 *Late Night craving?*\n\n24x7 open — Murlipura, Jaipur\n\nMember bano — rewards milenge!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#LateNightFood #KathiRollHub`},
-  {t:"Instagram",e:"📸",txt:`📸 *Follow karo — Updates pao!*\n\nInstagram: @the_kathi_roll_hub_murlipuraa\n\nFollow karo — bonus points milenge!\n\n#KathiRollHub #Jaipur`},
-  {t:"WhatsApp",e:"💬",txt:`💬 *WhatsApp pe jodo!*\n\n8619721224 / 7737585713\n\nContact karo — offers pehle pao!\n\n#KathiRollHub #Murlipura`}
+  {t:"Welcome — Join Karo",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday pe FREE treat\n🔥 Visit Milestones pe Rewards!\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#KathiRollHub #Jaipur #Murlipura #LoyaltyClub`},
+  {t:"Birthday Special",e:"🎂",txt:`🎂 *Birthday Special!*\n\nBirthday month mein aao — special reward aapka wait kar raha hai!\n\nJoin karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#BirthdaySpecial #KathiRollHub #Jaipur`},
+  {t:"Anniversary Special",e:"💑",txt:`💑 *Anniversary Special!*\n\nAnniversary wale members ke liye khas treat!\nRegister karein, date save karein.\n\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#AnniversarySpecial #KathiRollHub #Jaipur`},
+  {t:"Milestone Rewards",e:"🔥",txt:`🔥 *Har visit pe rewards!*\n\nHar milestone visit pe kuch special — FREE rolls, discount, bonus points!\n\nAbhi join karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#Rewards #KathiRollHub #Murlipura`},
+  {t:"Refer & Earn",e:"💰",txt:`💰 *Refer Karo — Points Earn Karo!*\n\nDoston ko refer karo aur points + rewards pao!\nJitna refer utna reward!\n\n🔗 https://the-kathi-roll-hub-users.vercel.app/\n\n#ReferAndEarn #KathiRollHub #Jaipur`},
+  {t:"Google Review",e:"⭐",txt:`⭐ *5★ Review do — Bonus points pao!*\n\nGoogle pe review:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\nScreenshot le aao — bonus points milenge!\n\n#GoogleReview #KathiRollHub #Jaipur`},
+  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond!\n✨ Exclusive offers\n✨ Priority treatment\n\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#VIPMember #KathiRollHub #LoyaltyProgram`},
+  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka best!*\n\nMembers ko discount + points!\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#PaneerRoll #KathiRollHub #JaipurFood`},
+  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos!\n\nMembers ko extra points:\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#Momos #KathiRollHub #Murlipura`},
+  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\n24x7 open — Murlipura, Jaipur\n\nMember bano — rewards milenge!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#24x7Open #KathiRollHub #LateNightFood`},
+  {t:"WhatsApp Community",e:"💬",txt:`💬 *WhatsApp pe jodo!*\n\n8619721224 / 7737585713\n\nContact karo — offers pehle pao!\n\n#KathiRollHub #Murlipura #Jaipur`},
+  {t:"College Crowd",e:"🎓",txt:`🎓 *College ke baad — kuch spicy?*\n\nKathi Rolls | Momos | Chinese | Shakes\n\nLoyalty club join karo — 10% OFF!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#CollegeFood #Jaipur #KathiRollHub`},
+  {t:"Zomato Award",e:"🏆",txt:`🏆 *Zomato Top 10 in Rolls — Jaipur 2025!*\n\nYeh award aap logo ki wajah se mila!\n\nReview do:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\n#ZomatoAwards #KathiRollHub #Jaipur`},
+  {t:"Help Feature",e:"🤝",txt:`🤝 *Koi bhi problem? Hum hain!*\n\nApp mein Help section — complaint, query, suggestion — owner directly respond karega!\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#CustomerFirst #KathiRollHub #Jaipur`},
+  {t:"Streak Challenge",e:"🔥",txt:`🔥 *Streak Challenge!*\n\nJitna zyada aao — utna zyada reward! Har milestone pe kuch special.\n\nAbhi join karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#StreakChallenge #KathiRollHub #Jaipur`},
+  {t:"Win-Back Offer",e:"💌",txt:`💌 *Miss kar rahe hain aapko!*\n\nBahar se aao — special surprise ready hai!\n\nJoin ya login karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#KathiRollHub #Murlipura #ComingBack`}
 ];
 
-function renderPosts(){document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`<div class="post-card"><h4>${p.e} Post ${i+1}: ${p.t}</h4><textarea class="post-text" rows="5" readonly>${p.txt}</textarea><div class="post-actions"><button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button><button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button></div></div>`).join('');}
+function renderPosts(){
+  document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`
+    <div class="post-card">
+      <h4>${p.e} Post ${i+1}: ${p.t}</h4>
+      <textarea class="post-text" rows="5" readonly>${p.txt}</textarea>
+      <div class="post-actions">
+        <button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button>
+        <button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button>
+        <button class="btn-ig" onclick="shareInsta(${i})">📸 Instagram</button>
+      </div>
+    </div>`).join('');
+}
+
+function shareInsta(i){
+  navigator.clipboard.writeText(POSTS[i].txt).then(()=>{
+    toast('✅ Caption copied! Instagram khul raha hai...');
+    setTimeout(()=>window.open('https://www.instagram.com/the_kathi_roll_hub_murlipuraa','_blank'),600);
+  }).catch(()=>{window.open('https://www.instagram.com/the_kathi_roll_hub_murlipuraa','_blank');});
+}
 
 // ===== EXPORT =====
-function expAll(){if(!allC.length)return toast('❌ Load karein');const h=['ID','Naam','Phone','Verified','Birthday','City','Points','Tier','Visits','Fav','Join'];const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);dlCSV([h,...r],'rollhub_customers.csv');toast(`✅ ${allC.length} exported!`);}
-function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Koi nahi');dlCSV([['Naam','Phone','Birthday','Points'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0])],'birthday.csv');toast(`✅ ${b.length}!`);}
-function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);dlCSV([['Naam','Phone','Referrals'],...r.map(c=>[c.name,c.phone,c.referralCount||0])],'referrals.csv');toast('✅ Done!');}
+function expAll(){if(!allC.length)return toast('❌ Dashboard se load karein pehle');const h=['ID','Naam','Phone','Verified','Birthday','Anniversary','City','Points','Tier','Visits','LastVisitDays','FavItems','JoinDate'];const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.anniversary||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,c.lastVisitDays||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);dlCSV([h,...r],'rollhub_all.csv');toast(`✅ ${allC.length} records exported!`);}
+function expBday(){const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi birthday nahi');dlCSV([['Naam','Phone','Birthday','Points','City'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0,c.city||''])],'birthday_this_month.csv');toast(`✅ ${b.length} birthdays exported!`);}
+function expRefs(){const r=allC.filter(c=>(c.referralCount||0)>0);if(!r.length)return toast('❌ Koi referral nahi');dlCSV([['Naam','Phone','Referrals','Bonus Pts'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.referralBonus||0])],'referrals.csv');toast('✅ Done!');}
+function expInactive(){const ia=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));if(!ia.length)return toast('✅ Koi inactive nahi!');dlCSV([['Naam','Phone','Days Inactive','Points','City'],...ia.map(c=>[c.name,c.phone,c.lastVisitDays||0,c.points||0,c.city||''])],'inactive.csv');toast(`✅ ${ia.length} inactive exported!`);}
+function expUpcoming(){
+  const today=new Date();const upcoming=[];
+  allC.forEach(c=>{
+    if(c.birthday){const b=new Date(c.birthday);const nb=new Date(today.getFullYear(),b.getMonth(),b.getDate());if(nb<today)nb.setFullYear(today.getFullYear()+1);const dl=Math.ceil((nb-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push([c.name,c.phone,'Birthday',dl+'d',c.points||0]);}
+    if(c.anniversary){const a=new Date(c.anniversary);const na=new Date(today.getFullYear(),a.getMonth(),a.getDate());if(na<today)na.setFullYear(today.getFullYear()+1);const dl=Math.ceil((na-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push([c.name,c.phone,'Anniversary',dl+'d',c.points||0]);}
+  });
+  if(!upcoming.length)return toast('❌ 7 din mein koi special nahi');
+  dlCSV([['Naam','Phone','Type','Days Away','Points'],...upcoming],'upcoming_specials.csv');toast(`✅ ${upcoming.length} upcoming exported!`);
+}
 function dlCSV(d,f){const csv='\ufeff'+d.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=f;a.click();}
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
