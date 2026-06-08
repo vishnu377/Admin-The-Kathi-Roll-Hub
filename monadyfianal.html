@@ -1,0 +1,1767 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — The Kathi Roll Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyCErNYguHO8s4m5aeyGRQvM_PWV_9IzJKs",
+  authDomain:"the-kathi-roll-hub.firebaseapp.com",
+  projectId:"the-kathi-roll-hub",
+  storageBucket:"the-kathi-roll-hub.firebasestorage.app",
+  messagingSenderId:"684649816270",
+  appId:"1:684649816270:web:73dc4606b754702f6a309f"
+});
+const db=firebase.firestore();
+const shopDb={
+  customers:()=>db.collection('rollhub_customers'),
+  customer:(id)=>db.collection('rollhub_customers').doc(id),
+  referrals:()=>db.collection('rollhub_referrals'),
+  transactions:()=>db.collection('rollhub_transactions'),
+  menu:()=>db.collection('rollhub_config').doc('menu'),
+  socialTasks:()=>db.collection('rollhub_socialTasks'),
+  shopConfig:()=>db.collection('rollhub_config').doc('settings'),
+  helpTickets:()=>db.collection('rollhub_help'),
+  bills:()=>db.collection('rollhub_bills'),
+  inventory:()=>db.collection('rollhub_inventory')
+};
+</script>
+<style>
+:root{--bg:#111;--surface:#1C1C1C;--card:#252525;--border:rgba(255,214,0,.15);--yellow:#FFD600;--yellow2:#FFC000;--red:#D32F2F;--green:#2e7d32;--text:#F5F5F5;--muted:#9E9E9E;--dim:#555;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;background:radial-gradient(ellipse at 40%,#1a0e00,#111);display:flex;align-items:center;justify-content:center;padding:2rem;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:2.5rem 2rem;width:100%;max-width:360px;}
+.lb-logo{text-align:center;margin-bottom:1.8rem;}
+.lb-logo .icon{font-family:'Oswald',sans-serif;font-size:1.8rem;color:var(--yellow);font-weight:700;line-height:1.1;}
+.lb-logo p{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
+.lb label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.35rem;}
+.lb input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:.75rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;margin-bottom:.9rem;}
+.lb input:focus{border-color:var(--yellow);}
+.lb-btn{width:100%;background:var(--yellow);border:none;border-radius:11px;padding:.85rem;color:#111;font-weight:700;font-size:.95rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.lb-err{color:#ef5350;font-size:.78rem;margin-top:.4rem;display:none;}
+#app{display:none;}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,#111,#1a1200);border-bottom:2px solid var(--yellow);padding:.9rem 1.4rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.tb-left h1{font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--yellow);}
+.tb-left p{font-size:.7rem;color:var(--muted);}
+.live-badge{display:flex;align-items:center;gap:.4rem;background:rgba(46,125,50,.2);border:1px solid rgba(46,125,50,.35);color:#66bb6a;padding:.3rem .8rem;border-radius:50px;font-size:.72rem;font-weight:600;}
+.tb-right{display:flex;align-items:center;gap:.6rem;}
+.btn-logout{background:rgba(211,47,47,.15);border:1px solid rgba(211,47,47,.3);color:#ef5350;padding:.35rem .8rem;border-radius:50px;font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:57px;z-index:99;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:.85rem 1rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;}
+.tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+.tc{display:none;padding:1rem;max-width:880px;margin:0 auto;}
+.tc.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.2rem;margin-bottom:1rem;}
+.scard h2{font-family:'Oswald',sans-serif;font-size:1.05rem;color:var(--yellow);margin-bottom:.7rem;}
+.hint{font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5;}
+
+/* STAT GRID */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:.9rem;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem .7rem;text-align:center;}
+.sv{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;color:var(--yellow);}
+.sl{font-size:.65rem;color:var(--muted);margin-top:.2rem;}
+
+/* SPECIAL BANNERS */
+.special-banner{background:linear-gradient(135deg,rgba(211,47,47,.15),rgba(183,28,28,.08));border:1.5px solid rgba(211,47,47,.3);border-radius:14px;padding:1rem 1.2rem;margin-bottom:.9rem;display:none;}
+.special-banner.anni{background:linear-gradient(135deg,rgba(106,27,154,.15),rgba(74,20,140,.08));border-color:rgba(179,136,255,.3);}
+.special-banner h3{font-family:'Oswald',sans-serif;font-size:.95rem;color:var(--yellow);margin-bottom:.5rem;}
+.bday-list{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
+.bday-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .7rem;font-size:.78rem;}
+.bday-item .wa-wish{background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .6rem;border-radius:50px;font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* FORMS */
+.fg{margin-bottom:.75rem;}
+.fg label{display:block;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.3rem;}
+.fi{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.fi:focus{border-color:var(--yellow);}
+.fi::placeholder{color:var(--dim);}
+.fs{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.fi2{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.55rem .8rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;}
+.fi2:focus{border-color:var(--yellow);}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.fg3{display:grid;grid-template-columns:80px 1fr 1fr;gap:.6rem;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;}
+.fr{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;align-items:center;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:10px;padding:.6rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.btn-y{background:var(--yellow);color:#111;}
+.btn-green{background:rgba(46,125,50,.8);color:white;}
+.btn-ghost{background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border);}
+.btn-red{background:rgba(211,47,47,.8);color:white;}
+.btn-full{width:100%;}
+.btn-ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;border:none;border-radius:10px;padding:.3rem .7rem;font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;}
+
+/* CUSTOMER TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.77rem;min-width:580px;}
+thead tr{background:rgba(255,214,0,.07);}
+th{padding:.65rem .8rem;text-align:left;color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+td{padding:.6rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.03);}
+.ts{background:rgba(96,125,139,.15);color:#90A4AE;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.tg{background:rgba(255,193,7,.12);color:#FFD54F;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.tv{background:rgba(100,181,246,.12);color:#90CAF9;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;}
+.lv-badge{font-size:.68rem;font-weight:700;padding:.15rem .45rem;border-radius:4px;}
+.lv-ok{background:rgba(46,125,50,.15);color:#66bb6a;}
+.lv-warn{background:rgba(255,152,0,.15);color:#FFA726;}
+.lv-bad{background:rgba(211,47,47,.15);color:#ef5350;}
+.pag{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem;}
+.pgb{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:7px;padding:.3rem .65rem;font-size:.75rem;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.pgb.active{background:var(--yellow);color:#111;font-weight:700;border-color:var(--yellow);}
+
+/* CUSTOMER RECORD */
+.cr{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:.8rem;display:none;}
+.cr-name{font-family:'Oswald',sans-serif;font-size:1.3rem;color:var(--yellow);}
+.cr-meta{font-size:.75rem;color:var(--muted);margin-top:.2rem;}
+.cr-pts{font-family:'Oswald',sans-serif;font-size:1.8rem;font-weight:700;color:var(--yellow);}
+.cr-dishes{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;}
+.cd-chip{background:rgba(255,214,0,.08);border:1px solid var(--border);color:var(--muted);padding:.18rem .5rem;border-radius:50px;font-size:.68rem;}
+.cr-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;}
+
+/* MENU */
+.menu-item-row{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.menu-item-row:last-child{border:none;}
+.mi-info{flex:1;}
+.mi-name{font-size:.88rem;font-weight:600;}
+.mi-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+.mi-toggle{background:none;border:1px solid var(--border);border-radius:8px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.mi-toggle.on{background:rgba(46,125,50,.2);border-color:rgba(46,125,50,.4);color:#66bb6a;}
+.mi-toggle.off{background:rgba(211,47,47,.1);border-color:rgba(211,47,47,.25);color:#ef5350;}
+
+/* MILESTONE */
+.ms-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.ms-row:last-child{border:none;}
+.ms-badge{background:var(--yellow);color:#111;font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:700;padding:.2rem .6rem;border-radius:6px;flex-shrink:0;}
+.ms-info{flex:1;font-size:.82rem;}
+.ms-status{font-size:.68rem;padding:.18rem .5rem;border-radius:6px;font-weight:600;}
+.ms-on{background:rgba(46,125,50,.2);color:#66bb6a;}
+.ms-off{background:rgba(255,255,255,.07);color:var(--muted);}
+
+/* REFERRAL / SOCIAL TASK ROWS */
+.rvr{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rvr:last-child{border:none;}
+.rvt{flex:1;font-size:.78rem;}
+.rvb{background:var(--yellow);border:none;border-radius:8px;padding:.28rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;color:#111;font-family:'DM Sans',sans-serif;}
+
+/* HELP TICKETS */
+.ticket-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem;margin-bottom:.6rem;}
+.tkt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;}
+.tkt-cat{font-size:.68rem;font-weight:700;padding:.18rem .5rem;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;}
+.cat-complaint{background:rgba(211,47,47,.2);color:#ef5350;}
+.cat-query{background:rgba(255,214,0,.1);color:var(--yellow);}
+.cat-suggestion{background:rgba(46,125,50,.15);color:#66bb6a;}
+.cat-compliment{background:rgba(100,181,246,.12);color:#90CAF9;}
+.tkt-msg{font-size:.8rem;color:var(--text);line-height:1.5;margin:.4rem 0;}
+.tkt-meta{font-size:.7rem;color:var(--muted);}
+.tkt-actions{display:flex;gap:.5rem;margin-top:.6rem;}
+
+/* POSTS */
+.post-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.8rem;}
+.post-card h4{font-size:.85rem;font-weight:600;color:var(--yellow);margin-bottom:.6rem;}
+.post-text{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.7rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.75rem;resize:none;outline:none;line-height:1.5;margin-bottom:.6rem;}
+.post-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+
+/* UPCOMING SPECIALS */
+.spec-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;}
+.spec-row:last-child{border:none;}
+
+/* ALERT ITEM */
+.alert-item{display:flex;align-items:center;gap:.75rem;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;}
+.ai-icon{font-size:1.3rem;flex-shrink:0;}
+.ai-info{flex:1;}
+.ai-title{font-size:.82rem;font-weight:600;}
+.ai-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
+.ai-btn{background:var(--yellow);border:none;border-radius:8px;padding:.3rem .8rem;font-size:.72rem;font-weight:600;cursor:pointer;color:#111;font-family:'DM Sans',sans-serif;flex-shrink:0;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--yellow);color:var(--yellow);padding:.65rem 1.3rem;border-radius:50px;font-size:.8rem;font-weight:600;z-index:9999;transition:transform .3s ease;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* INACTIVE LIST */
+.inactive-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;}
+.inactive-row:last-child{border:none;}
+.ir-days{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:#ef5350;flex-shrink:0;min-width:36px;text-align:center;}
+.ir-info{flex:1;}
+.ir-name{font-weight:600;color:var(--text);}
+.ir-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="lb-logo">
+      <div class="icon">🌯 THE KATHI ROLL HUB</div>
+      <p>Admin Panel — Owner Only</p>
+    </div>
+    <div class="lb">
+      <label>Email</label>
+      <input type="email" id="l-email" placeholder="admin@email.com" value="vishtechsoftwareservices@gmail.com">
+      <label>Password</label>
+      <input type="password" id="l-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lb-err" id="l-err"></div>
+      <button class="lb-btn" onclick="doLogin()" style="margin-top:.4rem;">🔐 Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-left">
+      <h1>🌯 KATHI ROLL HUB — ADMIN</h1>
+      <p id="tb-sub">Murlipura, Jaipur · 24x7 Open</p>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge"><span style="width:7px;height:7px;border-radius:50%;background:#66bb6a;display:inline-block;animation:pulse 1.5s ease infinite;"></span> LIVE</div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('dashboard',this)">📊 Dashboard</button>
+    <button class="tab" onclick="sw('points',this)">⭐ Points</button>
+    <button class="tab" onclick="sw('menu',this)">🌯 Menu</button>
+    <button class="tab" onclick="sw('rewards',this)">🎁 Rewards</button>
+    <button class="tab" onclick="sw('customers',this)">👥 Customers</button>
+    <button class="tab" onclick="sw('alerts',this)">🚨 Alerts</button>
+    <button class="tab" onclick="sw('help',this)">💬 Help</button>
+    <button class="tab" onclick="sw('referrals',this)">🔗 Referrals</button>
+    <button class="tab" onclick="sw('posts',this)">📱 Posts</button>
+    <button class="tab" onclick="sw('billing',this)">🧾 Billing</button>
+    <button class="tab" onclick="sw('inventory',this)">📦 Inventory</button>
+    <button class="tab" onclick="sw('export',this)">📥 Export</button>
+    <button class="tab" onclick="sw('settings',this)">⚙️ Settings</button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="tc active" id="tc-dashboard">
+    <div class="special-banner" id="bday-banner">
+      <h3>🎂 Aaj ke Birthday Members!</h3>
+      <ul class="bday-list" id="bday-list"></ul>
+    </div>
+    <div class="special-banner anni" id="anni-banner">
+      <h3>💑 Aaj Anniversary wale Members!</h3>
+      <ul class="bday-list" id="anni-list"></ul>
+    </div>
+    <div id="profit-warning-dash"></div>
+    <div class="sg">
+      <div class="sc"><div class="sv" id="st-total">—</div><div class="sl">Total Members</div></div>
+      <div class="sc"><div class="sv" id="st-today">—</div><div class="sl">Aaj Registered</div></div>
+      <div class="sc"><div class="sv" id="st-pts">—</div><div class="sl">Total Points</div></div>
+      <div class="sc"><div class="sv" id="st-refs">—</div><div class="sl">Referrals</div></div>
+    </div>
+    <div class="sg" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:.9rem;">
+      <div class="sc"><div class="sv" id="st-inactive" style="color:#ef5350;">—</div><div class="sl">Inactive (15d+)</div></div>
+      <div class="sc"><div class="sv" id="st-gold" style="color:#FFD54F;">—</div><div class="sl">Gold Members</div></div>
+      <div class="sc"><div class="sv" id="st-vip" style="color:#90CAF9;">—</div><div class="sl">VIP Members</div></div>
+    </div>
+    <div class="scard">
+      <h2>🏆 Top Members</h2>
+      <div style="display:flex;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('points')">⭐ Points</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('visits')">🔥 Visits</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('referrals')">👥 Referrals</button>
+        <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.72rem;" onclick="showTopBy('spend')">💰 Spend</button>
+      </div>
+      <div id="top-members" style="color:var(--muted);font-size:.85rem;">Loading...</div>
+    </div>
+    <div class="scard">
+      <h2>📅 Upcoming Specials — Next 7 Days</h2>
+      <div id="upcoming-specials" style="color:var(--muted);font-size:.82rem;">Loading...</div>
+    </div>
+    <div class="scard">
+      <h2>🔗 Quick Links</h2>
+      <div style="font-size:.8rem;line-height:2.5;color:var(--muted);">
+        🌯 Customer App: <a href="https://the-kathi-roll-hub-users.vercel.app/" target="_blank" style="color:var(--yellow);">the-kathi-roll-hub-users.vercel.app</a><br>
+        🔐 Admin Panel: <a href="https://hi-roll-hub.vercel.app/" target="_blank" style="color:var(--yellow);">hi-roll-hub.vercel.app</a><br>
+        📍 Google Maps: <a href="https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8" target="_blank" style="color:var(--yellow);">The Kathi Roll Hub — Review Link</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POINTS ===== -->
+  <div class="tc" id="tc-points">
+    <div class="scard">
+      <h2>🔍 Customer Dhundho</h2>
+      <div class="fg"><label>Phone ya Member ID (RKH...)</label><input class="fi" id="srch" placeholder="9876543210 ya RKH123456" oninput="searchCust()"></div>
+      <div class="cr" id="cr">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
+          <div style="flex:1">
+            <div class="cr-name" id="cr-name">—</div>
+            <div class="cr-meta" id="cr-meta">—</div>
+            <div id="cr-tier" style="margin-top:.3rem;"></div>
+            <div class="cr-dishes" id="cr-dishes"></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:.5rem;">
+            <div class="cr-pts" id="cr-pts">0</div>
+            <div style="font-size:.68rem;color:var(--muted);">Points</div>
+            <div id="cr-streak" style="font-size:.72rem;color:var(--yellow);margin-top:.3rem;"></div>
+          </div>
+        </div>
+        <div id="cr-last-visit" style="background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .7rem;margin-bottom:.6rem;font-size:.75rem;color:var(--muted);"></div>
+        <div class="cr-actions">
+          <button class="btn btn-y" onclick="document.getElementById('add-card').style.display='block';document.getElementById('add-card').scrollIntoView({behavior:'smooth'})">⭐ Points Add</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('red-card').style.display='block'">🎁 Redeem</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('bonus-card').style.display='block'">🎯 Bonus</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('personal-offer-card').style.display='block'" style="color:#FFA726;">💌 Personal Offer</button>
+          <button class="btn btn-ghost" onclick="verifyPhone()" id="verify-btn" style="color:#66bb6a;">✅ Verify</button>
+          <button class="btn btn-ghost" onclick="hideCR();document.getElementById('srch').value=''" style="color:#ef5350;margin-left:auto;">✕ Close</button>
+        </div>
+      </div>
+    </div>
+    <div class="scard" id="add-card" style="display:none;">
+      <div id="unverified-warning" style="display:none;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.25);border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.75rem;color:#ef5350;line-height:1.5;">⚠️ <strong>Phone unverified!</strong> Pehle verify karo tab hi points add karo.</div>
+      <h2>⭐ Points Add</h2>
+      <div class="fg2">
+        <div class="fg"><label>Amount (₹)</label><input class="fi" id="p-amt" type="number" placeholder="150" oninput="calcPts()"></div>
+        <div class="fg"><label>Points (auto)</label><input class="fi" id="p-pts" type="number" placeholder="Auto"></div>
+      </div>
+      <div class="fg"><label>Note (optional)</label><input class="fi" id="p-note" placeholder="e.g. Paneer Roll 2x + Cold Coffee"></div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem;background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:8px;padding:.55rem .8rem;">
+        <input type="checkbox" id="p-count-visit" checked style="width:15px;height:15px;accent-color:var(--yellow);cursor:pointer;">
+        <label for="p-count-visit" style="font-size:.78rem;color:var(--text);cursor:pointer;">✅ Visit count karein (uncheck karo agar sirf bonus/correction hai)</label>
+      </div>
+      <button class="btn btn-y btn-full" onclick="addPts()">✅ Points Add Karein</button>
+    </div>
+    <div class="scard" id="red-card" style="display:none;">
+      <h2>🎁 Redeem Points</h2>
+      <div class="fg"><input class="fi" id="r-pts" type="number" placeholder="100 pts" oninput="showRV()"></div>
+      <div id="rv" style="font-size:.82rem;color:var(--yellow);margin-bottom:.8rem;font-weight:600;"></div>
+      <button class="btn btn-green btn-full" onclick="redeemPts()">🎁 Redeem Karein</button>
+    </div>
+    <div class="scard" id="bonus-card" style="display:none;">
+      <h2>🎯 Bonus Points</h2>
+      <div class="fg2">
+        <div class="fg"><label>Points</label><input class="fi" id="b-pts" type="number" placeholder="50"></div>
+        <div class="fg"><label>Reason</label>
+          <select class="fs" id="b-reason">
+            <option>Birthday reward diya</option>
+            <option>Milestone visit reward diya</option>
+            <option>Google review verified</option>
+            <option>Zomato follow verified</option>
+            <option>Instagram follow verified</option>
+            <option>Festival special</option>
+            <option>Complaint resolved — goodwill</option>
+            <option>Manual correction</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="addBonus()">🎯 Bonus Add</button>
+    </div>
+    <div class="scard" id="personal-offer-card" style="display:none;">
+      <h2>💌 Personal Offer Bhejo</h2>
+      <p class="hint">Is customer ke liye ek special offer — unki app pe bhi dikhega (agar 15+ din inactive hain)</p>
+      <div class="fg"><label>Offer Message</label><input class="fi" id="po-text" placeholder="Sirf aapke liye: aaj 20% off! Bas yeh code dikhao."></div>
+      <div class="fg2">
+        <div class="fg"><label>Discount %</label><input class="fi" id="po-disc" type="number" placeholder="20"></div>
+        <div class="fg"><label>Code (auto-set)</label><input class="fi" id="po-code" placeholder="BACK{phone4}" readonly style="color:var(--yellow)"></div>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+        <button class="btn btn-y" onclick="sendPersonalOffer()">📤 WhatsApp pe Bhejo</button>
+        <button class="btn btn-green" onclick="savePersonalOfferDb()">💾 App mein bhi Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MENU ===== -->
+  <div class="tc" id="tc-menu">
+    <div class="scard">
+      <h2>➕ Item Add Karo</h2>
+      <p class="hint">Cost price daalte hi margin auto dikhega. Offer ON karo to user ki app pe discount dikhega.</p>
+      <div class="fg3">
+        <div class="fg"><label>Emoji</label><input class="fi" id="mi-emoji" placeholder="🌯" maxlength="2" style="text-align:center;font-size:1.2rem;"></div>
+        <div class="fg"><label>Item Naam *</label><input class="fi" id="mi-name" placeholder="Paneer Roll"></div>
+        <div class="fg"><label>Sell Price (₹) *</label><input class="fi" id="mi-price" type="number" placeholder="90" oninput="calcM()"></div>
+      </div>
+      <div class="fg4">
+        <div class="fg"><label>Cost (₹)</label><input class="fi" id="mi-cost" type="number" placeholder="40" oninput="calcM()"></div>
+        <div class="fg"><label>Category</label>
+          <select class="fs" id="mi-cat"><option>Kathi Roll</option><option>Chaap Roll</option><option>Momos</option><option>Chinese</option><option>Beverage</option><option>Extra</option></select>
+        </div>
+        <div class="fg"><label>Offer % (Silver)</label><input class="fi" id="mi-disc" type="number" placeholder="0" oninput="calcM()"></div>
+      </div>
+      <div class="fg4">
+        <div class="fg"><label>Gold Offer %</label><input class="fi" id="mi-dg" type="number" placeholder="0"></div>
+        <div class="fg"><label>VIP Offer %</label><input class="fi" id="mi-dv" type="number" placeholder="0"></div>
+        <div class="fg"><label>User App pe Show?</label><select class="fs" id="mi-active"><option value="true">✅ Haan — App pe dikhega</option><option value="false">❌ Nahi — Hide rahega</option></select></div>
+      </div>
+      <div id="margin-display" style="margin-bottom:.8rem;font-size:.78rem;color:var(--muted);background:rgba(255,255,255,.04);border-radius:8px;padding:.6rem .8rem;min-height:28px;"></div>
+      <button class="btn btn-y btn-full" onclick="addItem()">🌯 Menu Mein Add Karo</button>
+    </div>
+    <div class="scard">
+      <h2>🌯 Current Menu</h2>
+      <p class="hint">👁️ = User app pe dikhega, 🙈 = Hidden. Discount ON karne pe user ko tier ke hisaab se offer dikhega.</p>
+      <div id="menu-list"><div style="text-align:center;color:var(--muted);padding:1.5rem;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== REWARDS ===== -->
+  <div class="tc" id="tc-rewards">
+    <div class="scard">
+      <h2>🔥 Visit Milestones</h2>
+      <p class="hint">Kisi bhi visit pe reward set karo — customer ki app pe automatically dikhega aur popup aayega!</p>
+      <div id="milestone-list"></div>
+      <div style="display:flex;gap:.7rem;margin-top:.8rem;flex-wrap:wrap;align-items:flex-end;">
+        <div class="fg" style="margin:0;"><label>Visit No.</label><input class="fi" id="ms-visit" type="number" placeholder="5" style="width:90px;"></div>
+        <div class="fg" style="margin:0;flex:1;"><label>Reward (Customer ko dikhega)</label><input class="fi" id="ms-reward" placeholder="Free Paneer Roll ya Momos"></div>
+        <button class="btn btn-y" onclick="addMilestone()" style="align-self:flex-end;">➕ Add</button>
+      </div>
+    </div>
+    <div class="scard">
+      <h2>🎂 Birthday Reward</h2>
+      <p class="hint">Customer ki app pe yahi text dikhega. Aap decide karo — kya dena hai birthday pe!</p>
+      <div class="fg"><label>Birthday pe kya milega? (App pe dikhega)</label><input class="fi" id="bday-reward-text" placeholder="Free Paneer Roll + 15% off poore order pe"></div>
+      <div class="fg2">
+        <div class="fg"><label>Discount %</label><input class="fi" id="bday-disc" type="number" placeholder="15"></div>
+        <div class="fg"><label>Bonus Points</label><input class="fi" id="bday-pts" type="number" placeholder="50"></div>
+      </div>
+      <button class="btn btn-y btn-full" onclick="saveBdayReward()">💾 Save — User App Update Hoga</button>
+    </div>
+    <div class="scard">
+      <h2>👥 Referral Reward System</h2>
+      <p class="hint">Har referral pe alag reward — customer ki app pe live dikhega. Max referrals bhi aap set karo.</p>
+      <div class="fg2">
+        <div class="fg"><label>Max Referrals (per customer)</label><input class="fi" id="ref-max" type="number" placeholder="3"></div>
+        <div class="fg"><label>1st Refer — Points</label><input class="fi" id="ref1-pts" type="number" placeholder="50"></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>2nd Refer — Points</label><input class="fi" id="ref2-pts" type="number" placeholder="70"></div>
+        <div class="fg"><label>3rd Refer — Points</label><input class="fi" id="ref3-pts" type="number" placeholder="100"></div>
+      </div>
+      <div class="fg"><label>3rd Refer Special Item (optional)</label><input class="fi" id="ref3-item" placeholder="e.g. Free Aloo Roll ya Momos"></div>
+      <button class="btn btn-y btn-full" onclick="saveRefRewards()">💾 Save — User App Update Hoga</button>
+    </div>
+    <div class="scard">
+      <h2>⚠️ Profit Warning System</h2>
+      <div class="fg2">
+        <div class="fg"><label>Warning % (yellow)</label><input class="fi" id="warn-pct" type="number" placeholder="5" value="5"></div>
+        <div class="fg"><label>Critical % (red)</label><input class="fi" id="crit-pct" type="number" placeholder="8" value="8"></div>
+      </div>
+      <div id="current-discount-check" style="font-size:.8rem;color:var(--muted);padding:.7rem;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:.8rem;"></div>
+      <button class="btn btn-y btn-full" onclick="saveWarnings()">💾 Save Warning Settings</button>
+    </div>
+  </div>
+
+  <!-- ===== CUSTOMERS ===== -->
+  <div class="tc" id="tc-customers">
+    <div class="scard">
+      <div class="fr">
+        <input class="fi2" style="flex:1;min-width:130px;" id="f-s" placeholder="🔍 Naam, Phone, ID..." oninput="filterC()">
+        <select class="fi2" id="f-t" onchange="filterC()">
+          <option value="">All Tiers</option>
+          <option>Silver</option><option>Gold</option><option>VIP Diamond</option>
+        </select>
+        <select class="fi2" id="f-so" onchange="filterC()">
+          <option value="recent">Latest First</option>
+          <option value="pts">Points ↓</option>
+          <option value="visits">Visits ↓</option>
+          <option value="inactive">Inactive First</option>
+          <option value="lastvisit">Last Visit</option>
+        </select>
+        <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="loadC()">🔄</button>
+        <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;" onclick="filterUnverified()">❌ Unverified</button>
+        <button class="btn btn-ghost" style="padding:.5rem .7rem;font-size:.75rem;color:#ef5350;" onclick="filterInactive()">😴 Inactive</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Naam</th><th>Phone</th><th>Points</th><th>Tier</th><th>Visits</th><th>Last Visit</th><th>Fav</th><th>Action</th></tr></thead>
+          <tbody id="cust-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pag" id="pag"></div>
+      <div style="margin-top:.7rem;font-size:.75rem;color:var(--muted);" id="cc"></div>
+    </div>
+  </div>
+
+  <!-- ===== ALERTS ===== -->
+  <div class="tc" id="tc-alerts">
+    <div class="scard"><h2>🚨 Smart Alerts</h2><div id="alerts-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div></div>
+    <div class="scard">
+      <h2>😴 Inactive Customers — Win Back</h2>
+      <p class="hint">15+ din se nahi aaye. Personalized offer bhejo — unki app pe bhi dikhega!</p>
+      <div id="inactive-list"></div>
+    </div>
+    <div class="scard"><h2>📊 Segment Summary</h2><div id="seg-summary"></div></div>
+    <div class="scard">
+      <h2>📱 Social Tasks — Verify Karein</h2>
+      <p class="hint">Customer ne Instagram/Google/WhatsApp task kiya — verify karo, points auto-credit honge.</p>
+      <div id="st-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== HELP ===== -->
+  <div class="tc" id="tc-help">
+    <div class="scard">
+      <h2>💬 Open Help Requests</h2>
+      <p class="hint">Customers ne complaint/query/suggestion bheja — reply karo ya resolve karo.</p>
+      <div id="help-open"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+    <div class="scard">
+      <h2>✅ Resolved Tickets</h2>
+      <div id="help-resolved"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== REFERRALS ===== -->
+  <div class="tc" id="tc-referrals">
+    <div class="scard"><h2>⏳ Pending — Verify Karo</h2><div id="ref-pending"></div></div>
+    <div class="scard"><h2>✅ Verified Referrals</h2><div id="ref-done"></div></div>
+  </div>
+
+  <!-- ===== POSTS ===== -->
+  <div class="tc" id="tc-posts">
+    <div class="scard" style="margin-bottom:.5rem;">
+      <h2>📱 Ready Social Media Posts</h2>
+      <p class="hint">Copy → WhatsApp pe share karo. Ya Instagram pe directly share karo (caption auto-copy ho jayega).</p>
+    </div>
+    <div id="posts-list"></div>
+  </div>
+
+  <!-- ===== BILLING ===== -->
+  <div class="tc" id="tc-billing">
+    <div class="scard">
+      <h2>🧾 Naya Bill Banao</h2>
+      <p class="hint">Customer dhundho → items add karo → bill finalize karo. Points auto-earn + WhatsApp receipt.</p>
+      <div class="fg"><label>Customer Phone ya Member ID</label>
+        <input class="fi" id="bill-srch" placeholder="9876543210 ya RKH..." oninput="billSearch()">
+      </div>
+      <div id="bill-cust-info" style="display:none;background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><span style="font-size:.88rem;font-weight:600;" id="bc-name">—</span> <span style="font-size:.72rem;color:var(--muted);" id="bc-tier">—</span></div>
+          <div style="text-align:right;"><span style="font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--yellow);" id="bc-pts">0</span> <span style="font-size:.68rem;color:var(--muted);">pts</span></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.2rem;" id="bc-meta">—</div>
+      </div>
+    </div>
+    <div class="scard">
+      <h2>🌯 Items Add Karo</h2>
+      <div id="bill-menu-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
+      <div style="background:var(--card);border-radius:10px;padding:.8rem;margin-bottom:.8rem;">
+        <div style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;">Bill Items</div>
+        <div id="bill-items-list"><div style="font-size:.8rem;color:var(--muted);">Koi item select nahi kiya</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem;">
+        <div style="background:var(--card);border-radius:10px;padding:.7rem;text-align:center;">
+          <div style="font-size:.68rem;color:var(--muted);">Subtotal</div>
+          <div style="font-family:'Oswald',sans-serif;font-size:1.3rem;color:var(--text);">₹<span id="b-subtotal">0</span></div>
+        </div>
+        <div style="background:var(--card);border-radius:10px;padding:.7rem;text-align:center;">
+          <div style="font-size:.68rem;color:var(--muted);">Tier Discount (<span id="b-disc-pct">0</span>%)</div>
+          <div style="font-family:'Oswald',sans-serif;font-size:1.3rem;color:#66bb6a;">-₹<span id="b-disc-amt">0</span></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,214,0,.08);border:1px solid var(--border);border-radius:10px;padding:.7rem;margin-bottom:.8rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
+          <input type="checkbox" id="b-redeem-chk" style="width:15px;height:15px;accent-color:var(--yellow);cursor:pointer;" onchange="toggleRedeem()">
+          <label for="b-redeem-chk" style="font-size:.78rem;color:var(--text);cursor:pointer;">Points redeem karo <span id="b-redeem-avail" style="color:var(--yellow);">(0 pts available)</span></label>
+        </div>
+        <div id="b-redeem-row" style="display:none;gap:.5rem;align-items:center;">
+          <input class="fi" id="b-redeem-pts" type="number" placeholder="Kitne pts?" style="flex:1;" oninput="calcBill()">
+          <span style="font-size:.75rem;color:var(--muted);">= ₹<span id="b-redeem-val">0</span> off</span>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(255,214,0,.15),rgba(255,214,0,.05));border:1.5px solid rgba(255,214,0,.3);border-radius:12px;padding:.9rem;margin-bottom:.8rem;text-align:center;">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Customer Pay Karega</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:2.2rem;font-weight:700;color:var(--yellow);">₹<span id="b-final">0</span></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.2rem;">Points earn hoge: <span id="b-earn-pts" style="color:var(--yellow);">0 pts</span></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>Payment Mode</label>
+          <select class="fs" id="b-pay-mode">
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI / PhonePe / GPay</option>
+            <option value="Card">Card</option>
+            <option value="Mixed">Mixed</option>
+          </select>
+        </div>
+        <div class="fg"><label>Payment Status</label>
+          <select class="fs" id="b-pay-status">
+            <option value="paid">✅ Paid — Paise mil gaye</option>
+            <option value="unpaid">⏳ Unpaid — Baad mein denge</option>
+            <option value="partial">⚠️ Partial — Kuch diya, kuch baaki</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Note (optional)</label>
+        <input class="fi" id="b-note" placeholder="Table no., special instruction...">
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+        <button class="btn btn-y" style="flex:2;" onclick="finalizeBill()">✅ Bill Confirm</button>
+        <button class="btn btn-green" style="flex:2;" onclick="billWhatsApp()">💬 WA Receipt</button>
+        <button class="btn btn-ghost" style="flex:1;" onclick="clearBill()">🗑️</button>
+      </div>
+      <button class="btn btn-ghost btn-full" style="margin-top:.5rem;color:#FFA726;border-color:rgba(255,152,0,.3);" onclick="sendUnpaidReminder()">⏳ Unpaid Reminder Bhejo</button>
+    </div>
+    <div class="scard">
+      <h2>📋 Aaj ke Bills</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.8rem;">
+        <div class="sc"><div class="sv" id="today-bills">0</div><div class="sl">Bills</div></div>
+        <div class="sc"><div class="sv" id="today-revenue">₹0</div><div class="sl">Revenue</div></div>
+        <div class="sc"><div class="sv" id="today-avg">₹0</div><div class="sl">Avg Bill</div></div>
+        <div class="sc"><div class="sv" id="today-pts">0</div><div class="sl">Pts Earned</div></div>
+      </div>
+      <div id="today-bills-list"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== INVENTORY ===== -->
+  <div class="tc" id="tc-inventory">
+    <div class="scard">
+      <h2>📦 Stock Overview</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.8rem;">
+        <div class="sc"><div class="sv" id="inv-total" style="color:#66bb6a;">0</div><div class="sl">In Stock</div></div>
+        <div class="sc"><div class="sv" id="inv-low" style="color:#FFA726;">0</div><div class="sl">Low Stock</div></div>
+        <div class="sc"><div class="sv" id="inv-out" style="color:#ef5350;">0</div><div class="sl">Out of Stock</div></div>
+      </div>
+      <p class="hint">Stock 0 hone pe item user app pe automatically hide ho jayega. Low stock alert 10 se kam pe aata hai.</p>
+    </div>
+    <div class="scard">
+      <h2>📋 Sab Items ka Stock</h2>
+      <div class="fr" style="margin-bottom:.6rem;">
+        <button class="btn btn-y" onclick="loadInventory()">🔄 Refresh</button>
+        <button class="btn btn-ghost" onclick="bulkRestock()" style="font-size:.78rem;">📦 Bulk Restock</button>
+        <input class="fi2" id="inv-search" placeholder="Item search..." oninput="filterInv()" style="flex:1;">
+      </div>
+      <div id="inv-list"><div style="text-align:center;color:var(--muted);padding:1.5rem;">Loading...</div></div>
+    </div>
+    <div class="scard">
+      <h2>📊 Aaj Kya Bika</h2>
+      <p class="hint">Bills se auto-calculate — kaunsa item kitni baar order hua aaj.</p>
+      <div id="sales-report"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+    <div class="scard">
+      <h2>🔔 Stock Alerts</h2>
+      <div id="stock-alerts"><div style="color:var(--muted);font-size:.82rem;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== EXPORT ===== -->
+  <div class="tc" id="tc-export">
+    <div class="scard">
+      <h2>📥 Data Export — CSV</h2>
+      <p class="hint">Excel mein open kar sakte hain — sab data milega.</p>
+      <button class="btn btn-y btn-full" onclick="expAll()" style="margin-bottom:.7rem;">📊 All Customers Export</button>
+      <button class="btn btn-ghost btn-full" onclick="expBday()" style="margin-bottom:.7rem;">🎂 Birthday List (Is Mahine)</button>
+      <button class="btn btn-ghost btn-full" onclick="expRefs()" style="margin-bottom:.7rem;">🔗 Referral Report</button>
+      <button class="btn btn-ghost btn-full" onclick="expInactive()" style="margin-bottom:.7rem;">😴 Inactive Customers</button>
+      <button class="btn btn-ghost btn-full" onclick="expUpcoming()">📅 Upcoming Specials (7 Days)</button>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="tc" id="tc-settings">
+    <div class="scard">
+      <h2>⚙️ Points & Shop Settings</h2>
+      <div class="fg2">
+        <div class="fg">
+          <label>₹ per 1 Point</label>
+          <input class="fi" id="set-rate" type="number" placeholder="10" min="5" max="100" oninput="updateSettingsPreview()">
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;" id="rate-hint"></div>
+        </div>
+        <div class="fg"><label>Welcome Points</label><input class="fi" id="set-welcome" type="number" placeholder="50" oninput="updateSettingsPreview()"></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>100 pts = ₹ Discount</label><input class="fi" id="set-redeem-val" type="number" placeholder="10" oninput="updateSettingsPreview()"></div>
+        <div class="fg"><label>Shop Name</label><input class="fi" id="set-shopname" placeholder="The Kathi Roll Hub"></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>Help WhatsApp No.</label><input class="fi" id="set-help-wa" placeholder="8619721224"></div>
+        <div class="fg"><label>Help Active?</label>
+          <select class="fs" id="set-help-active"><option value="1">✅ Active — Customer dekh sakta hai</option><option value="0">❌ OFF — Hidden</option></select>
+        </div>
+      </div>
+      <div class="fg"><label>Help Section Message (Customer ko dikhega)</label><input class="fi" id="set-help-msg" placeholder="Koi bhi problem? Hum help karenge!"></div>
+      <div id="settings-preview" style="background:rgba(255,214,0,.07);border:1px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.9rem;font-size:.78rem;color:var(--muted);line-height:1.8;"></div>
+      <div id="economy-check" style="margin-bottom:.9rem;"></div>
+      <button class="btn btn-y btn-full" onclick="saveSettings()">💾 Save — User App pe Live Update Hoga</button>
+    </div>
+    <div class="scard">
+      <h2>🔐 Password Change</h2>
+      <div class="fg"><input class="fi" id="new-pw2" type="password" placeholder="Naya password (6+ chars)..."></div>
+      <button class="btn btn-ghost" onclick="changePw2()">🔐 Change Password</button>
+    </div>
+    <div class="scard" style="border-color:rgba(239,83,80,.3);">
+      <h2 style="color:#ef5350;">🛡️ Firebase Security Rules — ZAROORI!</h2>
+      <p class="hint" style="color:#ef5350;opacity:.85;">Ye rules set nahi ki to koi bhi customer apne points browser console se change kar sakta hai!</p>
+      <div style="background:var(--card);border-radius:10px;padding:.8rem;font-size:.73rem;color:var(--muted);font-family:monospace;line-height:1.8;white-space:pre-wrap;margin-bottom:.8rem;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'vishtechsoftwareservices@gmail.com';
+    }
+    match /rollhub_customers/{customerId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+    match /rollhub_socialTasks/{taskId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /rollhub_referrals/{refId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /rollhub_bills/{billId} {
+      allow read, write: if isAdmin();
+    }
+    match /rollhub_inventory/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /rollhub_transactions/{tId} {
+      allow read, write: if isAdmin();
+    }
+    match /rollhub_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /rollhub_help/{ticketId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}</div>
+      <a href="https://console.firebase.google.com/project/the-kathi-roll-hub/firestore/rules" target="_blank" class="btn btn-red btn-full" style="text-decoration:none;display:block;text-align:center;">🔗 Firebase Console mein Rules Set Karo</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let allC=[],filtC=[],selC=null,curPage=1;const PAGE=20;
+
+// XSS prevention — sanitize any user-generated text before innerHTML
+function esc(str){const d=document.createElement('div');d.textContent=String(str||'');return d.innerHTML;}
+let menuItems=[];
+let milestones=[],bdayReward={},refRewards={};
+let topMode='points';
+let shopSettings={rupeePerPoint:10,welcomePoints:50,redeemValue:10,shopName:'The Kathi Roll Hub',warnPct:5,critPct:8,helpWa:'8619721224',helpMsg:'Koi bhi problem? Hum help karenge!',helpActive:1};
+
+// ===== AUTH =====
+firebase.auth().onAuthStateChanged(u=>{
+  if(u){document.getElementById('login-wrap').style.display='none';document.getElementById('app').style.display='block';initApp();}
+  else{document.getElementById('login-wrap').style.display='flex';document.getElementById('app').style.display='none';}
+});
+async function doLogin(){
+  const e=document.getElementById('l-email').value.trim();const p=document.getElementById('l-pw').value;
+  const err=document.getElementById('l-err');err.style.display='none';
+  try{await firebase.auth().signInWithEmailAndPassword(e,p);}
+  catch(ex){err.textContent='❌ '+ex.message;err.style.display='block';}
+}
+async function doLogout(){if(confirm('Logout karein?')){await firebase.auth().signOut();location.reload();}}
+
+function sw(n,btn){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tc-'+n).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(n==='rewards')loadRewardsTab();
+  if(n==='help')loadHelp();
+  if(n==='referrals')loadRefs();
+  if(n==='alerts')loadAlerts();
+  if(n==='export'&&!allC.length)loadC().then(()=>toast('✅ Data loaded — export ready!'));
+  if(n==='billing'){loadBillingMenu();loadTodayBills();}
+  if(n==='inventory'){loadInventory();loadSalesReport();}
+}
+
+async function initApp(){await loadSettings();loadDash();loadC();loadMenu();renderPosts();}
+
+// ===== BILLING SYSTEM =====
+let billC=null,billItems=[],allInvItems=[];
+
+async function billSearch(){
+  const q=document.getElementById('bill-srch').value.trim();
+  if(q.length<5)return;
+  let c=allC.find(x=>x.phone===q||x.id===q);
+  if(!c){try{const s=await shopDb.customers().where('phone','==',q).get();if(!s.empty)c={id:s.docs[0].id,...s.docs[0].data()};}catch(e){}}
+  if(c){billC=c;showBillCust(c);}
+}
+
+function showBillCust(c){
+  document.getElementById('bill-cust-info').style.display='block';
+  document.getElementById('bc-name').textContent=c.name;
+  document.getElementById('bc-tier').textContent=gT(c.points||0).l;
+  document.getElementById('bc-pts').textContent=c.points||0;
+  document.getElementById('bc-meta').textContent=`📱 ${c.phone} | Last: ${c.lastVisitDays||0}d ago`;
+  document.getElementById('b-disc-pct').textContent=(c.points||0)>=700?8:(c.points||0)>=300?5:0;
+  document.getElementById('b-redeem-avail').textContent=`(${c.points||0} pts available)`;
+  calcBill();
+}
+
+async function loadBillingMenu(){
+  try{
+    const s=await shopDb.menu().get();
+    const items=(s.exists?s.data().items||[]:menuItems||[]).filter(i=>i.price>0);
+    const invSnap=await shopDb.inventory().get();
+    const inv={};invSnap.docs.forEach(d=>inv[d.id]={...d.data()});
+    const grid=document.getElementById('bill-menu-grid');
+    // Store items for addBillItem reference
+    window._billMenuItems=items;
+    grid.innerHTML=items.map((item,i)=>{
+      const stock=inv[item.name]?.stock;
+      const out=stock===0;const low=stock!==undefined&&stock>0&&stock<=10;
+      return`<button onclick="addBillItem(${i})" style="background:${out?'rgba(211,47,47,.1)':'var(--card)'};border:1px solid ${out?'rgba(211,47,47,.3)':low?'rgba(255,152,0,.3)':'var(--border)'};border-radius:10px;padding:.55rem .5rem;cursor:${out?'not-allowed':'pointer'};font-family:'DM Sans',sans-serif;text-align:center;${out?'opacity:.5':''}" ${out?'disabled':''}>
+        <div style="font-size:1.1rem;">${item.emoji||'🌯'}</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-top:.2rem;">${item.name}</div>
+        <div style="font-size:.68rem;color:var(--yellow);">₹${item.price}</div>
+        ${out?'<div style="font-size:.6rem;color:#ef5350;">Out</div>':low?`<div style="font-size:.6rem;color:#FFA726;">${stock} left</div>`:''}
+      </button>`;
+    }).join('');
+  }catch(e){toast('Menu load error: '+e.message);}
+}
+
+function addBillItem(idx){
+  const items=window._billMenuItems||[];if(!items[idx])return;
+  const item=items[idx];
+  const ex=billItems.find(b=>b.name===item.name);
+  if(ex)ex.qty++;
+  else billItems.push({name:item.name,price:item.price,emoji:item.emoji||'🌯',qty:1});
+  renderBillItems();calcBill();
+}
+
+function renderBillItems(){
+  const el=document.getElementById('bill-items-list');
+  if(!billItems.length){el.innerHTML='<div style="font-size:.8rem;color:var(--muted);">Koi item select nahi</div>';return;}
+  el.innerHTML=billItems.map((b,i)=>`
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:0.5px solid rgba(255,255,255,.05);">
+      <span style="font-size:1rem;">${b.emoji}</span>
+      <span style="flex:1;font-size:.82rem;">${b.name}</span>
+      <button onclick="chgQty(${i},-1)" style="background:rgba(255,255,255,.07);border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;">−</button>
+      <span style="font-size:.82rem;min-width:16px;text-align:center;">${b.qty}</span>
+      <button onclick="chgQty(${i},1)" style="background:rgba(255,255,255,.07);border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;">+</button>
+      <span style="font-size:.82rem;color:var(--yellow);min-width:48px;text-align:right;">₹${b.price*b.qty}</span>
+      <button onclick="remBI(${i})" style="background:none;border:none;color:#ef5350;cursor:pointer;font-size:1rem;padding:0 .15rem;">×</button>
+    </div>`).join('');
+}
+function chgQty(i,d){billItems[i].qty+=d;if(billItems[i].qty<=0)billItems.splice(i,1);renderBillItems();calcBill();}
+function remBI(i){billItems.splice(i,1);renderBillItems();calcBill();}
+
+function calcBill(){
+  const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
+  const pts=billC?billC.points||0:0;
+  const dp=pts>=700?8:pts>=300?5:0;
+  const da=Math.floor(sub*dp/100);
+  const rp=document.getElementById('b-redeem-chk')?.checked?parseInt(document.getElementById('b-redeem-pts')?.value||0):0;
+  const rv=Math.floor(rp*(shopSettings.redeemValue||10)/100);
+  const final=Math.max(0,sub-da-rv);
+  const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
+  document.getElementById('b-subtotal').textContent=sub;
+  document.getElementById('b-disc-amt').textContent=da;
+  document.getElementById('b-redeem-val').textContent=rv;
+  document.getElementById('b-final').textContent=final;
+  document.getElementById('b-earn-pts').textContent=ep+' pts';
+}
+
+function toggleRedeem(){
+  const c=document.getElementById('b-redeem-chk').checked;
+  const r=document.getElementById('b-redeem-row');if(r)r.style.display=c?'flex':'none';
+  calcBill();
+}
+
+async function finalizeBill(){
+  if(!billC)return toast('❌ Customer select karein');
+  if(!billItems.length)return toast('❌ Items add karein');
+  const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
+  const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
+  const da=Math.floor(sub*dp/100);
+  const rp=document.getElementById('b-redeem-chk')?.checked?parseInt(document.getElementById('b-redeem-pts')?.value||0):0;
+  // Validate: redeem points cannot exceed customer's actual points
+  if(rp>0&&rp>(billC.points||0))return toast(`❌ Customer ke paas sirf ${billC.points||0} pts hain — itna redeem nahi ho sakta`);
+  const rv=Math.floor(rp*(shopSettings.redeemValue||10)/100);
+  const final=Math.max(0,sub-da-rv);
+  const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
+  const pm=document.getElementById('b-pay-mode').value;
+  const ps=document.getElementById('b-pay-status')?.value||'paid';
+  const note=document.getElementById('b-note').value||'';
+  const bid='BILL'+Date.now().toString().slice(-8);
+  try{
+    await shopDb.bills().doc(bid).set({billId:bid,customerId:billC.id,custName:billC.name,custPhone:billC.phone,items:billItems,subtotal:sub,discPct:dp,discAmt:da,redeemPts:rp,redeemVal:rv,finalAmount:final,earnPts:ep,payMode:pm,payStatus:ps,note,date:firebase.firestore.FieldValue.serverTimestamp(),dateStr:new Date().toLocaleDateString('en-IN')});
+    await shopDb.customer(billC.id).update({points:firebase.firestore.FieldValue.increment(ep-rp),visits:firebase.firestore.FieldValue.increment(1),totalSpend:firebase.firestore.FieldValue.increment(final),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0});
+    await shopDb.transactions().add({customerId:billC.id,custName:billC.name,type:'earn',points:ep,amount:final,note:`Bill ${bid}`,date:firebase.firestore.FieldValue.serverTimestamp()});
+    if(rp>0)await shopDb.transactions().add({customerId:billC.id,custName:billC.name,type:'redeem',points:-rp,amount:0,note:`Redeem ${bid}`,date:firebase.firestore.FieldValue.serverTimestamp()});
+    await chkTier(billC.id,(billC.points||0)+ep-rp);
+    for(const item of billItems){try{const ir=shopDb.inventory().doc(item.name);const id2=await ir.get();if(id2.exists&&(id2.data().stock||0)>0)await ir.update({stock:firebase.firestore.FieldValue.increment(-item.qty)});}catch(e){}}
+    billC.points=(billC.points||0)+ep-rp;
+    const ci=allC.findIndex(x=>x.id===billC.id);if(ci>=0)allC[ci]=billC;
+    toast(`✅ Bill done! ₹${final} | +${ep} pts`);
+    showBillCust(billC);clearBill(true);loadTodayBills();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+function clearBill(keepCust=false){
+  billItems=[];renderBillItems();calcBill();
+  ['b-note','b-redeem-pts'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const rc=document.getElementById('b-redeem-chk');if(rc)rc.checked=false;
+  const rr=document.getElementById('b-redeem-row');if(rr)rr.style.display='none';
+  if(!keepCust){billC=null;document.getElementById('bill-cust-info').style.display='none';document.getElementById('bill-srch').value='';}
+}
+
+function billWhatsApp(){
+  if(!billC||!billItems.length)return toast('Pehle customer aur items select karein');
+  const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
+  const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
+  const da=Math.floor(sub*dp/100);
+  const rp=document.getElementById('b-redeem-chk')?.checked?parseInt(document.getElementById('b-redeem-pts')?.value||0):0;
+  const rv=Math.floor(rp*(shopSettings.redeemValue||10)/100);
+  const final=Math.max(0,sub-da-rv);
+  const ep=Math.floor(final/(shopSettings.rupeePerPoint||10));
+  const ps=document.getElementById('b-pay-status')?.value||'paid';
+  const pm=document.getElementById('b-pay-mode')?.value||'Cash';
+  const note=document.getElementById('b-note')?.value||'';
+  const newPts=(billC.points||0)+ep-rp;
+  const tier=newPts>=700?'Diamond VIP':newPts>=300?'Gold':'Silver';
+  const nextTier=newPts>=700?'':newPts>=300?`${700-newPts} pts mein Diamond VIP!`:`${300-newPts} pts mein Gold!`;
+  const il=billItems.map(b=>{const n=b.name.length>16?b.name.slice(0,14)+'..':b.name;const pad=' '.repeat(Math.max(1,18-n.length));return`   ${n}${pad}x${b.qty}   Rs.${b.price*b.qty}`;}).join('\n');
+  const statusLine=ps==='paid'?`PAID via ${pm}`:ps==='partial'?'PARTIAL — Kuch baaki hai':'UNPAID — Payment pending';
+  const discLine=da>0?`Discount (${dp}%):    -Rs.${da}\n`:'';
+  const redeemLine=rv>0?`Points Redeem:    -Rs.${rv}\n`:'';
+  const subLine=da>0||rv>0?`Subtotal:          Rs.${sub}\n`:'';
+  const noteLine=note?`Note: ${note}\n\n`:'';
+  const nextLine=nextTier?`Next:            ${nextTier}\n`:'';
+  const msg=`*━━━━━━━━━━━━━━━━━━━━━━*\n    THE KATHI ROLL HUB\n    Murlipura, Jaipur\n    Ph: 8619721224\n*━━━━━━━━━━━━━━━━━━━━━━*\n\n*BILL RECEIPT*\nDate: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}\nCustomer: ${billC.name} ji\n\n*━━━ ITEMS ━━━*\n${il}\n*━━━━━━━━━━━━━*\n${subLine}${discLine}${redeemLine}*TOTAL:   Rs.${final}*\n*${statusLine}*\n*━━━━━━━━━━━━━*\n\n*LOYALTY POINTS*\nEarned: +${ep} pts\nBalance: ${newPts} pts\nTier: ${tier}\n${nextLine}*━━━━━━━━━━━━━*\n${noteLine}Dashboard:\nhttps://the-kathi-roll-hub-users.vercel.app/\n\nShukriya! Phir aana :)`;
+  window.open(`https://wa.me/91${billC.phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function sendUnpaidReminder(){
+  if(!billC)return toast('Customer select karein pehle');
+  const sub=billItems.reduce((a,b)=>a+b.price*b.qty,0);
+  const dp=((billC.points||0)>=700?8:(billC.points||0)>=300?5:0);
+  const da=Math.floor(sub*dp/100);
+  const rv=0;
+  const final=Math.max(0,sub-da-rv);
+  const il=billItems.map(b=>`   ${b.name} x${b.qty}  Rs.${b.price*b.qty}`).join('\n');
+  const msg=`Namaste ${billC.name} ji!\n\nRoll Hub se reminder —\n\nAapka ${new Date().toLocaleDateString('en-IN')} ka bill pending hai:\n\n${il}\n\n*Total: Rs.${final}*\n\nJab suvidha ho payment kar dena.\nUPI: 8619721224@upi\n\nShukriya!\n— The Kathi Roll Hub`;
+  window.open(`https://wa.me/91${billC.phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+async function loadTodayBills(){
+  try{
+    const s=await shopDb.bills().get();
+    const today=new Date().toLocaleDateString('en-IN');
+    const bills=s.docs.map(d=>({id:d.id,...d.data()})).filter(b=>b.dateStr===today);
+    const rev=bills.reduce((a,b)=>a+(b.finalAmount||0),0);
+    const pts=bills.reduce((a,b)=>a+(b.earnPts||0),0);
+    document.getElementById('today-bills').textContent=bills.length;
+    document.getElementById('today-revenue').textContent='₹'+rev;
+    document.getElementById('today-avg').textContent=bills.length?'₹'+Math.round(rev/bills.length):'₹0';
+    document.getElementById('today-pts').textContent=pts;
+    bills.sort((a,b)=>{try{return(b.date?.toMillis()||0)-(a.date?.toMillis()||0);}catch{return 0;}});
+    document.getElementById('today-bills-list').innerHTML=bills.length?bills.slice(0,10).map(b=>`
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:0.5px solid rgba(255,255,255,.04);font-size:.78rem;">
+        <div style="flex:1"><strong>${esc(b.custName)}</strong> — ${(b.items||[]).length} items</div>
+        <span style="color:var(--yellow);font-weight:600;">₹${b.finalAmount||0}</span>
+        <span style="font-size:.68rem;color:var(--muted);">${b.payMode||'Cash'}</span>
+        <span style="font-size:.68rem;font-weight:600;padding:.12rem .45rem;border-radius:4px;${b.payStatus==='unpaid'?'background:rgba(211,47,47,.15);color:#ef5350;':b.payStatus==='partial'?'background:rgba(255,152,0,.15);color:#FFA726;':'background:rgba(46,125,50,.15);color:#66bb6a;'}">${b.payStatus==='unpaid'?'Unpaid':b.payStatus==='partial'?'Partial':'Paid'}</span>
+      </div>`).join(''):'<div style="color:var(--muted);font-size:.82rem;">Aaj koi bill nahi</div>';
+  }catch(e){}
+}
+
+// ===== INVENTORY =====
+async function loadInventory(){
+  try{
+    const menuSnap=await shopDb.menu().get();
+    const ml=menuSnap.exists?(menuSnap.data().items||[]):menuItems||[];
+    const invSnap=await shopDb.inventory().get();
+    const invMap={};invSnap.docs.forEach(d=>invMap[d.id]={...d.data()});
+    allInvItems=ml.map(item=>({name:item.name,emoji:item.emoji||'🌯',price:item.price,stock:invMap[item.name]?.stock??-1,minStock:invMap[item.name]?.minStock??10}));
+    const inStk=allInvItems.filter(i=>i.stock>10).length;
+    const low=allInvItems.filter(i=>i.stock>=1&&i.stock<=10).length;
+    const out=allInvItems.filter(i=>i.stock===0).length;
+    document.getElementById('inv-total').textContent=inStk;
+    document.getElementById('inv-low').textContent=low;
+    document.getElementById('inv-out').textContent=out;
+    renderInvList(allInvItems);renderStockAlerts(allInvItems);
+  }catch(e){toast('❌ '+e.message);}
+}
+
+function filterInv(){const q=(document.getElementById('inv-search').value||'').toLowerCase();renderInvList(q?allInvItems.filter(i=>i.name.toLowerCase().includes(q)):allInvItems);}
+
+function renderInvList(items){
+  const el=document.getElementById('inv-list');
+  if(!items.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;">Koi item nahi</div>';return;}
+  el.innerHTML=items.map(item=>{
+    const s=item.stock;
+    let badge='',bs='';
+    if(s===0){badge='OUT';bs='background:rgba(211,47,47,.2);color:#ef5350;';}
+    else if(s>0&&s<=10){badge=s+' left';bs='background:rgba(255,152,0,.2);color:#FFA726;';}
+    else if(s>10){badge=s+'';bs='background:rgba(46,125,50,.2);color:#66bb6a;';}
+    else{badge='No track';bs='background:rgba(255,255,255,.07);color:var(--muted);';}
+    return`<div style="display:flex;align-items:center;gap:.7rem;padding:.65rem 0;border-bottom:0.5px solid rgba(255,255,255,.05);">
+      <span style="font-size:1.2rem;">${item.emoji}</span>
+      <div style="flex:1"><div style="font-size:.85rem;font-weight:600;">${item.name}</div><div style="font-size:.7rem;color:var(--muted);">₹${item.price}</div></div>
+      <span style="font-size:.7rem;font-weight:600;padding:.2rem .6rem;border-radius:6px;${bs}">${badge}</span>
+      <input type="number" min="0" max="999" value="${s>=0?s:''}" placeholder="Set" style="width:65px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:.3rem .5rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;text-align:center;" onchange="setStock('${item.name.replace(/'/g,"\\'")}',this.value)">
+      <button onclick="restockItem('${item.name.replace(/'/g,"\\'")}',this)" style="background:rgba(255,214,0,.1);border:1px solid var(--border);border-radius:7px;padding:.28rem .6rem;font-size:.72rem;cursor:pointer;color:var(--yellow);font-family:'DM Sans',sans-serif;">+Add</button>
+    </div>`;
+  }).join('');
+}
+
+async function setStock(name,val){
+  const stock=parseInt(val)||0;
+  try{
+    await shopDb.inventory().doc(name).set({stock,minStock:10,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    const i=allInvItems.findIndex(x=>x.name===name);if(i>=0)allInvItems[i].stock=stock;
+    const ms=await shopDb.menu().get();
+    if(ms.exists){const items=ms.data().items||[];const mi=items.findIndex(i=>i.name===name);if(mi>=0){items[mi].outOfStock=(stock===0);await shopDb.menu().set({items});}}
+    toast(stock===0?`⚠️ ${name} out of stock — user app pe hide!`:`✅ ${name}: ${stock} units`);
+    loadInventory();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function restockItem(name){
+  const qty=parseInt(prompt(`${name} mein kitna add karein?`));
+  if(!qty||qty<=0)return;
+  try{
+    const d=await shopDb.inventory().doc(name).get();
+    const cur=d.exists?(d.data().stock||0):0;const ns=cur+qty;
+    await shopDb.inventory().doc(name).set({stock:ns,minStock:10,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    const ms=await shopDb.menu().get();
+    if(ms.exists){const items=ms.data().items||[];const mi=items.findIndex(i=>i.name===name);if(mi>=0){items[mi].outOfStock=false;await shopDb.menu().set({items});}}
+    toast(`✅ ${name}: ${cur}+${qty}=${ns}`);loadInventory();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function bulkRestock(){
+  if(!confirm('Sab items ka stock reset karein?'))return;
+  const qty=parseInt(prompt('Har item mein kitna stock?'));if(!qty||qty<=0)return;
+  try{
+    for(const item of allInvItems)await shopDb.inventory().doc(item.name).set({stock:qty,minStock:10,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    toast(`✅ Sab items: ${qty} units!`);loadInventory();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+function renderStockAlerts(items){
+  const al=items.filter(i=>i.stock>=0&&i.stock<=10);
+  const el=document.getElementById('stock-alerts');
+  if(!al.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;">✅ Sab theek hai!</div>';return;}
+  el.innerHTML=al.map(item=>`<div class="alert-item"><div class="ai-icon">${item.emoji}</div><div class="ai-info"><div class="ai-title">${item.name} — ${item.stock===0?'Out of Stock!':item.stock+' units'}</div><div class="ai-sub">${item.stock===0?'User app pe hide hai':'Low stock — restock karo'}</div></div><button class="ai-btn" onclick="restockItem('${item.name.replace(/'/g,"\\'")}')">+Restock</button></div>`).join('');
+}
+
+async function loadSalesReport(){
+  try{
+    const s=await shopDb.bills().get();const today=new Date().toLocaleDateString('en-IN');
+    const bills=s.docs.map(d=>d.data()).filter(b=>b.dateStr===today);
+    const ic={};bills.forEach(b=>(b.items||[]).forEach(i=>{ic[i.name]=(ic[i.name]||0)+i.qty;}));
+    const sorted=Object.entries(ic).sort((a,b)=>b[1]-a[1]);
+    const el=document.getElementById('sales-report');
+    if(!sorted.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;">Aaj koi bill nahi</div>';return;}
+    el.innerHTML=sorted.map(([name,qty],i)=>{const item=allInvItems.find(x=>x.name===name)||{emoji:'🌯',price:0};return`<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:0.5px solid rgba(255,255,255,.04);"><span style="font-size:.82rem;min-width:18px;color:var(--muted);">${i+1}.</span><span>${item.emoji}</span><div style="flex:1;font-size:.82rem;font-weight:600;">${name}</div><span style="color:var(--yellow);font-weight:600;">${qty}x</span><span style="font-size:.75rem;color:var(--muted);">₹${item.price*qty}</span></div>`;}).join('');
+  }catch(e){}
+}
+
+
+
+// ===== DASHBOARD =====
+async function loadDash(){
+  try{
+    const s=await shopDb.customers().get();
+    allC=s.docs.map(d=>({id:d.id,...d.data()}));
+    filtC=[...allC];
+    const today=new Date();const todayStr=today.toLocaleDateString('en-IN');
+    const totalPts=allC.reduce((a,c)=>a+(c.points||0),0);
+    const totalRefs=allC.reduce((a,c)=>a+(c.referralCount||0),0);
+    const todayReg=allC.filter(c=>c.joinDateStr===todayStr).length;
+    const inactive=allC.filter(c=>(c.lastVisitDays||0)>=15);
+    const gold=allC.filter(c=>(c.points||0)>=300&&(c.points||0)<700);
+    const vip=allC.filter(c=>(c.points||0)>=700);
+    document.getElementById('st-total').textContent=allC.length;
+    document.getElementById('st-today').textContent=todayReg;
+    document.getElementById('st-pts').textContent=totalPts.toLocaleString();
+    document.getElementById('st-refs').textContent=totalRefs;
+    document.getElementById('st-inactive').textContent=inactive.length;
+    document.getElementById('st-gold').textContent=gold.length;
+    document.getElementById('st-vip').textContent=vip.length;
+    // Birthday & anniversary banners
+    const todayMon=today.getMonth(),todayDay=today.getDate();
+    const bdayToday=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===todayMon&&new Date(c.birthday).getDate()===todayDay);
+    const anniToday=allC.filter(c=>c.anniversary&&new Date(c.anniversary).getMonth()===todayMon&&new Date(c.anniversary).getDate()===todayDay);
+    if(bdayToday.length){
+      document.getElementById('bday-banner').style.display='block';
+      document.getElementById('bday-list').innerHTML=bdayToday.map(c=>{
+        const safeName=c.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const waMsg=encodeURIComponent(`🎂 Happy Birthday ${c.name} ji!\n\nBirthday pe Roll Hub pe aao — aapka special reward aapka wait kar raha hai!\n\n— The Kathi Roll Hub 🌯`);
+        return`<li class="bday-item"><span>🎂 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text=${waMsg}','_blank')">💬 Wish</button></li>`;
+      }).join('');
+    }
+    if(anniToday.length){
+      document.getElementById('anni-banner').style.display='block';
+      document.getElementById('anni-list').innerHTML=anniToday.map(c=>{
+        const waMsg=encodeURIComponent(`💑 Happy Anniversary ${c.name} ji!\n\nAapki special day pe Roll Hub pe aao — romantic combo aapka wait kar raha hai!\n\n— The Kathi Roll Hub 🌯`);
+        return`<li class="bday-item"><span>💑 <strong>${c.name}</strong> — ${c.phone}</span><button class="wa-wish" onclick="window.open('https://wa.me/91${c.phone}?text=${waMsg}','_blank')">💬 Wish</button></li>`;
+      }).join('');
+    }
+    showTopBy('points');
+    loadUpcomingSpecials(allC);
+    checkProfitWarning();
+    renderT();
+  }catch(e){toast('❌ Dashboard load error: '+e.message);}
+}
+
+function showTopBy(mode){
+  topMode=mode;
+  const sorted=[...allC].sort((a,b)=>{
+    if(mode==='points')return(b.points||0)-(a.points||0);
+    if(mode==='visits')return(b.visits||0)-(a.visits||0);
+    if(mode==='referrals')return(b.referralCount||0)-(a.referralCount||0);
+    if(mode==='spend')return(b.totalSpend||0)-(a.totalSpend||0);
+    return 0;
+  });
+  const medals=['🥇','🥈','🥉','4.','5.','6.','7.','8.'];
+  const valFn=c=>mode==='points'?`${c.points||0} pts`:mode==='visits'?`${c.visits||0} visits`:mode==='referrals'?`${c.referralCount||0} refs`:`₹${c.totalSpend||0}`;
+  document.getElementById('top-members').innerHTML=sorted.slice(0,8).map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:.7rem;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <span style="font-size:1rem;min-width:22px;">${medals[i]||''}</span>
+      <div style="flex:1"><div style="font-size:.82rem;font-weight:600;">${c.name}</div><div style="font-size:.7rem;color:var(--muted);">${c.phone}</div></div>
+      <span style="font-size:.82rem;color:var(--yellow);font-weight:700;">${valFn(c)}</span>
+      <button onclick="qP('${c.id}')" style="background:rgba(255,214,0,.1);border:1px solid var(--border);color:var(--yellow);padding:.2rem .55rem;border-radius:6px;font-size:.68rem;cursor:pointer;font-family:DM Sans,sans-serif;">⭐</button>
+    </div>`).join('')||'<div style="color:var(--muted);">Koi data nahi</div>';
+}
+
+function loadUpcomingSpecials(custs){
+  const today=new Date();
+  const upcoming=[];
+  custs.forEach(c=>{
+    // Birthday
+    if(c.birthday){const b=new Date(c.birthday);const nb=new Date(today.getFullYear(),b.getMonth(),b.getDate());if(nb<today)nb.setFullYear(today.getFullYear()+1);const dl=Math.ceil((nb-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push({type:'birthday',name:c.name,phone:c.phone,days:dl,emoji:'🎂'});}
+    // Anniversary
+    if(c.anniversary){const a=new Date(c.anniversary);const na=new Date(today.getFullYear(),a.getMonth(),a.getDate());if(na<today)na.setFullYear(today.getFullYear()+1);const dl=Math.ceil((na-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push({type:'anniversary',name:c.name,phone:c.phone,days:dl,emoji:'💑'});}
+  });
+  upcoming.sort((a,b)=>a.days-b.days);
+  const el=document.getElementById('upcoming-specials');
+  if(!upcoming.length){el.innerHTML='<span style="color:var(--muted);">Next 7 din mein koi birthday/anniversary nahi.</span>';return;}
+  el.innerHTML=upcoming.map(u=>`
+    <div class="spec-row">
+      <div><span style="margin-right:.4rem;">${u.emoji}</span><strong>${u.name}</strong> <span style="color:var(--muted);font-size:.75rem;">— ${u.type==='birthday'?'Birthday':'Anniversary'}, ${u.days===0?'Aaj!':u.days===1?'Kal':u.days+' din baad'}</span></div>
+      <button data-phone="${u.phone}" data-type="${u.type}" data-name="${u.name.replace(/"/g,'&quot;')}" data-emoji="${u.emoji}" onclick="wishCustomer(this)" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .65rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;">💬 Wish</button>
+    </div>`).join('');
+}
+
+function wishCustomer(btn){
+  const phone=btn.dataset.phone;const type=btn.dataset.type;const name=btn.dataset.name;const emoji=btn.dataset.emoji;
+  const isBday=type==='birthday';
+  const msg=encodeURIComponent(`${emoji} Happy ${isBday?'Birthday':'Anniversary'} ${name} ji!\n\n${isBday?'Birthday pe Roll Hub pe aao — aapka special reward ready hai!':'Anniversary pe aao — romantic special treat hai!'}\n\n— The Kathi Roll Hub 🌯`);
+  window.open(`https://wa.me/91${phone}?text=${msg}`,'_blank');
+}
+
+function checkProfitWarning(){
+  const rate=shopSettings.rupeePerPoint||10;const redeem=shopSettings.redeemValue||10;
+  const eff=((redeem/rate)*10);const w=shopSettings.warnPct||5;const cr=shopSettings.critPct||8;
+  const pw=document.getElementById('profit-warning-dash');
+  if(eff>cr&&pw)pw.innerHTML=`<div style="background:rgba(211,47,47,.15);border:1.5px solid rgba(211,47,47,.3);border-radius:12px;padding:.8rem 1rem;margin-bottom:.9rem;font-size:.8rem;color:#ef5350;">🚨 <strong>Loss Risk!</strong> Effective discount ${eff.toFixed(1)}% — critical threshold ${cr}% se zyada hai! Settings check karo.</div>`;
+  else if(eff>w&&pw)pw.innerHTML=`<div style="background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.9rem;font-size:.8rem;color:var(--yellow);">⚠️ Effective discount ${eff.toFixed(1)}% — monitor karo.</div>`;
+  else if(pw)pw.innerHTML='';
+}
+
+// ===== CUSTOMERS =====
+async function loadC(){
+  try{
+    const s=await shopDb.customers().get();
+    allC=s.docs.map(d=>({id:d.id,...d.data()}));
+    filtC=[...allC];curPage=1;renderT();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+function filterUnverified(){filtC=allC.filter(c=>!c.phoneVerified);curPage=1;renderT();toast(`${filtC.length} unverified`);}
+function filterInactive(){filtC=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));curPage=1;renderT();toast(`${filtC.length} inactive`);}
+
+function filterC(){
+  const q=(document.getElementById('f-s').value||'').toLowerCase().trim();
+  const tier=document.getElementById('f-t').value;
+  const so=document.getElementById('f-so').value;
+  let arr=[...allC];
+  if(q)arr=arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.id||'').toLowerCase().includes(q));
+  if(tier)arr=arr.filter(c=>(c.tier||'Silver')===tier);
+  if(so==='pts')arr.sort((a,b)=>(b.points||0)-(a.points||0));
+  else if(so==='visits')arr.sort((a,b)=>(b.visits||0)-(a.visits||0));
+  else if(so==='inactive')arr.sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
+  else if(so==='lastvisit')arr.sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
+  else arr.sort((a,b)=>{try{return(b.joinDate?.toMillis()||0)-(a.joinDate?.toMillis()||0);}catch{return 0;}});
+  filtC=arr;curPage=1;renderT();
+}
+
+function renderT(){
+  const start=(curPage-1)*PAGE,end=start+PAGE,page=filtC.slice(start,end);
+  const tbody=document.getElementById('cust-tbody');
+  if(!page.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);">Koi customer nahi mila</td></tr>`;document.getElementById('pag').innerHTML='';return;}
+  tbody.innerHTML=page.map(c=>{
+    const lv=c.lastVisitDays||0;
+    let lvHtml='';
+    if(lv===0)lvHtml='<span class="lv-badge lv-ok">Aaj</span>';
+    else if(lv===1)lvHtml='<span class="lv-badge lv-ok">Kal</span>';
+    else if(lv<15)lvHtml=`<span class="lv-badge lv-warn">${lv}d</span>`;
+    else lvHtml=`<span class="lv-badge lv-bad">🔴 ${lv}d</span>`;
+    const tier=gT(c.points||0);
+    const favs=(c.dishes||[]).slice(0,2).join(', ')+(c.dishes?.length>2?'…':'');
+    return`<tr>
+      <td><strong>${c.name}</strong>${c.phoneVerified?'<span style="font-size:.65rem;color:#66bb6a;margin-left:.3rem;">✅</span>':''}</td>
+      <td>${c.phone}</td>
+      <td style="color:var(--yellow);font-weight:700;">${c.points||0}</td>
+      <td><span class="${tier.c}">${tier.l}</span></td>
+      <td>${c.visits||0}</td>
+      <td>${lvHtml}</td>
+      <td style="font-size:.7rem;color:var(--muted);">${favs||'—'}</td>
+      <td><button onclick="qP('${c.id}')" style="background:rgba(255,214,0,.12);border:none;border-radius:6px;padding:.25rem .65rem;font-size:.72rem;cursor:pointer;color:var(--yellow);font-family:DM Sans,sans-serif;">⭐ Points</button></td>
+    </tr>`;
+  }).join('');
+  // Pagination
+  const pages=Math.ceil(filtC.length/PAGE);
+  document.getElementById('pag').innerHTML=Array.from({length:pages},(_,i)=>`<button class="pgb ${i+1===curPage?'active':''}" onclick="gP(${i+1})">${i+1}</button>`).join('');
+  document.getElementById('cc').textContent=`${filtC.length} customers — Page ${curPage}/${pages}`;
+}
+
+function gP(p){curPage=p;renderT();}
+function gT(pts){if(pts>=700)return{l:'💎 VIP',c:'tv'};if(pts>=300)return{l:'🥇 Gold',c:'tg'};return{l:'🥈 Silver',c:'ts'};}
+
+function qP(id){
+  const c=allC.find(x=>x.id===id);if(!c)return;
+  sw('points',document.querySelectorAll('.tab')[1]);
+  document.getElementById('srch').value=c.phone;
+  showCR(c);
+  toast(`✅ ${c.name} select ho gaya`);
+}
+
+function searchCust(){
+  const q=document.getElementById('srch').value.trim();
+  if(q.length<5)return;
+  const c=allC.find(x=>x.phone===q||x.id===q);
+  if(c)showCR(c);
+}
+
+function showCR(c){
+  selC=c;
+  const lv=c.lastVisitDays||0;
+  document.getElementById('cr').style.display='block';
+  document.getElementById('cr-name').textContent=c.name;
+  document.getElementById('cr-meta').textContent=`📱 ${c.phone} | ID: ${c.id} | ${c.city||'City N/A'} | Joined: ${c.joinDateStr||'—'}`;
+  const tier=gT(c.points||0);
+  document.getElementById('cr-tier').innerHTML=`<span class="${tier.c}">${tier.l}</span> ${c.phoneVerified?'<span style="font-size:.72rem;color:#66bb6a;">✅ Verified</span>':'<span style="font-size:.72rem;color:#ef5350;">❌ Unverified</span>'}`;
+  document.getElementById('cr-pts').textContent=c.points||0;
+  document.getElementById('cr-streak').textContent=`🔥 ${c.visits||0} Visits | 👥 ${c.referralCount||0} Refs`;
+  document.getElementById('cr-dishes').innerHTML=(c.dishes||[]).map(d=>`<span class="cd-chip">${d}</span>`).join('');
+  const lvText=lv===0?'Aaj aaya/aayi':lv===1?'Kal aaya/aayi':`${lv} din pehle aaya/aayi`;
+  document.getElementById('cr-last-visit').innerHTML=`🕐 Last Visit: <strong>${esc(lvText)}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;💰 Total Spend: ₹${esc(c.totalSpend||0)}&nbsp;&nbsp;|&nbsp;&nbsp;📱 ${esc(c.phone)}`;
+  // Personal offer card setup
+  const poc=document.getElementById('po-code');if(poc)poc.value='BACK'+c.phone.slice(-4);
+  const poText=document.getElementById('po-text');if(poText&&c.personalOffer)poText.value=c.personalOffer.msg||'';
+  document.getElementById('add-card').style.display='block';
+  document.getElementById('red-card').style.display='block';
+  document.getElementById('bonus-card').style.display='block';
+  document.getElementById('personal-offer-card').style.display='block';
+  // Unverified warning
+  document.getElementById('unverified-warning').style.display=c.phoneVerified?'none':'block';
+}
+
+async function verifyPhone(){
+  if(!selC)return;
+  try{await shopDb.customer(selC.id).update({phoneVerified:true});selC.phoneVerified=true;const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].phoneVerified=true;showCR(selC);toast('✅ Verified!');}
+  catch(e){toast('❌ '+e.message);}
+}
+function hideCR(){['cr','add-card','red-card','bonus-card','personal-offer-card'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
+function calcPts(){const amt=parseFloat(document.getElementById('p-amt').value)||0;const pts=Math.floor(amt/(shopSettings.rupeePerPoint||10));document.getElementById('p-pts').value=pts||'';}
+function showRV(){const p=parseInt(document.getElementById('r-pts').value)||0;const rate=shopSettings.redeemValue||10;document.getElementById('rv').textContent=p>0?`${p} pts = ₹${Math.floor(p*(rate/100))} discount`:'';}
+
+async function addPts(){
+  if(!selC)return toast('❌ Customer select karein');
+  if(!selC.phoneVerified){if(!confirm('⚠️ Phone unverified hai! Phir bhi points add karein?'))return;}
+  const amt=parseFloat(document.getElementById('p-amt').value)||0;
+  const pts=parseInt(document.getElementById('p-pts').value)||Math.floor(amt/(shopSettings.rupeePerPoint||10));
+  const note=document.getElementById('p-note').value||'Visit';
+  const countVisit=document.getElementById('p-count-visit')?.checked!==false;
+  if(!pts||pts<=0)return toast('❌ Amount ya points enter karein');
+  try{
+    const upd={points:firebase.firestore.FieldValue.increment(pts),totalSpend:firebase.firestore.FieldValue.increment(amt||0),lastVisit:firebase.firestore.FieldValue.serverTimestamp(),lastVisitDays:0};
+    if(countVisit){upd.visits=firebase.firestore.FieldValue.increment(1);}
+    await shopDb.customer(selC.id).update(upd);
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'earn',points:pts,amount:amt,note,date:firebase.firestore.FieldValue.serverTimestamp()});
+    const newPts=(selC.points||0)+pts;await chkTier(selC.id,newPts);
+    selC.points=newPts;if(countVisit)selC.visits=(selC.visits||0)+1;selC.lastVisitDays=0;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0){allC[i]=selC;}
+    showCR(selC);toast(`✅ +${pts} pts${countVisit?' + visit counted':''}! Total: ${newPts}`);
+    document.getElementById('p-amt').value='';document.getElementById('p-pts').value='';document.getElementById('p-note').value='';
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function redeemPts(){
+  if(!selC)return toast('❌ Customer select karein');
+  const pts=parseInt(document.getElementById('r-pts').value)||0;
+  if(pts<=0)return toast('❌ Points enter karein');
+  if(pts>(selC.points||0))return toast(`❌ Sirf ${selC.points} pts hain`);
+  try{
+    await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(-pts)});
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'redeem',points:-pts,note:'Redemption',date:firebase.firestore.FieldValue.serverTimestamp()});
+    selC.points=(selC.points||0)-pts;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].points=selC.points;
+    showCR(selC);toast(`✅ ${pts} pts redeemed! Remaining: ${selC.points}`);
+    document.getElementById('r-pts').value='';
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function addBonus(){
+  if(!selC)return toast('❌ Customer select karein');
+  const pts=parseInt(document.getElementById('b-pts').value)||0;
+  const reason=document.getElementById('b-reason').value;
+  if(pts<=0)return toast('❌ Points enter karein');
+  try{
+    await shopDb.customer(selC.id).update({points:firebase.firestore.FieldValue.increment(pts)});
+    await shopDb.transactions().add({customerId:selC.id,custName:selC.name,type:'bonus',points:pts,note:reason,date:firebase.firestore.FieldValue.serverTimestamp()});
+    selC.points=(selC.points||0)+pts;
+    const i=allC.findIndex(x=>x.id===selC.id);if(i>=0)allC[i].points=selC.points;
+    showCR(selC);toast(`🎯 +${pts} bonus pts! Reason: ${reason}`);
+    document.getElementById('b-pts').value='';
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function chkTier(id,pts){let t='Silver';if(pts>=700)t='VIP Diamond';else if(pts>=300)t='Gold';await shopDb.customer(id).update({tier:t}).catch(()=>{});}
+
+function sendPersonalOffer(){
+  if(!selC)return;
+  const msg=document.getElementById('po-text').value||'Aapke liye special offer!';
+  const disc=document.getElementById('po-disc').value||'10';
+  const code='BACK'+selC.phone.slice(-4);
+  const wa=`Namaste ${selC.name} ji! 😊\n\nHum aapko yaad kar rahe hain — ${selC.lastVisitDays||0} din ho gaye Roll Hub nahi aaye!\n\n🎁 Sirf aapke liye: *${msg}*\n\n💰 Code: *${code}* — ${disc}% OFF!\n\nCounter pe yeh code dikhao — discount milega!\n\n🌯 The Kathi Roll Hub, Murlipura\n24x7 Open!`;
+  window.open(`https://wa.me/91${selC.phone}?text=${encodeURIComponent(wa)}`,'_blank');
+}
+
+async function savePersonalOfferDb(){
+  if(!selC)return;
+  const msg=document.getElementById('po-text').value||'Aapke liye special offer!';
+  const disc=document.getElementById('po-disc').value||'10';
+  const code='BACK'+selC.phone.slice(-4);
+  try{
+    await shopDb.customer(selC.id).update({personalOffer:{msg,disc:parseInt(disc),code,savedAt:firebase.firestore.FieldValue.serverTimestamp()}});
+    toast('✅ Saved! Customer ki app pe dikhega (agar 15d+ inactive hain)');
+  }catch(e){toast('❌ '+e.message);}
+}
+
+// ===== MENU =====
+function calcM(){
+  const price=parseFloat(document.getElementById('mi-price').value)||0;
+  const cost=parseFloat(document.getElementById('mi-cost').value)||0;
+  const disc=parseFloat(document.getElementById('mi-disc').value)||0;
+  const el=document.getElementById('margin-display');if(!el)return;
+  if(!price){el.textContent='';return;}
+  const margin=price>0?((price-cost)/price*100).toFixed(1):0;
+  const afterDisc=price*(1-disc/100);
+  const netProfit=cost>0?afterDisc-cost:0;
+  el.innerHTML=`📊 Margin: <strong style="color:${parseFloat(margin)>30?'#66bb6a':parseFloat(margin)>15?'var(--yellow)':'#ef5350'}">${margin}%</strong>&nbsp;&nbsp;|&nbsp;&nbsp;After ${disc}% off: ₹${afterDisc.toFixed(0)}&nbsp;&nbsp;|&nbsp;&nbsp;Net profit: ₹${netProfit.toFixed(0)}`;
+}
+
+async function loadMenu(){
+  try{const s=await shopDb.menu().get();menuItems=s.exists?(s.data().items||[]):[];renderMenu();}
+  catch(e){toast('❌ Menu load error');}
+}
+
+function renderMenu(){
+  const el=document.getElementById('menu-list');
+  if(!menuItems.length){el.innerHTML='<div style="color:var(--muted);text-align:center;padding:1.5rem;">Menu empty hai — items add karo!</div>';return;}
+  el.innerHTML=menuItems.map((item,i)=>`
+    <div class="menu-item-row">
+      <span style="font-size:1.5rem;">${item.emoji||'🌯'}</span>
+      <div class="mi-info">
+        <div class="mi-name">${item.name}</div>
+        <div class="mi-sub">₹${item.price} | Cost: ₹${item.cost||0} | ${item.category||'—'} | Offer: ${item.discountPct||0}% (Silver) / ${item.discountGold||0}% (Gold) / ${item.discountVip||0}% (VIP)</div>
+      </div>
+      <input type="number" value="${item.discountPct||0}" min="0" max="50" style="width:55px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.25rem .5rem;color:var(--text);font-size:.75rem;text-align:center;" onchange="sD(${i},this.value)" title="Silver offer %">
+      <button class="mi-toggle ${item.discountActive?'on':'off'}" onclick="tI(${i},${!item.discountActive})">${item.discountActive?'👁️ App pe':'🙈 Hidden'}</button>
+      <button onclick="dI(${i})" style="background:rgba(211,47,47,.15);border:1px solid rgba(211,47,47,.2);border-radius:6px;padding:.28rem .6rem;font-size:.72rem;cursor:pointer;color:#ef5350;font-family:DM Sans,sans-serif;">🗑️</button>
+    </div>`).join('');
+}
+
+async function addItem(){
+  const name=document.getElementById('mi-name').value.trim();
+  const price=parseFloat(document.getElementById('mi-price').value)||0;
+  if(!name||!price)return toast('❌ Naam aur price zaroor daalein');
+  const item={
+    emoji:document.getElementById('mi-emoji').value||'🌯',
+    name,price,
+    cost:parseFloat(document.getElementById('mi-cost').value)||0,
+    category:document.getElementById('mi-cat').value,
+    discountPct:parseInt(document.getElementById('mi-disc').value)||0,
+    discountGold:parseInt(document.getElementById('mi-dg').value)||0,
+    discountVip:parseInt(document.getElementById('mi-dv').value)||0,
+    discountActive:document.getElementById('mi-active').value==='true'
+  };
+  menuItems.push(item);await sM();renderMenu();
+  ['mi-name','mi-price','mi-cost','mi-disc','mi-dg','mi-dv','mi-emoji'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  toast(`✅ ${name} added!${item.discountActive?' User app pe dikhega.':''}`);
+}
+
+async function tI(i,v){menuItems[i].discountActive=v;await sM();renderMenu();toast(v?'✅ Offer ON — User app pe dikhega':'⚠️ OFF — Hidden');}
+async function sD(i,val){menuItems[i].discountPct=parseInt(val)||0;await sM();toast('✅ Saved!');}
+async function dI(i){if(!confirm('Delete?'))return;menuItems.splice(i,1);await sM();renderMenu();toast('🗑️ Deleted');}
+async function sM(){await shopDb.menu().set({items:menuItems}).catch(e=>toast('❌ '+e.message));}
+
+// ===== REWARDS TAB =====
+async function loadRewardsTab(){
+  const s=await shopDb.shopConfig().get().catch(()=>null);
+  if(s&&s.exists){
+    const d=s.data();
+    milestones=d.milestones||[];bdayReward=d.bdayReward||{};refRewards=d.refRewards||{};
+    const brt=document.getElementById('bday-reward-text');if(brt)brt.value=bdayReward.text||'';
+    const bd=document.getElementById('bday-disc');if(bd)bd.value=bdayReward.disc||15;
+    const bp=document.getElementById('bday-pts');if(bp)bp.value=bdayReward.pts||50;
+    const rm=document.getElementById('ref-max');if(rm)rm.value=refRewards.maxRefs||3;
+    const r1=document.getElementById('ref1-pts');if(r1)r1.value=refRewards.r1||50;
+    const r2=document.getElementById('ref2-pts');if(r2)r2.value=refRewards.r2||70;
+    const r3=document.getElementById('ref3-pts');if(r3)r3.value=refRewards.r3||100;
+    const ri=document.getElementById('ref3-item');if(ri)ri.value=refRewards.item3||'';
+    const wp=document.getElementById('warn-pct');if(wp)wp.value=d.warnPct||5;
+    const cp=document.getElementById('crit-pct');if(cp)cp.value=d.critPct||8;
+  }
+  renderMilestones();
+  const rate=shopSettings.rupeePerPoint||10;const redeem=shopSettings.redeemValue||10;
+  const el=document.getElementById('current-discount-check');
+  if(el){const eff=((redeem/rate)*10);el.innerHTML=`Current effective discount: <strong style="color:${eff>8?'#ef5350':eff>5?'var(--yellow)':'#66bb6a'}">${eff.toFixed(1)}%</strong>`;}
+}
+
+function renderMilestones(){
+  const el=document.getElementById('milestone-list');
+  if(!milestones.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0;">Abhi koi milestone nahi — add karo!</div>';return;}
+  el.innerHTML=milestones.map((m,i)=>`
+    <div class="ms-row">
+      <span class="ms-badge">${m.visit}th</span>
+      <div class="ms-info">${m.reward}</div>
+      <span class="ms-status ${m.active?'ms-on':'ms-off'}">${m.active?'✅ ON':'⚫ OFF'}</span>
+      <button onclick="toggleMilestone(${i})" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:7px;padding:.22rem .6rem;font-size:.7rem;cursor:pointer;color:var(--muted);font-family:DM Sans,sans-serif;">${m.active?'Turn OFF':'Turn ON'}</button>
+      <button onclick="delMilestone(${i})" style="background:rgba(211,47,47,.12);border:none;border-radius:7px;padding:.22rem .6rem;font-size:.7rem;cursor:pointer;color:#ef5350;font-family:DM Sans,sans-serif;">🗑️</button>
+    </div>`).join('');
+}
+
+function addMilestone(){
+  const v=parseInt(document.getElementById('ms-visit').value);
+  const r=document.getElementById('ms-reward').value.trim();
+  if(!v||v<1)return toast('❌ Visit number daalein');
+  if(!r)return toast('❌ Reward text daalein');
+  if(milestones.find(m=>m.visit===v))return toast('❌ Is visit ka milestone pehle se hai');
+  milestones.push({visit:v,reward:r,active:true});
+  milestones.sort((a,b)=>a.visit-b.visit);
+  saveMilestones();
+  document.getElementById('ms-visit').value='';document.getElementById('ms-reward').value='';
+}
+function toggleMilestone(i){milestones[i].active=!milestones[i].active;saveMilestones();toast(milestones[i].active?'✅ ON — App pe dikhega':'⚠️ OFF');}
+function delMilestone(i){if(!confirm('Delete?'))return;milestones.splice(i,1);saveMilestones();toast('🗑️ Deleted');}
+async function saveMilestones(){await shopDb.shopConfig().set({milestones},{merge:true}).catch(e=>toast('❌ '+e.message));renderMilestones();toast('✅ Saved! User app pe update hoga.');}
+
+async function saveBdayReward(){
+  const text=document.getElementById('bday-reward-text').value.trim();
+  if(!text)return toast('❌ Kuch likhein');
+  bdayReward={text,disc:parseInt(document.getElementById('bday-disc').value)||15,pts:parseInt(document.getElementById('bday-pts').value)||50};
+  await shopDb.shopConfig().set({bdayReward},{merge:true}).catch(e=>toast('❌ '+e.message));
+  toast('✅ Birthday reward saved! User app update hoga.');
+}
+
+async function saveRefRewards(){
+  refRewards={
+    maxRefs:parseInt(document.getElementById('ref-max').value)||3,
+    r1:parseInt(document.getElementById('ref1-pts').value)||50,
+    r2:parseInt(document.getElementById('ref2-pts').value)||70,
+    r3:parseInt(document.getElementById('ref3-pts').value)||100,
+    item3:document.getElementById('ref3-item').value.trim()||''
+  };
+  await shopDb.shopConfig().set({refRewards},{merge:true}).catch(e=>toast('❌ '+e.message));
+  toast('✅ Referral rewards saved! User app update hoga.');
+}
+
+async function saveWarnings(){
+  const warnPct=parseInt(document.getElementById('warn-pct').value)||5;
+  const critPct=parseInt(document.getElementById('crit-pct').value)||8;
+  await shopDb.shopConfig().set({warnPct,critPct},{merge:true}).catch(e=>toast('❌ '+e.message));
+  shopSettings.warnPct=warnPct;shopSettings.critPct=critPct;
+  toast('✅ Warning settings saved!');checkProfitWarning();
+}
+
+// ===== HELP TICKETS =====
+async function loadHelp(){
+  try{
+    const s=await shopDb.helpTickets().limit(50).get();
+    const tickets=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{try{return(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0);}catch{return 0;}});
+    const open=tickets.filter(t=>t.status==='open');const resolved=tickets.filter(t=>t.status==='resolved');
+    const catClass={complaint:'cat-complaint',query:'cat-query',suggestion:'cat-suggestion',compliment:'cat-compliment'};
+    const renderTicket=(t)=>`
+      <div class="ticket-row">
+        <div class="tkt-head">
+          <span class="tkt-cat ${catClass[t.category]||'cat-query'}">${t.category}</span>
+          <span style="font-size:.7rem;color:var(--muted);">${t.custName} | ${t.custPhone}</span>
+        </div>
+        <div class="tkt-msg">${t.message}</div>
+        <div class="tkt-meta">ID: ${t.custId}</div>
+        <div class="tkt-actions">
+          <button class="btn btn-ghost" style="padding:.28rem .7rem;font-size:.72rem;" onclick="waReply('${t.custPhone}','${t.custName}','${(t.message||'').slice(0,30).replace(/'/g,"\\'")}')">💬 WA Reply</button>
+          ${t.status==='open'?`<button class="btn btn-green" style="padding:.28rem .7rem;font-size:.72rem;" onclick="resolveTicket('${t.id}')">✅ Resolve</button>`:''}
+        </div>
+      </div>`;
+    document.getElementById('help-open').innerHTML=open.length?open.map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Koi open ticket nahi</div>';
+    document.getElementById('help-resolved').innerHTML=resolved.length?resolved.map(renderTicket).join(''):'<div style="color:var(--muted);font-size:.82rem;">Abhi koi resolved nahi</div>';
+  }catch(e){toast('❌ Help load error: '+e.message);}
+}
+
+async function resolveTicket(id){
+  try{await shopDb.helpTickets().doc(id).update({status:'resolved'});toast('✅ Resolved!');loadHelp();}
+  catch(e){toast('❌ '+e.message);}
+}
+function waReply(phone,name,preview){
+  const msg=`Namaste ${name} ji! 😊\n\nAapki "${preview}..." wali query mil gayi — hum jald resolve karenge!\n\n— The Kathi Roll Hub 🌯`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ===== ALERTS =====
+async function loadAlerts(){
+  try{
+    const s=await shopDb.customers().get();const custs=s.docs.map(d=>({id:d.id,...d.data()}));
+    const inactive=custs.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));
+    const unverified=custs.filter(c=>!c.phoneVerified);
+    const vipCount=custs.filter(c=>(c.points||0)>=700).length;
+    const items=[];
+    if(inactive.length)items.push({i:'😴',t:`${inactive.length} customers 15+ din se nahi aaye`,sub:'Win-Back bhejo!',a:'Win-Back',f:()=>{}});
+    if(unverified.length)items.push({i:'📱',t:`${unverified.length} unverified phones`,sub:'Verify karna zaroori hai',a:'Customers',f:()=>{sw('customers',document.querySelectorAll('.tab')[4]);filterUnverified();}});
+    if(vipCount>0)items.push({i:'💎',t:`${vipCount} VIP members hain`,sub:'Unhe exclusive attention do',a:'View',f:()=>{sw('customers',document.querySelectorAll('.tab')[4]);}});
+    // Check for milestone alerts
+    const msAlert=custs.filter(c=>{const v=c.visits||0;return milestones.some(m=>m.active&&parseInt(m.visit)===v);});
+    if(msAlert.length)items.push({i:'🔥',t:`${msAlert.length} customers milestone pe hain!`,sub:'Reward claim karne aayenge',a:'View',f:()=>{}});
+    document.getElementById('alerts-list').innerHTML=items.length?items.map(ai=>`
+      <div class="alert-item">
+        <div class="ai-icon">${ai.i}</div>
+        <div class="ai-info"><div class="ai-title">${ai.t}</div><div class="ai-sub">${ai.sub}</div></div>
+        <button class="ai-btn" onclick="(${ai.f.toString()})()">${ai.a}</button>
+      </div>`).join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Sab theek hai! Koi urgent alert nahi.</div>';
+    // Inactive list
+    document.getElementById('inactive-list').innerHTML=inactive.slice(0,20).map(c=>`
+      <div class="inactive-row">
+        <div class="ir-days">${c.lastVisitDays||0}d</div>
+        <div class="ir-info">
+          <div class="ir-name">${c.name}</div>
+          <div class="ir-sub">${c.phone} | ${c.points||0} pts | ${c.city||'—'}</div>
+        </div>
+        <button onclick="sendWinBack('${c.phone}','${c.name}',${c.lastVisitDays||0})" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.28rem .65rem;border-radius:8px;font-size:.7rem;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">💬 WA</button>
+      </div>`).join('')||'<div style="color:var(--muted);font-size:.82rem;">✅ Koi inactive customer nahi!</div>';
+    // Segment summary
+    const silver=custs.filter(c=>(c.points||0)<300).length;const gold=custs.filter(c=>(c.points||0)>=300&&(c.points||0)<700).length;const vip=vipCount;
+    document.getElementById('seg-summary').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#90A4AE;">${silver}</div><div style="font-size:.7rem;color:var(--muted);">🥈 Silver</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#FFD54F;">${gold}</div><div style="font-size:.7rem;color:var(--muted);">🥇 Gold</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center;"><div style="font-family:'Oswald',sans-serif;font-size:1.4rem;color:#90CAF9;">${vip}</div><div style="font-size:.7rem;color:var(--muted);">💎 VIP</div></div>
+      </div>
+      <div style="margin-top:.7rem;font-size:.75rem;color:var(--muted);">Total: ${custs.length} | Inactive: ${inactive.length} | Unverified: ${unverified.length}</div>`;
+    // Social tasks
+    const st=await shopDb.socialTasks().where('status','==','pending').get();
+    const stItems=st.docs.map(d=>({id:d.id,...d.data()}));
+    const taskNames={ig:'Instagram Follow',gg:'Google Review',wa:'WhatsApp Contact',zom:'Zomato Follow'};
+    document.getElementById('st-list').innerHTML=stItems.length?stItems.map(t=>`
+      <div class="rvr">
+        <div class="rvt"><strong>${t.custId}</strong> — ${taskNames[t.taskId]||t.taskId}<br><span style="font-size:.7rem;color:var(--muted);">Reward: ${t.points} pts</span></div>
+        <button class="rvb" onclick="verST('${t.id}','${t.custId}',${t.points})">✅ Verify</button>
+      </div>`)
+    .join(''):'<div style="color:var(--muted);font-size:.82rem;">✅ Koi pending task nahi</div>';
+  }catch(e){toast('❌ Alerts error: '+e.message);}
+}
+
+function sendWinBack(phone,name,days){
+  const code='BACK'+phone.slice(-4);
+  const msg=`😊 *${name} ji, yaad aa rahe hain!*\n\n${days} din ho gaye Roll Hub nahi aaye — hum miss kar rahe hain!\n\n🎁 Sirf aapke liye: *${code}* code dikhao — special discount pao!\n\n🌯 The Kathi Roll Hub, Murlipura, Jaipur\n24x7 Open | Zomato Top 10`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+async function verST(tid,cid,pts){
+  try{await shopDb.socialTasks().doc(tid).update({status:'verified'});await shopDb.customer(cid).update({points:firebase.firestore.FieldValue.increment(pts)});toast(`✅ ${pts} pts credited!`);loadAlerts();}
+  catch(e){toast('❌ '+e.message);}
+}
+
+// ===== REFERRALS =====
+async function loadRefs(){
+  try{
+    const s=await shopDb.referrals().get();
+    const refs=s.docs.map(d=>({id:d.id,...d.data()}));
+    refs.sort((a,b)=>{try{return(b.date?.toMillis()||0)-(a.date?.toMillis()||0);}catch{return 0;}});
+    const pend=refs.filter(r=>r.status==='pending');const done=refs.filter(r=>r.status==='verified');
+    document.getElementById('ref-pending').innerHTML=!pend.length?'<div style="color:var(--muted);font-size:.82rem;">✅ Koi pending nahi</div>':pend.map(r=>`
+      <div class="rvr">
+        <div class="rvt"><strong>${r.referrer}</strong> → <strong>${r.newCustName||r.newCust}</strong> (${r.newCustPhone||''})<br><span style="font-size:.7rem;color:var(--muted);">Bonus: ${r.bonus||50} pts</span></div>
+        <button class="rvb" onclick="verRef('${r.id}')">✅ Verify</button>
+      </div>`).join('');
+    document.getElementById('ref-done').innerHTML=!done.length?'<div style="color:var(--muted);font-size:.82rem;">Abhi koi verified nahi</div>':done.slice(0,20).map(r=>`<div style="padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--muted);">✅ ${r.referrer} → ${r.newCust} (+${r.bonus||50} pts)</div>`).join('');
+  }catch(e){toast('❌ '+e.message);}
+}
+async function verRef(id){
+  try{
+    const refDoc=await shopDb.referrals().doc(id).get();
+    if(!refDoc.exists)return toast('❌ Referral nahi mila');
+    const r=refDoc.data();
+    if(r.status==='verified')return toast('⚠️ Pehle se verified hai');
+    // Credit points to referrer
+    await shopDb.customer(r.referrer).update({
+      points:firebase.firestore.FieldValue.increment(r.bonus||50),
+      referralCount:firebase.firestore.FieldValue.increment(1),
+      referralBonus:firebase.firestore.FieldValue.increment(r.bonus||50)
+    });
+    await shopDb.transactions().add({
+      customerId:r.referrer,custName:'Referrer',type:'bonus',
+      points:r.bonus||50,note:`Referral bonus — ${r.newCustName}`,
+      date:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await shopDb.referrals().doc(id).update({status:'verified'});
+    // Sync allC
+    const ci=allC.findIndex(x=>x.id===r.referrer);
+    if(ci>=0){allC[ci].points=(allC[ci].points||0)+(r.bonus||50);allC[ci].referralCount=(allC[ci].referralCount||0)+1;}
+    toast(`✅ Verified! ${r.bonus||50} pts credited to referrer`);
+    loadRefs();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+// ===== SETTINGS =====
+async function loadSettings(){
+  try{
+    const s=await shopDb.shopConfig().get();
+    if(s.exists){const d=s.data();shopSettings={...shopSettings,...d};milestones=d.milestones||[];bdayReward=d.bdayReward||{};refRewards=d.refRewards||{};}
+    else{await shopDb.shopConfig().set(shopSettings).catch(()=>{});}
+  }catch(e){}
+  ['set-rate','set-welcome','set-redeem-val','set-shopname','set-help-wa','set-help-msg'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const map={
+      'set-rate':shopSettings.rupeePerPoint||10,'set-welcome':shopSettings.welcomePoints||50,
+      'set-redeem-val':shopSettings.redeemValue||10,'set-shopname':shopSettings.shopName||'The Kathi Roll Hub',
+      'set-help-wa':shopSettings.helpWa||'8619721224','set-help-msg':shopSettings.helpMsg||''
+    };
+    el.value=map[id]||'';
+  });
+  const ha=document.getElementById('set-help-active');if(ha)ha.value=shopSettings.helpActive??1;
+  updateSettingsPreview();
+}
+
+function updateSettingsPreview(){
+  const rate=parseInt(document.getElementById('set-rate')?.value)||10;
+  const welcome=parseInt(document.getElementById('set-welcome')?.value)||50;
+  const redeem=parseInt(document.getElementById('set-redeem-val')?.value)||10;
+  const hint=document.getElementById('rate-hint');if(hint)hint.textContent=`₹${rate*10} spend = 10 pts`;
+  const p=document.getElementById('settings-preview');
+  if(p)p.innerHTML=`⭐ ₹${rate} spend pe 1 point<br>🎁 New member: ${welcome} points<br>🎫 100 pts = ₹${redeem} discount<br>📊 Effective rate: <strong style="color:var(--yellow)">${((redeem/rate)*10).toFixed(1)}%</strong>`;
+  const eff=((redeem/rate)*10);const w=shopSettings.warnPct||5;const cr=shopSettings.critPct||8;
+  const ec=document.getElementById('economy-check');
+  if(ec){let col='#66bb6a',msg='✅ Safe — Margin theek hai';if(eff>cr){col='#ef5350';msg='❌ Loss risk! Reward zyada hai.';}else if(eff>w){col='var(--yellow)';msg='⚠️ Monitor karein';}ec.innerHTML=`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:.7rem;font-size:.78rem;color:${col};">${msg} — Effective discount: ${eff.toFixed(1)}%</div>`;}
+}
+
+async function saveSettings(){
+  const settings={
+    rupeePerPoint:parseInt(document.getElementById('set-rate').value)||10,
+    welcomePoints:parseInt(document.getElementById('set-welcome').value)||50,
+    redeemValue:parseInt(document.getElementById('set-redeem-val').value)||10,
+    shopName:document.getElementById('set-shopname').value||'The Kathi Roll Hub',
+    helpWa:document.getElementById('set-help-wa').value||'8619721224',
+    helpMsg:document.getElementById('set-help-msg').value||'Koi bhi problem? Hum help karenge!',
+    helpActive:parseInt(document.getElementById('set-help-active')?.value)||1,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{await shopDb.shopConfig().set(settings,{merge:true});shopSettings={...shopSettings,...settings};toast('✅ Settings saved! User app pe live update hoga.');updateSettingsPreview();checkProfitWarning();}
+  catch(e){toast('❌ '+e.message);}
+}
+
+async function changePw2(){
+  const np=document.getElementById('new-pw2').value.trim();if(!np||np.length<6)return toast('❌ 6+ chars');
+  try{await firebase.auth().currentUser.updatePassword(np);toast('✅ Password changed!');document.getElementById('new-pw2').value='';}
+  catch(e){toast('❌ '+e.message);}
+}
+
+// ===== POSTS =====
+const POSTS=[
+  {t:"Welcome — Join Karo",e:"🌯",txt:`🌯 *The Kathi Roll Hub*\nMurlipura, Jaipur | 24x7 Open\n\n⭐ Zomato Top 10 in Rolls — 2025!\n\nFREE Loyalty Club join karo:\n✅ 10% Welcome Discount\n⭐ Har order pe points\n🎂 Birthday pe FREE treat\n🔥 Visit Milestones pe Rewards!\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#KathiRollHub #Jaipur #Murlipura #LoyaltyClub`},
+  {t:"Birthday Special",e:"🎂",txt:`🎂 *Birthday Special!*\n\nBirthday month mein aao — special reward aapka wait kar raha hai!\n\nJoin karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#BirthdaySpecial #KathiRollHub #Jaipur`},
+  {t:"Anniversary Special",e:"💑",txt:`💑 *Anniversary Special!*\n\nAnniversary wale members ke liye khas treat!\nRegister karein, date save karein.\n\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#AnniversarySpecial #KathiRollHub #Jaipur`},
+  {t:"Milestone Rewards",e:"🔥",txt:`🔥 *Har visit pe rewards!*\n\nHar milestone visit pe kuch special — FREE rolls, discount, bonus points!\n\nAbhi join karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#Rewards #KathiRollHub #Murlipura`},
+  {t:"Refer & Earn",e:"💰",txt:`💰 *Refer Karo — Points Earn Karo!*\n\nDoston ko refer karo aur points + rewards pao!\nJitna refer utna reward!\n\n🔗 https://the-kathi-roll-hub-users.vercel.app/\n\n#ReferAndEarn #KathiRollHub #Jaipur`},
+  {t:"Google Review",e:"⭐",txt:`⭐ *5★ Review do — Bonus points pao!*\n\nGoogle pe review:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\nScreenshot le aao — bonus points milenge!\n\n#GoogleReview #KathiRollHub #Jaipur`},
+  {t:"VIP Benefits",e:"💎",txt:`💎 *VIP Member bano!*\n\n700 points = VIP Diamond!\n✨ Exclusive offers\n✨ Priority treatment\n\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#VIPMember #KathiRollHub #LoyaltyProgram`},
+  {t:"Paneer Roll",e:"🧀",txt:`🧀 *Paneer Roll — Jaipur ka best!*\n\nMembers ko discount + points!\nJoin: https://the-kathi-roll-hub-users.vercel.app/\n\n#PaneerRoll #KathiRollHub #JaipurFood`},
+  {t:"Momos Special",e:"🥟",txt:`🥟 *Momos lovers ke liye!*\n\nSteam, Fried, Paneer, Kurkure, Gravy Momos!\n\nMembers ko extra points:\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#Momos #KathiRollHub #Murlipura`},
+  {t:"24x7 Open",e:"🌙",txt:`🌙 *Raat ko bhi craving?*\n\n24x7 open — Murlipura, Jaipur\n\nMember bano — rewards milenge!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#24x7Open #KathiRollHub #LateNightFood`},
+  {t:"WhatsApp Community",e:"💬",txt:`💬 *WhatsApp pe jodo!*\n\n8619721224 / 7737585713\n\nContact karo — offers pehle pao!\n\n#KathiRollHub #Murlipura #Jaipur`},
+  {t:"College Crowd",e:"🎓",txt:`🎓 *College ke baad — kuch spicy?*\n\nKathi Rolls | Momos | Chinese | Shakes\n\nLoyalty club join karo — 10% OFF!\n📱 https://the-kathi-roll-hub-users.vercel.app/\n\n#CollegeFood #Jaipur #KathiRollHub`},
+  {t:"Zomato Award",e:"🏆",txt:`🏆 *Zomato Top 10 in Rolls — Jaipur 2025!*\n\nYeh award aap logo ki wajah se mila!\n\nReview do:\n👉 https://maps.app.goo.gl/YcMkgZpTJ9hy8MDf8\n\n#ZomatoAwards #KathiRollHub #Jaipur`},
+  {t:"Help Feature",e:"🤝",txt:`🤝 *Koi bhi problem? Hum hain!*\n\nApp mein Help section — complaint, query, suggestion — owner directly respond karega!\n\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#CustomerFirst #KathiRollHub #Jaipur`},
+  {t:"Streak Challenge",e:"🔥",txt:`🔥 *Streak Challenge!*\n\nJitna zyada aao — utna zyada reward! Har milestone pe kuch special.\n\nAbhi join karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#StreakChallenge #KathiRollHub #Jaipur`},
+  {t:"Win-Back Offer",e:"💌",txt:`💌 *Miss kar rahe hain aapko!*\n\nBahar se aao — special surprise ready hai!\n\nJoin ya login karo:\n👉 https://the-kathi-roll-hub-users.vercel.app/\n\n#KathiRollHub #Murlipura #ComingBack`}
+];
+
+function renderPosts(){
+  document.getElementById('posts-list').innerHTML=POSTS.map((p,i)=>`
+    <div class="post-card">
+      <h4>${p.e} Post ${i+1}: ${p.t}</h4>
+      <textarea class="post-text" rows="5" readonly>${p.txt}</textarea>
+      <div class="post-actions">
+        <button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.73rem;" onclick="navigator.clipboard.writeText(POSTS[${i}].txt).then(()=>toast('✅ Copied!'))">📋 Copy</button>
+        <button class="btn btn-green" style="padding:.3rem .7rem;font-size:.73rem;" onclick="window.open('https://wa.me/?text='+encodeURIComponent(POSTS[${i}].txt))">💬 WhatsApp</button>
+        <button class="btn-ig" onclick="shareInsta(${i})">📸 Instagram</button>
+      </div>
+    </div>`).join('');
+}
+
+function shareInsta(i){
+  navigator.clipboard.writeText(POSTS[i].txt).then(()=>{
+    toast('✅ Caption copied! Instagram khul raha hai...');
+    setTimeout(()=>window.open('https://www.instagram.com/the_kathi_roll_hub_murlipuraa','_blank'),600);
+  }).catch(()=>{window.open('https://www.instagram.com/the_kathi_roll_hub_murlipuraa','_blank');});
+}
+
+// ===== EXPORT =====
+function expAll(){
+  if(!allC.length){toast('⏳ Loading data...');loadC().then(()=>{setTimeout(()=>expAll(),800);});return;}
+  const h=['ID','Naam','Phone','Verified','Birthday','Anniversary','City','Points','Tier','Visits','LastVisitDays','FavItems','JoinDate'];
+  const r=allC.map(c=>[c.id,c.name,c.phone,c.phoneVerified?'Yes':'No',c.birthday||'',c.anniversary||'',c.city||'',c.points||0,c.tier||'Silver',c.visits||0,c.lastVisitDays||0,(c.dishes||[]).join(';'),c.joinDateStr||'']);
+  dlCSV([h,...r],'rollhub_all.csv');toast(`✅ ${allC.length} records exported!`);
+}
+function expBday(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expBday,800));return;}
+  const m=new Date().getMonth();const b=allC.filter(c=>c.birthday&&new Date(c.birthday).getMonth()===m);if(!b.length)return toast('❌ Is mahine koi birthday nahi');dlCSV([['Naam','Phone','Birthday','Points','City'],...b.map(c=>[c.name,c.phone,c.birthday,c.points||0,c.city||''])],'birthday_this_month.csv');toast(`✅ ${b.length} birthdays exported!`);
+}
+function expRefs(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expRefs,800));return;}
+  const r=allC.filter(c=>(c.referralCount||0)>0);if(!r.length)return toast('❌ Koi referral nahi');dlCSV([['Naam','Phone','Referrals','Bonus Pts'],...r.map(c=>[c.name,c.phone,c.referralCount||0,c.referralBonus||0])],'referrals.csv');toast('✅ Done!');
+}
+function expInactive(){
+  if(!allC.length){toast('⏳ Loading...');loadC().then(()=>setTimeout(expInactive,800));return;}
+  const ia=allC.filter(c=>(c.lastVisitDays||0)>=15).sort((a,b)=>(b.lastVisitDays||0)-(a.lastVisitDays||0));if(!ia.length)return toast('✅ Koi inactive nahi!');dlCSV([['Naam','Phone','Days Inactive','Points','City'],...ia.map(c=>[c.name,c.phone,c.lastVisitDays||0,c.points||0,c.city||''])],'inactive.csv');toast(`✅ ${ia.length} inactive exported!`);
+}
+function expUpcoming(){
+  const today=new Date();const upcoming=[];
+  allC.forEach(c=>{
+    if(c.birthday){const b=new Date(c.birthday);const nb=new Date(today.getFullYear(),b.getMonth(),b.getDate());if(nb<today)nb.setFullYear(today.getFullYear()+1);const dl=Math.ceil((nb-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push([c.name,c.phone,'Birthday',dl+'d',c.points||0]);}
+    if(c.anniversary){const a=new Date(c.anniversary);const na=new Date(today.getFullYear(),a.getMonth(),a.getDate());if(na<today)na.setFullYear(today.getFullYear()+1);const dl=Math.ceil((na-today)/(864e5));if(dl>=0&&dl<=7)upcoming.push([c.name,c.phone,'Anniversary',dl+'d',c.points||0]);}
+  });
+  if(!upcoming.length)return toast('❌ 7 din mein koi special nahi');
+  dlCSV([['Naam','Phone','Type','Days Away','Points'],...upcoming],'upcoming_specials.csv');toast(`✅ ${upcoming.length} upcoming exported!`);
+}
+function dlCSV(d,f){const csv='\ufeff'+d.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=f;a.click();}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+</script>
+</body>
+</html>
+
+
