@@ -1,0 +1,17 @@
+/* =============================================
+   Menu Management
+   The Kathi Roll Hub — Admin Panel
+   VishTech Software Services
+   ============================================= */
+
+// ======= MENU =======
+function calcM(){const p=parseFloat(document.getElementById('mi-p').value)||0,c=parseFloat(document.getElementById('mi-c').value)||0,d=parseFloat(document.getElementById('mi-d').value)||0;const el=document.getElementById('m-margin');if(!el)return;if(!p){el.textContent='';return;}const mg=((p-c)/p*100).toFixed(1),ad=d?((p*(1-d/100)-c)/(p*(1-d/100))*100).toFixed(1):mg;let cl='#66bb6a',ms='✅ Safe';if(parseFloat(ad)<20){cl='#ef5350';ms='❌ Loss!';}else if(parseFloat(ad)<35){cl='var(--y)';ms='⚠️ Caution';}el.innerHTML=c>0?`<span style="color:${cl}">${ms}</span> — Margin: ${mg}% | After ${d}% offer: ${ad}%`:'Cost daalte hi margin dikhega';}
+
+async function loadMenu(){try{const s=await D.menu().get();menuItems=s.exists?(s.data().items||[]):[];renderMenu();}catch(e){toast('❌ Menu: '+e.message);}}
+function renderMenu(){const el=document.getElementById('menu-list');if(!menuItems.length){el.innerHTML='<div style="text-align:center;color:var(--m);padding:1.5rem;">Menu empty — add karo!</div>';return;}el.innerHTML=menuItems.map((item,i)=>{const mg=item.cost&&item.price?((item.price-item.cost)/item.price*100).toFixed(0):null;return`<div class="mi-r"><span style="font-size:1.4rem;flex-shrink:0">${item.emoji||'🌯'}</span><div style="flex:1;min-width:80px"><div style="font-size:.84rem;font-weight:600;">${esc(item.name)}</div><div style="font-size:.68rem;color:var(--m);">₹${item.price} ${item.cost?`· Margin: ${mg}%`:''} · ${item.category||''}</div></div><input class="mi-disc-inp" type="number" value="${item.discountPct||0}" min="0" max="70" id="md-${i}">%<label class="tsw"><input type="checkbox" ${item.discountActive?'checked':''} onchange="tI(${i},this.checked)"><span></span></label><button class="btn btn-y" style="padding:.2rem .52rem;font-size:.68rem;" onclick="sD(${i})">Save</button><button onclick="dI(${i})" style="background:rgba(211,47,47,.1);border:none;border-radius:6px;padding:.2rem .52rem;font-size:.68rem;cursor:pointer;color:#ef5350;font-family:DM Sans,sans-serif;">🗑️</button></div>`;}).join('');}
+
+async function addItem(){const n=document.getElementById('mi-n').value.trim(),p=parseFloat(document.getElementById('mi-p').value)||0;if(!n||!p)return toast('❌ Naam + price');menuItems.push({emoji:document.getElementById('mi-e').value||'🌯',name:n,price:p,cost:parseFloat(document.getElementById('mi-c').value)||0,category:document.getElementById('mi-cat').value,discountPct:parseInt(document.getElementById('mi-d').value)||0,discountGold:parseInt(document.getElementById('mi-dg').value)||0,discountVip:parseInt(document.getElementById('mi-dv').value)||0,discountActive:document.getElementById('mi-act').value==='true'});await sM();renderMenu();['mi-n','mi-p','mi-c','mi-d','mi-dg','mi-dv','mi-e'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});toast(`✅ ${n} added!`);}
+async function tI(i,v){menuItems[i].discountActive=v;await sM();renderMenu();toast(v?'✅ Offer ON':'⚠️ Hidden');}
+async function sD(i){menuItems[i].discountPct=parseInt(document.getElementById('md-'+i).value)||0;await sM();toast('✅ Saved!');}
+async function dI(i){if(!confirm('Delete?'))return;menuItems.splice(i,1);await sM();renderMenu();toast('🗑️ Deleted');}
+async function sM(){await D.menu().set({items:menuItems}).catch(e=>toast('❌ '+e.message));}
