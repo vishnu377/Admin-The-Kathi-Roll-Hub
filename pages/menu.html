@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <style>
+    body { background: var(--bg); margin: 0; padding: 0; }
+    .page { padding: 24px 20px 80px; max-width: 960px; }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+    }
+    .page-title { font-size: 20px; font-weight: 800; color: var(--txt); }
+    .page-sub   { font-size: 13px; color: var(--txt2); margin-top: 3px; }
+
+    /* ── Stat strip ── */
+    .stat-strip {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 10px; margin-bottom: 20px;
+    }
+    @media(max-width:600px){ .stat-strip { grid-template-columns: repeat(2,1fr); } }
+    .ss {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 14px 16px;
+      box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+    }
+    .ss-accent { position:absolute;top:0;left:0;right:0;height:3px;border-radius:4px 4px 0 0; }
+    .ss-icon { font-size:20px;margin-bottom:8px;display:block; }
+    .ss-val  { font-size:26px;font-weight:800;color:var(--txt);line-height:1;margin-bottom:4px; }
+    .ss-val.g{color:var(--green)} .ss-val.r{color:var(--red)}
+    .ss-val.y{color:#ca8a04}      .ss-val.b{color:var(--blue)}
+    .ss-lbl  { font-size:12px;color:var(--txt2);font-weight:600; }
+
+    /* ── Add form card ── */
+    .form-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 20px;
+      box-shadow: var(--shadow-sm); margin-bottom: 20px;
+    }
+    .form-card-title {
+      font-size: 15px; font-weight: 700; color: var(--txt);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── Emoji picker ── */
+    .emoji-field {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .emoji-preview {
+      width: 52px; height: 52px; border-radius: var(--r-md);
+      background: var(--bg); border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; cursor: pointer; flex-shrink: 0;
+      transition: border-color .15s;
+    }
+    .emoji-preview:hover { border-color: var(--blue); }
+    .emoji-picker {
+      display: none; flex-wrap: wrap; gap: 6px; padding: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-md); box-shadow: var(--shadow-md);
+      position: absolute; z-index: 50; max-width: 280px;
+    }
+    .emoji-picker.open { display: flex; }
+    .ep-btn {
+      font-size: 22px; cursor: pointer; padding: 4px;
+      border-radius: 6px; border: none; background: none;
+      transition: background .1s; line-height: 1;
+    }
+    .ep-btn:hover { background: var(--bg); }
+
+    /* ── Category toggle ── */
+    .cat-type-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .cat-type-btn {
+      flex: 1; padding: 9px; border-radius: var(--r-sm);
+      border: 1.5px solid var(--border); background: var(--bg);
+      font-family: var(--font); font-size: 13px; font-weight: 700;
+      color: var(--txt2); cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .cat-type-btn.on { border-color: var(--green); background: #f0fdf4; color: #166534; }
+    .cat-type-btn.non.on { border-color: var(--red); background: #fff5f5; color: #991b1b; }
+
+    /* ── Margin calculator ── */
+    .margin-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .margin-badge.high { background: #dcfce7; color: #166534; }
+    .margin-badge.mid  { background: #fef9c3; color: #92400e; }
+    .margin-badge.low  { background: #fee2e2; color: #991b1b; }
+
+    /* ── Table card ── */
+    .tbl-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .tbl-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .tbl-header-left { font-size: 14px; font-weight: 700; color: var(--txt); }
+    .tbl-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* Search */
+    .search-inp-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 7px 12px;
+    }
+    .search-inp {
+      background: none; border: none; outline: none;
+      font-family: var(--font); font-size: 13px; color: var(--txt);
+      width: 160px;
+    }
+    .search-inp::placeholder { color: var(--txt3); }
+    .cat-filter {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--r-sm); color: var(--txt);
+      font-family: var(--font); font-size: 13px; font-weight: 600;
+      padding: 7px 12px; outline: none; cursor: pointer;
+    }
+
+    /* ── Table rows ── */
+    .menu-item-emoji {
+      width: 38px; height: 38px; border-radius: var(--r-sm);
+      background: var(--bg); display: flex; align-items: center;
+      justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .item-name { font-size: 14px; font-weight: 700; color: var(--txt); }
+    .item-cat  { font-size: 12px; color: var(--txt3); margin-top: 2px; }
+    .price-inp {
+      width: 80px; background: var(--inp-bg);
+      border: 1.5px solid var(--inp-br); border-radius: 6px;
+      color: var(--txt); font-family: var(--font);
+      font-size: 13px; font-weight: 700; padding: 6px 10px;
+      outline: none; transition: border-color .15s;
+    }
+    .price-inp:focus { border-color: var(--blue); }
+    .disc-inp {
+      width: 60px; background: var(--inp-bg);
+      border: 1.5px solid var(--inp-br); border-radius: 6px;
+      color: var(--txt); font-family: var(--font);
+      font-size: 13px; padding: 6px 8px; outline: none;
+    }
+    .disc-inp:focus { border-color: var(--blue); }
+
+    /* Veg/non-veg dot */
+    .veg-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+    }
+    .veg-dot.veg     { background: var(--green); }
+    .veg-dot.non-veg { background: var(--red); }
+
+    /* Available toggle column */
+    .avail-cell { display: flex; align-items: center; gap: 8px; }
+    .avail-lbl  { font-size: 12px; font-weight: 700; }
+
+    /* ── Save row (sticky bottom) ── */
+    .save-strip {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card); border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 50; box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+      flex-wrap: wrap; gap: 10px;
+    }
+    .save-msg { font-size: 13px; font-weight: 600; color: var(--txt2); }
+    .save-msg.ok  { color: var(--green); }
+    .save-msg.err { color: var(--red); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+      background: var(--txt); color: var(--card);
+      font-size: 13px; font-weight: 700; padding: 10px 20px;
+      border-radius: 99px; z-index: 999; opacity: 0; transition: opacity .3s;
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 24px; color: var(--txt2);
+    }
+    .empty-state .ei { font-size: 40px; display: block; margin-bottom: 12px; }
+
+    @media(max-width:640px){
+      .hide-sm { display: none; }
+      .search-inp { width: 100px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">🌯 Menu Management</div>
+      <div class="page-sub">Items add/edit karo. Firestore ke menu collection mein save hoga.</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="loadMenu()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- ── Stats ── -->
+  <div class="stat-strip" id="stat-strip">
+    <div class="ss"><div class="ss-accent" style="background:var(--blue)"></div><span class="ss-icon">🌯</span><div class="ss-val b" id="s-total">—</div><div class="ss-lbl">Total Items</div></div>
+    <div class="ss"><div class="ss-accent" style="background:var(--green)"></div><span class="ss-icon">✅</span><div class="ss-val g" id="s-avail">—</div><div class="ss-lbl">Available</div></div>
+    <div class="ss"><div class="ss-accent" style="background:var(--red)"></div><span class="ss-icon">❌</span><div class="ss-val r" id="s-out">—</div><div class="ss-lbl">Out of Stock</div></div>
+    <div class="ss"><div class="ss-accent" style="background:#ca8a04"></div><span class="ss-icon">📂</span><div class="ss-val y" id="s-cats">—</div><div class="ss-lbl">Categories</div></div>
+  </div>
+
+  <!-- ── Add Item Form ── -->
+  <div class="form-card" id="add-form">
+    <div class="form-card-title">➕ Naya Item Add Karo</div>
+
+    <!-- Emoji + Name row -->
+    <div class="emoji-field" style="position:relative">
+      <div>
+        <div class="emoji-preview" id="emoji-preview" onclick="togglePicker()">🌯</div>
+        <div class="emoji-picker" id="emoji-picker">
+          <button class="ep-btn" onclick="setEmoji('🌯')">🌯</button>
+          <button class="ep-btn" onclick="setEmoji('🥟')">🥟</button>
+          <button class="ep-btn" onclick="setEmoji('🍜')">🍜</button>
+          <button class="ep-btn" onclick="setEmoji('🍲')">🍲</button>
+          <button class="ep-btn" onclick="setEmoji('🥗')">🥗</button>
+          <button class="ep-btn" onclick="setEmoji('🍱')">🍱</button>
+          <button class="ep-btn" onclick="setEmoji('☕')">☕</button>
+          <button class="ep-btn" onclick="setEmoji('🥤')">🥤</button>
+          <button class="ep-btn" onclick="setEmoji('🧃')">🧃</button>
+          <button class="ep-btn" onclick="setEmoji('🍦')">🍦</button>
+          <button class="ep-btn" onclick="setEmoji('🍫')">🍫</button>
+          <button class="ep-btn" onclick="setEmoji('🔥')">🔥</button>
+          <button class="ep-btn" onclick="setEmoji('⭐')">⭐</button>
+          <button class="ep-btn" onclick="setEmoji('🍛')">🍛</button>
+          <button class="ep-btn" onclick="setEmoji('🥚')">🥚</button>
+          <button class="ep-btn" onclick="setEmoji('🧀')">🧀</button>
+          <button class="ep-btn" onclick="setEmoji('🥔')">🥔</button>
+          <button class="ep-btn" onclick="setEmoji('🌿')">🌿</button>
+          <button class="ep-btn" onclick="setEmoji('🍗')">🍗</button>
+          <button class="ep-btn" onclick="setEmoji('🥩')">🥩</button>
+        </div>
+      </div>
+      <div style="flex:1">
+        <label class="lbl">Item Name <span style="color:var(--red)">*</span></label>
+        <input class="inp" type="text" id="f-name" placeholder="e.g. Paneer Kathi Roll"/>
+      </div>
+    </div>
+
+    <!-- Veg / Non-veg -->
+    <div style="margin-bottom:14px">
+      <label class="lbl">Type</label>
+      <div class="cat-type-row">
+        <button type="button" class="cat-type-btn on" id="btn-veg" onclick="setType('veg')">
+          🟢 Veg
+        </button>
+        <button type="button" class="cat-type-btn non" id="btn-non" onclick="setType('non-veg')">
+          🔴 Non-Veg
+        </button>
+      </div>
+    </div>
+
+    <!-- Price / Cost / Margin -->
+    <div class="row3" style="margin-bottom:14px">
+      <div class="field">
+        <label class="lbl">Selling Price ₹ <span style="color:var(--red)">*</span></label>
+        <input class="inp inp-sm" type="number" id="f-price" placeholder="90" min="0" oninput="calcMargin()"/>
+      </div>
+      <div class="field">
+        <label class="lbl">Cost Price ₹ (optional)</label>
+        <input class="inp inp-sm" type="number" id="f-cost" placeholder="40" min="0" oninput="calcMargin()"/>
+      </div>
+      <div class="field">
+        <label class="lbl">Margin</label>
+        <div id="margin-result" style="padding:9px 0;font-size:13px;color:var(--txt3);font-weight:600">
+          — daalo toh dikhega
+        </div>
+      </div>
+    </div>
+
+    <!-- Category / Discount / Show on app -->
+    <div class="row3" style="margin-bottom:16px">
+      <div class="field">
+        <label class="lbl">Category</label>
+        <select class="inp inp-sm" id="f-cat">
+          <option>Kathi Roll</option>
+          <option>Momos</option>
+          <option>Chinese</option>
+          <option>Shake</option>
+          <option>Coffee</option>
+          <option>Snacks</option>
+          <option>Dessert</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Discount % (0 = none)</label>
+        <input class="inp inp-sm" type="number" id="f-disc" placeholder="0" min="0" max="100"/>
+      </div>
+      <div class="field">
+        <label class="lbl">App pe show?</label>
+        <select class="inp inp-sm" id="f-show">
+          <option value="1">✅ Yes</option>
+          <option value="0">❌ No (Hidden)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="msg-err" id="add-err" style="margin-bottom:10px"></div>
+    <button class="btn btn-yellow btn-full" id="add-btn" onclick="addItem()">
+      🏷️ Add to Menu
+    </button>
+  </div>
+
+  <!-- ── Menu Table ── -->
+  <div class="tbl-card">
+    <div class="tbl-header">
+      <div class="tbl-header-left">📋 Current Menu</div>
+      <div class="tbl-controls">
+        <div class="search-inp-wrap">
+          <span style="color:var(--txt3);font-size:14px">🔍</span>
+          <input class="search-inp" type="text" id="search-inp"
+            placeholder="Item naam..." oninput="filterMenu()"/>
+        </div>
+        <select class="cat-filter" id="cat-filter" onchange="filterMenu()">
+          <option value="">Sab Categories</option>
+          <option>Kathi Roll</option>
+          <option>Momos</option>
+          <option>Chinese</option>
+          <option>Shake</option>
+          <option>Coffee</option>
+          <option>Snacks</option>
+          <option>Dessert</option>
+          <option>Other</option>
+        </select>
+        <select class="cat-filter" id="type-filter" onchange="filterMenu()">
+          <option value="">Veg + Non-veg</option>
+          <option value="veg">🟢 Veg only</option>
+          <option value="non-veg">🔴 Non-Veg only</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Price ₹</th>
+            <th class="hide-sm">Discount %</th>
+            <th class="hide-sm">Margin</th>
+            <th>Available</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="menu-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="menu-empty" style="display:none">
+        <span class="ei">🌯</span>
+        <div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:6px">
+          Koi item nahi mila
+        </div>
+        <p>Naya item add karo upar wale form se.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Sticky save strip -->
+<div class="save-strip">
+  <div class="save-msg" id="save-msg">Koi unsaved price changes nahi</div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-ghost" onclick="loadMenu()">Discard</button>
+    <button class="btn btn-success" id="save-btn" onclick="saveAllPrices()">
+      💾 Save Price Changes
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import {
+    getMenu, saveMenuItem, deleteMenuItem,
+    fmtDate
+  } from '../js/admin.js';
+
+  // ── State ──────────────────────────────────────────────────
+  let allItems     = [];
+  let filteredItems = [];
+  let selEmoji     = '🌯';
+  let selType      = 'veg';
+  let dirtyPrices  = {};   // { id: { price, disc } }
+
+  // ── Emoji picker ───────────────────────────────────────────
+  window.togglePicker = function() {
+    document.getElementById('emoji-picker').classList.toggle('open');
+  };
+  window.setEmoji = function(e) {
+    selEmoji = e;
+    document.getElementById('emoji-preview').textContent = e;
+    document.getElementById('emoji-picker').classList.remove('open');
+  };
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#emoji-preview') && !e.target.closest('#emoji-picker')) {
+      document.getElementById('emoji-picker').classList.remove('open');
+    }
+  });
+
+  // ── Veg / Non-veg ──────────────────────────────────────────
+  window.setType = function(type) {
+    selType = type;
+    document.getElementById('btn-veg').classList.toggle('on', type === 'veg');
+    document.getElementById('btn-non').classList.toggle('on', type === 'non-veg');
+  };
+
+  // ── Margin calculator ──────────────────────────────────────
+  window.calcMargin = function() {
+    const price = parseFloat(document.getElementById('f-price').value) || 0;
+    const cost  = parseFloat(document.getElementById('f-cost').value)  || 0;
+    const el    = document.getElementById('margin-result');
+    if (!price) { el.innerHTML = '— price daalo'; el.className = ''; return; }
+    if (!cost)  { el.innerHTML = '— cost daalo';  el.className = ''; return; }
+    const pct   = Math.round((price - cost) / price * 100);
+    const cls   = pct >= 50 ? 'high' : pct >= 30 ? 'mid' : 'low';
+    el.innerHTML= `<span class="margin-badge ${cls}">${pct}% margin</span>`;
+  };
+
+  // ── Load menu ──────────────────────────────────────────────
+  window.loadMenu = async function() {
+    allItems      = await getMenu();
+    filteredItems = [...allItems];
+    dirtyPrices   = {};
+    markClean();
+    renderStats();
+    renderTable();
+  };
+
+  loadMenu();
+
+  // ── Stats ──────────────────────────────────────────────────
+  function renderStats() {
+    const total = allItems.length;
+    const avail = allItems.filter(i => i.available !== false).length;
+    const out   = total - avail;
+    const cats  = new Set(allItems.map(i => i.category)).size;
+    setText('s-total', total);
+    setText('s-avail', avail);
+    setText('s-out',   out);
+    setText('s-cats',  cats);
+  }
+
+  // ── Filter ─────────────────────────────────────────────────
+  window.filterMenu = function() {
+    const q    = (document.getElementById('search-inp').value || '').toLowerCase();
+    const cat  = document.getElementById('cat-filter').value;
+    const type = document.getElementById('type-filter').value;
+    filteredItems = allItems.filter(i => {
+      if (q    && !i.name.toLowerCase().includes(q)) return false;
+      if (cat  && i.category !== cat)                return false;
+      if (type && i.type     !== type)               return false;
+      return true;
+    });
+    renderTable();
+  };
+
+  // ── Render table ───────────────────────────────────────────
+  function renderTable() {
+    const tbody = document.getElementById('menu-tbody');
+    const empty = document.getElementById('menu-empty');
+
+    if (!filteredItems.length) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filteredItems.map(item => {
+      const avail   = item.available !== false;
+      const margin  = item.cost && item.price
+        ? Math.round((item.price - item.cost) / item.price * 100)
+        : null;
+      const mCls    = margin !== null
+        ? (margin >= 50 ? 'high' : margin >= 30 ? 'mid' : 'low')
+        : '';
+
+      return `
+        <tr id="row-${item.id}">
+          <!-- Item -->
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="menu-item-emoji">${item.emoji || '🌯'}</div>
+              <div>
+                <div class="item-name">${item.name}</div>
+                ${item.showOnApp === false
+                  ? '<div class="item-cat" style="color:var(--txt3)">Hidden from app</div>'
+                  : ''}
+              </div>
+            </div>
+          </td>
+
+          <!-- Type -->
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="veg-dot ${item.type === 'veg' ? 'veg' : 'non-veg'}"></span>
+              <span style="font-size:12px;font-weight:600;color:var(--txt2)">
+                ${item.type === 'veg' ? 'Veg' : 'Non-Veg'}
+              </span>
+            </div>
+          </td>
+
+          <!-- Category -->
+          <td>
+            <span class="badge badge-gray">${item.category || '—'}</span>
+          </td>
+
+          <!-- Price (inline edit) -->
+          <td>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:13px;color:var(--txt3)">₹</span>
+              <input
+                class="price-inp"
+                type="number" min="0"
+                value="${item.price || 0}"
+                onchange="priceChanged('${item.id}', 'price', this.value)"
+              />
+            </div>
+          </td>
+
+          <!-- Discount (inline edit) -->
+          <td class="hide-sm">
+            <div style="display:flex;align-items:center;gap:4px">
+              <input
+                class="disc-inp"
+                type="number" min="0" max="100"
+                value="${item.discount || 0}"
+                onchange="priceChanged('${item.id}', 'disc', this.value)"
+              />
+              <span style="font-size:12px;color:var(--txt3)">%</span>
+            </div>
+          </td>
+
+          <!-- Margin -->
+          <td class="hide-sm">
+            ${margin !== null
+              ? `<span class="margin-badge ${mCls}">${margin}%</span>`
+              : '<span style="color:var(--txt3);font-size:12px">— cost daalo</span>'}
+          </td>
+
+          <!-- Available toggle -->
+          <td>
+            <div class="avail-cell">
+              <label class="toggle-wrap">
+                <input
+                  type="checkbox"
+                  ${avail ? 'checked' : ''}
+                  onchange="toggleAvail('${item.id}', this.checked)"
+                />
+                <span class="toggle-sl"></span>
+              </label>
+              <span class="avail-lbl" style="color:${avail ? 'var(--green)' : 'var(--red)'}">
+                ${avail ? 'Available' : 'Out of Stock'}
+              </span>
+            </div>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-icon-only"
+                onclick="deleteItem('${item.id}', '${item.name.replace(/'/g,'\\u0027')}')"
+                title="Delete">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Add new item ───────────────────────────────────────────
+  window.addItem = async function() {
+    const errEl = document.getElementById('add-err');
+    errEl.style.display = 'none';
+    const name  = document.getElementById('f-name').value.trim();
+    const price = parseFloat(document.getElementById('f-price').value) || 0;
+    if (!name)  { showErr('Item name zaroor daalo'); return; }
+    if (!price) { showErr('Price zaroor daalo'); return; }
+
+    const cost = parseFloat(document.getElementById('f-cost').value) || 0;
+    const disc = parseFloat(document.getElementById('f-disc').value) || 0;
+    const margin = cost && price
+      ? Math.round((price - cost) / price * 100)
+      : null;
+
+    const item = {
+      id:        Date.now().toString(),
+      emoji:     selEmoji,
+      name,
+      type:      selType,
+      category:  document.getElementById('f-cat').value,
+      price,
+      cost,
+      discount:  disc,
+      margin,
+      showOnApp: document.getElementById('f-show').value === '1',
+      available: true,
+      addedAt:   new Date().toISOString(),
+    };
+
+    const btn = document.getElementById('add-btn');
+    btn.disabled = true; btn.textContent = '⏳ Saving...';
+
+    try {
+      await saveMenuItem(item);
+      allItems.unshift(item);
+      filterMenu();
+      renderStats();
+      // Reset form
+      document.getElementById('f-name').value  = '';
+      document.getElementById('f-price').value = '';
+      document.getElementById('f-cost').value  = '';
+      document.getElementById('f-disc').value  = '0';
+      selEmoji = '🌯';
+      document.getElementById('emoji-preview').textContent = '🌯';
+      setType('veg');
+      document.getElementById('margin-result').innerHTML = '— daalo toh dikhega';
+      showToast('✅ ' + item.name + ' menu mein add ho gaya!');
+    } catch (e) {
+      showErr('Save nahi hua: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '🏷️ Add to Menu';
+    }
+  };
+
+  // ── Toggle availability ────────────────────────────────────
+  window.toggleAvail = async function(id, available) {
+    // Optimistic update
+    const idx = allItems.findIndex(i => i.id === id);
+    if (idx !== -1) allItems[idx].available = available;
+    filterMenu();
+    renderStats();
+
+    try {
+      await saveMenuItem({ id, available });
+      showToast(available ? '✅ Available mark kiya!' : '❌ Out of Stock mark kiya!');
+    } catch (e) {
+      showToast('❌ Save failed');
+    }
+  };
+
+  // ── Inline price / discount edit ──────────────────────────
+  window.priceChanged = function(id, field, value) {
+    if (!dirtyPrices[id]) dirtyPrices[id] = {};
+    dirtyPrices[id][field] = parseFloat(value) || 0;
+    markDirty();
+  };
+
+  window.saveAllPrices = async function() {
+    const ids = Object.keys(dirtyPrices);
+    if (!ids.length) { showToast('Koi changes nahi'); return; }
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true; btn.textContent = '⏳ Saving...';
+
+    try {
+      await Promise.all(ids.map(id => {
+        const item = allItems.find(i => i.id === id);
+        if (!item) return;
+        const updates = { id };
+        if (dirtyPrices[id].price !== undefined) {
+          updates.price = dirtyPrices[id].price;
+          item.price    = dirtyPrices[id].price;
+        }
+        if (dirtyPrices[id].disc !== undefined) {
+          updates.discount = dirtyPrices[id].disc;
+          item.discount    = dirtyPrices[id].disc;
+        }
+        return saveMenuItem({ ...item, ...updates });
+      }));
+      dirtyPrices = {};
+      markClean();
+      showToast(`✅ ${ids.length} item(s) ke prices save ho gaye!`);
+      renderTable();
+    } catch (e) {
+      showToast('❌ Save failed: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '💾 Save Price Changes';
+    }
+  };
+
+  // ── Delete item ────────────────────────────────────────────
+  window.deleteItem = async function(id, name) {
+    if (!confirm(`"${name}" menu se delete karna chahte ho?`)) return;
+    try {
+      await deleteMenuItem(id);
+      allItems = allItems.filter(i => i.id !== id);
+      filterMenu();
+      renderStats();
+      showToast('✅ Item delete ho gaya');
+    } catch (e) {
+      showToast('❌ Delete failed');
+    }
+  };
+
+  // ── Dirty tracking ─────────────────────────────────────────
+  function markDirty() {
+    const el = document.getElementById('save-msg');
+    const ids = Object.keys(dirtyPrices).length;
+    el.textContent = `⚠️ ${ids} item(s) ke unsaved price changes hain`;
+    el.className   = 'save-msg err';
+  }
+  function markClean() {
+    const el = document.getElementById('save-msg');
+    el.textContent = 'Koi unsaved price changes nahi';
+    el.className   = 'save-msg';
+  }
+
+  // ── Helpers ────────────────────────────────────────────────
+  function showErr(msg) {
+    const e = document.getElementById('add-err');
+    e.textContent   = '❌ ' + msg;
+    e.style.display = 'block';
+  }
+  function setText(id, val) {
+    const e = document.getElementById(id); if (e) e.textContent = val;
+  }
+  function showToast(msg, dur = 2800) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), dur);
+  }
+</script>
+</body>
+</html>

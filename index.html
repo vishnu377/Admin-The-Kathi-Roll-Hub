@@ -1,557 +1,598 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin — The Kathi Roll Hub</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>Admin Panel — Kathi Roll Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+  <style>
+    /* ── LOGIN GATE ──────────────────────────────────── */
+    .gate-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: #0f172a;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .gate-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%; max-width: 360px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    }
+    .gate-logo {
+      width: 52px; height: 52px;
+      background: var(--yellow);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin: 0 auto 16px;
+    }
+    .gate-title  { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .gate-sub    { font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 26px; }
+    .gate-label  { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; text-align: left; margin-bottom: 7px; }
+    .gate-input  {
+      width: 100%; background: #0f172a; border: 1.5px solid #334155;
+      border-radius: 10px; color: #fff; font-family: var(--font);
+      font-size: 16px; padding: 13px 16px; outline: none;
+      letter-spacing: 3px; text-align: center; margin-bottom: 14px;
+      transition: border-color 0.15s;
+    }
+    .gate-input:focus { border-color: var(--blue); }
+    .gate-input::placeholder { letter-spacing: 0; color: #475569; font-size: 14px; }
+    .gate-btn {
+      width: 100%; background: var(--blue); color: #fff;
+      font-family: var(--font); font-size: 15px; font-weight: 700;
+      border: none; border-radius: 10px; padding: 14px;
+      cursor: pointer; transition: opacity 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .gate-btn:hover { opacity: 0.9; }
+    .gate-err {
+      font-size: 13px; font-weight: 600; color: var(--red);
+      background: #fee2e2; border-radius: 8px; padding: 9px 12px;
+      margin-top: 10px; display: none;
+    }
+    .gate-hint {
+      font-size: 11px; color: #475569; margin-top: 16px;
+      line-height: 1.6;
+    }
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Bootstrap 5 (local) -->
-  <link rel="stylesheet" href="lib/bootstrap.min.css">
-
-  <!-- Admin Styles -->
-  <link rel="stylesheet" href="css/admin.css">
+    /* ── APP SHELL ─────────────────────────────────── */
+    .admin-app {
+      display: none; /* shown after login */
+    }
+    .admin-app.visible {
+      display: flex;
+      min-height: 100svh;
+    }
+  </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="lw" id="lw">
-  <div class="lb">
-    <span class="lb-h">🌯 ROLL HUB</span>
-    <span class="lb-sh">Admin Panel — Owner Only</span>
-    <label style="display:block;font-size:.68rem;color:var(--m);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.28rem;">Password</label>
-    <input type="password" id="l-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    <div class="lb-err" id="l-err"></div>
-    <button class="lb-btn" onclick="doLogin()">🔐 Login</button>
-  </div>
-</div>
+<!-- ══ LOGIN GATE ══════════════════════════════════════════ -->
+<div class="gate-overlay" id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">🌯</div>
+    <div class="gate-title">Admin Panel</div>
+    <div class="gate-sub">Kathi Roll Hub — Owner Access</div>
 
-<!-- ⚡ COUNTER MODE OVERLAY -->
-<div class="counter-overlay hidden" id="counter-overlay">
-  <div class="ct-head">
-    <input class="ct-search" id="ct-phone" type="tel" maxlength="10" inputmode="numeric"
-      placeholder="📱 Phone number..." oninput="ctSearch()" autocomplete="off">
-    <div class="ct-pts-badge" id="ct-pts-badge">
-      <span id="ct-pts-val">—</span>
-      <small>Points</small>
-    </div>
-    <button class="ct-close" onclick="closeCounter()">✕ Close</button>
-  </div>
-
-  <div class="ct-body">
-    <!-- Customer card -->
-    <div class="ct-cust" id="ct-cust">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div class="ct-cust-nm" id="ct-cust-nm">—</div>
-          <div class="ct-cust-sub" id="ct-cust-sub">—</div>
-        </div>
-        <div id="ct-cust-tier" style="font-size:.75rem;color:var(--y);"></div>
-      </div>
-      <!-- Active offers for this customer -->
-      <div id="ct-active-offers" style="margin-top:.5rem;"></div>
-    </div>
-
-    <!-- Menu grid -->
-    <div class="ct-menu" id="ct-menu-grid">
-      <div style="grid-column:1/-1;text-align:center;color:var(--m);padding:1rem;">Menu load ho raha hai...</div>
-    </div>
-
-    <!-- Bill items -->
-    <div class="ct-bill">
-      <div class="ct-bill-title">Bill Items</div>
-      <div id="ct-items-list"><div style="font-size:.78rem;color:var(--m);">Koi item nahi — upar se select karo</div></div>
-    </div>
-
-    <!-- Offer code input -->
-    <div style="display:flex;gap:.5rem;margin-bottom:.5rem;">
-      <input class="fi" id="ct-code-inp" placeholder="Offer code enter karo..." style="flex:1;font-size:.82rem;">
-      <button class="btn btn-gh" onclick="applyCtCode()" style="padding:.55rem .8rem;font-size:.75rem;">Apply</button>
-    </div>
-    <div id="ct-code-result" style="font-size:.73rem;min-height:16px;margin-bottom:.5rem;"></div>
-
-    <!-- Redeem points -->
-    <div class="ct-redeem">
-      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
-        <input type="checkbox" id="ct-rdm-chk" style="accent-color:var(--y);cursor:pointer;width:15px;height:15px;" onchange="ctCalc()">
-        <label for="ct-rdm-chk" style="font-size:.76rem;cursor:pointer;">Points use karo <span id="ct-avail-pts" style="color:var(--y);">(0 pts)</span></label>
-      </div>
-      <div id="ct-rdm-row" style="display:none;gap:.4rem;align-items:center;">
-        <input class="fi" id="ct-rdm-pts" type="number" placeholder="Kitne pts?" style="flex:1;font-size:.82rem;" oninput="ctCalc()">
-        <span style="font-size:.73rem;color:var(--m);">= ₹<span id="ct-rdm-val">0</span></span>
-      </div>
-    </div>
-
-    <!-- Payment mode -->
-    <div class="fg" style="margin-bottom:.65rem;">
-      <label>Payment Mode</label>
-      <select class="fs" id="ct-pay-mode" style="font-size:.84rem;">
-        <option value="Cash">💵 Cash</option>
-        <option value="UPI">📱 UPI / GPay / PhonePe</option>
-        <option value="Card">💳 Card</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="ct-bottom">
-    <div class="ct-total-row">
-      <div>
-        <div class="ct-total-main">₹<span id="ct-total">0</span></div>
-        <div class="ct-breakdown" id="ct-breakdown">—</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:.68rem;color:var(--m);">Points earn:</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:1.1rem;color:#66bb6a;">+<span id="ct-earn-pts">0</span></div>
-      </div>
-    </div>
-    <div class="ct-action-btns">
-      <button class="ct-done-btn" id="ct-done-btn" onclick="ctFinalize()">✅ BILL DONE</button>
-      <button class="ct-wa-btn" onclick="ctWhatsApp()">💬 Receipt</button>
-    </div>
-    <button class="ct-clear-btn" onclick="ctClearItems()">🗑️ Items Clear</button>
-  </div>
-</div>
-
-<!-- 🔧 BILL CORRECTION MODAL -->
-<div class="corr-modal hidden" id="corr-modal">
-  <div class="corr-box">
-    <h2>🔧 Bill Correct Karo</h2>
-    <div id="corr-bill-info" style="background:rgba(255,255,255,.04);border-radius:8px;padding:.7rem;margin-bottom:.8rem;font-size:.76rem;color:var(--m);line-height:1.7;"></div>
-    <div class="fg">
-      <label>Galti kya thi?</label>
-      <select class="fs" id="corr-reason">
-        <option>Galat item add ho gaya tha</option>
-        <option>Galat amount tha</option>
-        <option>Customer ne cancel kiya</option>
-        <option>Double entry ho gayi</option>
-        <option>Points galat mile/gaye</option>
-      </select>
-    </div>
-    <div class="fg2">
-      <div class="fg">
-        <label>Points Adjust (+/-)</label>
-        <input class="fi" id="corr-pts" type="number" placeholder="-10 ya +10">
-      </div>
-      <div class="fg">
-        <label>Amount Adjust ₹ (+/-)</label>
-        <input class="fi" id="corr-amt" type="number" placeholder="-50 ya +50">
-      </div>
-    </div>
-    <div style="font-size:.72rem;color:var(--m);margin-bottom:.8rem;">
-      ⚠️ Points aur amount directly adjust honge — customer ko bhi dikhega transaction history mein.
-    </div>
-    <div style="display:flex;gap:.6rem;">
-      <button class="btn btn-y" onclick="applyCorrection()" style="flex:1;padding:.72rem;">✅ Apply</button>
-      <button class="btn btn-gh" onclick="closeCorr()" style="padding:.72rem .9rem;">Cancel</button>
+    <label class="gate-label" for="gate-pass">Password</label>
+    <input
+      class="gate-input" type="password" id="gate-pass"
+      placeholder="Enter password"
+      onkeydown="if(event.key==='Enter') doLogin()"
+      autocomplete="current-password"
+    />
+    <button class="gate-btn" onclick="doLogin()">
+      🔐 Login Karein
+    </button>
+    <div class="gate-err" id="gate-err">❌ Wrong password. Try again.</div>
+    <div class="gate-hint">
+      Default password: <strong style="color:#94a3b8">admin123</strong><br/>
+      Settings se change kar sakte ho.
     </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app">
-  <div class="topbar">
-    <div>
-      <div class="tb-title">🌯 ROLL HUB ADMIN</div>
-      <div class="tb-sub">Murlipura, Jaipur · <span id="tb-date"></span></div>
-    </div>
-    <div class="tb-r">
-      <button class="counter-topbtn" onclick="openCounter()">⚡ Counter</button>
-      <div class="live-dot"></div>
-      <button class="lo-btn" onclick="doLogout()">Logout</button>
-    </div>
-  </div>
+<!-- ══ MAIN APP SHELL ══════════════════════════════════════ -->
+<div class="admin-app" id="app">
 
-  <div class="tabs">
-    <button class="tab active" onclick="sw('dash',this)">📊 Dashboard</button>
-    <button class="tab" onclick="sw('pts',this)">⭐ Points</button>
-    <button class="tab" onclick="sw('menu',this)">🌯 Menu</button>
-    <button class="tab" onclick="sw('rwds',this)">🎁 Rewards</button>
-    <button class="tab" onclick="sw('custs',this)">👥 Customers</button>
-    <button class="tab" onclick="sw('alerts',this)">🚨 Alerts</button>
-    <button class="tab" onclick="sw('help',this)">💬 Help</button>
-    <button class="tab" onclick="sw('refs',this)">🔗 Referrals</button>
-    <button class="tab" onclick="sw('posts',this)">📱 Posts</button>
-    <button class="tab" onclick="sw('bills',this)">🧾 Bills</button>
-    <button class="tab" onclick="sw('inv',this)">📦 Stock</button>
-    <button class="tab" onclick="sw('exp',this)">📥 Export</button>
-    <button class="tab" onclick="sw('cfg',this)">⚙️ Settings</button>
-  </div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
 
-  <!-- DASHBOARD -->
-  <div class="tc active" id="tc-dash">
-    <div id="pw-dash"></div>
-    <div class="bday-ban" id="bday-ban"><h3>🎂 Aaj ke Birthday Members!</h3><div id="bday-list"></div></div>
-    <div class="bday-ban" id="anni-ban" style="border-color:rgba(179,136,255,.3);background:rgba(106,27,154,.08);"><h3>💑 Aaj ke Anniversary Members!</h3><div id="anni-list"></div></div>
-    <div class="sg sg-4">
-      <div class="sc"><div class="sv" id="st-tot">—</div><div class="sl">Members</div></div>
-      <div class="sc"><div class="sv" id="st-td">—</div><div class="sl">Aaj Joined</div></div>
-      <div class="sc"><div class="sv" id="st-pts">—</div><div class="sl">Total Pts</div></div>
-      <div class="sc"><div class="sv" id="st-refs">—</div><div class="sl">Referrals</div></div>
-    </div>
-    <div class="sg sg-3">
-      <div class="sc"><div class="sv" id="st-ia" style="color:#ef5350;">—</div><div class="sl">Inactive 15d+</div></div>
-      <div class="sc"><div class="sv" id="st-gold" style="color:#FFD54F;">—</div><div class="sl">Gold</div></div>
-      <div class="sc"><div class="sv" id="st-vip" style="color:#90CAF9;">—</div><div class="sl">VIP</div></div>
-    </div>
-    <div class="card">
-      <h2>🏆 Top Members</h2>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem;">
-        <button class="btn btn-gh" style="padding:.25rem .55rem;font-size:.7rem;" onclick="topBy('pts')">⭐ Points</button>
-        <button class="btn btn-gh" style="padding:.25rem .55rem;font-size:.7rem;" onclick="topBy('vis')">🔥 Visits</button>
-        <button class="btn btn-gh" style="padding:.25rem .55rem;font-size:.7rem;" onclick="topBy('spd')">💰 Spend</button>
+    <!-- Brand -->
+    <div class="sb-brand">
+      <div class="sb-brand-icon">🌯</div>
+      <div class="sb-brand-text">
+        <div class="sb-brand-name">KATHI ROLL HUB</div>
+        <div class="sb-brand-sub" id="sb-location">Murlipura, Jaipur</div>
       </div>
-      <div id="top-list" style="color:var(--m);font-size:.82rem;">Loading...</div>
     </div>
-    <div class="card">
-      <h2>📅 Upcoming 7 Days</h2>
-      <div id="upcoming" style="color:var(--m);font-size:.82rem;">Loading...</div>
-    </div>
-  </div>
 
-  <!-- POINTS -->
-  <div class="tc" id="tc-pts">
-    <div class="card">
-      <h2>🔍 Customer Dhundho</h2>
-      <input class="fi" id="srch" placeholder="Phone ya Member ID (RKH...)" oninput="srchCust()" style="margin-bottom:.6rem;">
-      <div class="cr" id="cr">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
-          <div style="flex:1">
-            <div class="cr-nm" id="cr-nm">—</div>
-            <div class="cr-meta" id="cr-meta">—</div>
-            <div id="cr-tier" style="margin-top:.3rem;"></div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;margin-left:.6rem;">
-            <div class="cr-pts" id="cr-pts">0</div>
-            <div style="font-size:.65rem;color:var(--m);">Points</div>
-          </div>
+    <!-- Navigation -->
+    <nav class="sb-nav">
+
+      <div class="sb-section-title">Main</div>
+
+      <button class="nav-item active" id="nav-dashboard"
+        onclick="loadPage('dashboard','📊 Dashboard')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+
+      <button class="nav-item" id="nav-billing"
+        onclick="loadPage('billing','🧾 Bills / Counter')">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label">Bills / Counter</span>
+      </button>
+
+      <div class="sb-section-title" style="margin-top:6px">Inventory</div>
+
+      <button class="nav-item" id="nav-menu"
+        onclick="loadPage('menu','🌯 Menu')">
+        <span class="nav-icon">🌯</span>
+        <span class="nav-label">Menu</span>
+      </button>
+
+      <button class="nav-item" id="nav-stock"
+        onclick="loadPage('stock','📦 Stock')">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">Stock</span>
+      </button>
+
+      <div class="sb-section-title" style="margin-top:6px">Customers</div>
+
+      <button class="nav-item" id="nav-customers"
+        onclick="loadPage('customers','👥 Customers')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Customers</span>
+      </button>
+
+      <button class="nav-item" id="nav-points"
+        onclick="loadPage('points','⭐ Points')">
+        <span class="nav-icon">⭐</span>
+        <span class="nav-label">Points</span>
+        <span class="nav-badge" id="badge-points" style="display:none">0</span>
+      </button>
+
+      <button class="nav-item" id="nav-referrals"
+        onclick="loadPage('referrals','🔗 Referrals')">
+        <span class="nav-icon">🔗</span>
+        <span class="nav-label">Referrals</span>
+      </button>
+
+      <div class="sb-section-title" style="margin-top:6px">Marketing</div>
+
+      <button class="nav-item" id="nav-rewards"
+        onclick="loadPage('rewards','🎁 Rewards / Offers')">
+        <span class="nav-icon">🎁</span>
+        <span class="nav-label">Rewards / Offers</span>
+      </button>
+
+      <button class="nav-item" id="nav-alerts"
+        onclick="loadPage('alerts','🚨 Alerts')">
+        <span class="nav-icon">🚨</span>
+        <span class="nav-label">Alerts</span>
+        <span class="nav-badge" id="badge-alerts" style="display:none">0</span>
+      </button>
+
+      <button class="nav-item" id="nav-feedback"
+        onclick="loadPage('feedback','💬 Help / Feedback')">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Help / Feedback</span>
+        <span class="nav-badge" id="badge-feedback" style="display:none">0</span>
+      </button>
+
+      <div class="sb-section-title" style="margin-top:6px">System</div>
+
+      <button class="nav-item" id="nav-export"
+        onclick="loadPage('export','📥 Export')">
+        <span class="nav-icon">📥</span>
+        <span class="nav-label">Export</span>
+      </button>
+
+      <button class="nav-item" id="nav-settings"
+        onclick="loadPage('settings','⚙️ Settings')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </button>
+
+    </nav>
+
+    <!-- User footer -->
+    <div class="sb-user">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Admin</div>
+        <div class="sb-user-role" id="sb-role">Shop Owner</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── MAIN WRAPPER ── -->
+  <div class="main-wrapper" id="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <!-- Hamburger (mobile) -->
+        <button class="btn-hamburger" onclick="toggleMobileSidebar()">☰</button>
+        <!-- Collapse (desktop) -->
+        <button class="btn-toggle-sb" onclick="toggleSidebar()" title="Toggle sidebar">⬅</button>
+        <span class="topbar-title" id="topbar-title">📊 Dashboard</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="tb-shop-tag" id="tb-date"></span>
+        <div class="live-dot" title="Live"></div>
+        <button class="btn-counter-top" onclick="openCounter()">⚡ Counter</button>
+        <button class="btn-logout-top"  onclick="doLogout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Content iframe -->
+    <div class="content-area">
+      <iframe
+        class="content-frame"
+        id="content-frame"
+        src="pages/dashboard.html"
+        title="Admin Content"
+      ></iframe>
+    </div>
+
+  </div><!-- /main-wrapper -->
+
+</div><!-- /admin-app -->
+
+<!-- ══ COUNTER MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="counter-modal" onclick="if(event.target===this)closeCounter()">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚡ Counter — Fast Bill</div>
+
+    <!-- Mobile search -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="inp" type="tel" id="ct-mob" maxlength="10"
+        placeholder="Customer mobile number..." inputmode="numeric"
+        onkeydown="if(event.key==='Enter')ctLookup()"/>
+      <button class="btn btn-yellow" onclick="ctLookup()" style="white-space:nowrap">
+        🔍 Find
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div id="ct-result" style="display:none">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:700;color:var(--txt)" id="ct-name"></div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:3px" id="ct-sub"></div>
+      </div>
+
+      <div id="ct-offers" style="margin-bottom:12px"></div>
+
+      <div class="row2" style="margin-bottom:12px">
+        <div class="field">
+          <label class="lbl">Bill Amount ₹</label>
+          <input class="inp" type="number" id="ct-amt" placeholder="0" oninput="ctCalc()"/>
         </div>
-        <div id="cr-last" style="background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .7rem;margin-bottom:.5rem;font-size:.73rem;color:var(--m);"></div>
-        <!-- Active offers on customer -->
-        <div id="cr-offers" style="margin-bottom:.6rem;"></div>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
-          <button class="btn btn-y" onclick="openSub('add')">⭐ Add Pts</button>
-          <button class="btn btn-gh" onclick="openSub('red')">🎁 Redeem</button>
-          <button class="btn btn-gh" onclick="openSub('bon')">🎯 Bonus</button>
-          <button class="btn btn-gh" style="color:#FFA726;" onclick="openSub('off')">💌 Offer</button>
-          <button class="btn btn-gh" style="color:#66bb6a;" onclick="verifyPh()">✅ Verify</button>
-          <button class="btn btn-gh" style="color:#ef5350;margin-left:auto;" onclick="hideCR()">✕</button>
+        <div class="field">
+          <label class="lbl">Final Amount ₹</label>
+          <input class="inp" type="number" id="ct-final" placeholder="0" readonly style="opacity:.7"/>
         </div>
       </div>
-    </div>
-    <div class="card" id="sub-add" style="display:none;">
-      <div id="unver-warn" style="display:none;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.25);border-radius:8px;padding:.6rem .8rem;margin-bottom:.7rem;font-size:.73rem;color:#ef5350;">⚠️ Phone unverified! Add karne se pehle verify karo.</div>
-      <h2>⭐ Points Add</h2>
-      <div class="fg2">
-        <div class="fg"><label>Amount (₹)</label><input class="fi" id="p-amt" type="number" placeholder="150" oninput="calcPts()"></div>
-        <div class="fg"><label>Points (auto)</label><input class="fi" id="p-pts" type="number" placeholder="—"></div>
-      </div>
-      <div class="fg"><label>Note</label><input class="fi" id="p-note" placeholder="Paneer Roll 2x..."></div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;background:rgba(255,214,0,.06);border:1px solid var(--b);border-radius:8px;padding:.5rem .8rem;">
-        <input type="checkbox" id="p-vis" checked style="accent-color:var(--y);cursor:pointer;width:14px;height:14px;">
-        <label for="p-vis" style="font-size:.77rem;cursor:pointer;">Visit count karein</label>
-      </div>
-      <button class="btn btn-y btn-full" onclick="addPts()" style="padding:.72rem;">✅ Points Add Karein</button>
-    </div>
-    <div class="card" id="sub-red" style="display:none;">
-      <h2>🎁 Redeem</h2>
-      <input class="fi" id="r-pts" type="number" placeholder="100 pts" style="margin-bottom:.5rem;" oninput="showRV()">
-      <div id="rv" style="font-size:.8rem;color:var(--y);margin-bottom:.7rem;font-weight:600;"></div>
-      <button class="btn btn-g btn-full" onclick="redeemPts()" style="padding:.72rem;">🎁 Redeem</button>
-    </div>
-    <div class="card" id="sub-bon" style="display:none;">
-      <h2>🎯 Bonus Points</h2>
-      <div class="fg2">
-        <div class="fg"><label>Points</label><input class="fi" id="b-pts" type="number" placeholder="50"></div>
-        <div class="fg"><label>Reason</label>
-          <select class="fs" id="b-rsn">
-            <option>Birthday reward diya</option>
-            <option>Milestone reward diya</option>
-            <option>Google review verified</option>
-            <option>Instagram follow</option>
-            <option>Zomato follow</option>
-            <option>Complaint resolved</option>
-            <option>Festival special</option>
-          </select>
+
+      <div class="field" style="margin-bottom:12px">
+        <label class="lbl">Payment</label>
+        <div class="pay-btns">
+          <button class="pay-btn on" onclick="ctSelPay(this,'cash')">💵 Cash</button>
+          <button class="pay-btn"    onclick="ctSelPay(this,'upi')">📲 UPI</button>
+          <button class="pay-btn"    onclick="ctSelPay(this,'card')">💳 Card</button>
         </div>
       </div>
-      <button class="btn btn-gh btn-full" onclick="addBonus()" style="padding:.72rem;">🎯 Add Bonus</button>
-    </div>
-    <div class="card" id="sub-off" style="display:none;">
-      <h2>💌 Personal Offer</h2>
-      <p class="hint">Yeh offer customer ki app pe bhi dikhega (15+ din inactive ho to). Use karne ke baad automatically hata diya jaayega!</p>
-      <div class="fg"><label>Offer Message</label><input class="fi" id="po-msg" placeholder="Aaj aao — 20% off sirf aapke liye!"></div>
-      <div class="fg2">
-        <div class="fg"><label>Discount %</label><input class="fi" id="po-disc" type="number" placeholder="20"></div>
-        <div class="fg"><label>Valid Days</label><input class="fi" id="po-days" type="number" placeholder="3" value="3"></div>
+
+      <div style="background:var(--yellow);border-radius:var(--r-md);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:700;color:#000">Discount: ₹<span id="ct-disc">0</span></span>
+        <span style="font-size:22px;font-weight:800;color:#000">₹<span id="ct-final-show">0</span></span>
       </div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-        <button class="btn btn-y" onclick="sendPOffer()">📤 WhatsApp Bhejo</button>
-        <button class="btn btn-g" onclick="savePOfferDb()">💾 App mein Save</button>
-      </div>
+
+      <button class="btn btn-success btn-full" onclick="ctConfirm()" style="margin-bottom:8px">
+        ✅ Confirm Bill + Mark Visit
+      </button>
+      <button class="btn btn-ghost btn-full" onclick="ctReceipt()" style="color:var(--green);border-color:var(--green)">
+        📲 WhatsApp Receipt
+      </button>
     </div>
+
   </div>
+</div>
 
-  <!-- MENU -->
-  <div class="tc" id="tc-menu">
-    <div class="card">
-      <h2>➕ Item Add</h2>
-      <div class="fg3">
-        <div class="fg"><label>Emoji</label><input class="fi" id="mi-e" placeholder="🌯" maxlength="2" style="text-align:center;font-size:1.1rem;"></div>
-        <div class="fg"><label>Naam *</label><input class="fi" id="mi-n" placeholder="Paneer Roll"></div>
-        <div class="fg"><label>Price (₹) *</label><input class="fi" id="mi-p" type="number" placeholder="90" oninput="calcM()"></div>
-      </div>
-      <div class="fg4">
-        <div class="fg"><label>Cost (₹)</label><input class="fi" id="mi-c" type="number" placeholder="40" oninput="calcM()"></div>
-        <div class="fg"><label>Category</label><select class="fs" id="mi-cat"><option>Kathi Roll</option><option>Chaap Roll</option><option>Momos</option><option>Chinese</option><option>Beverage</option><option>Extra</option></select></div>
-        <div class="fg"><label>Offer % (Silver)</label><input class="fi" id="mi-d" type="number" placeholder="0" oninput="calcM()"></div>
-      </div>
-      <div class="fg4">
-        <div class="fg"><label>Gold %</label><input class="fi" id="mi-dg" type="number" placeholder="0"></div>
-        <div class="fg"><label>VIP %</label><input class="fi" id="mi-dv" type="number" placeholder="0"></div>
-        <div class="fg"><label>App pe Show?</label><select class="fs" id="mi-act"><option value="true">✅ Yes</option><option value="false">❌ No</option></select></div>
-      </div>
-      <div id="m-margin" style="font-size:.76rem;color:var(--m);background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .7rem;margin-bottom:.7rem;min-height:22px;"></div>
-      <button class="btn btn-y btn-full" onclick="addItem()" style="padding:.72rem;">🌯 Add</button>
-    </div>
-    <div class="card"><h2>🌯 Current Menu</h2><div id="menu-list"><div style="text-align:center;color:var(--m);padding:1.5rem;">Loading...</div></div></div>
-  </div>
+<script type="module">
+  import { LS } from '../shared/constants.js';
 
-  <!-- REWARDS -->
-  <div class="tc" id="tc-rwds">
-    <div class="card">
-      <h2>🔥 Visit Milestones</h2>
-      <p class="hint">Kisi bhi visit pe reward set karo. Customer ki app pe popup aayega aur counter pe alert milega!</p>
-      <div id="ms-list"></div>
-      <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap;align-items:flex-end;">
-        <div class="fg" style="margin:0;"><label>Visit No.</label><input class="fi" id="ms-v" type="number" placeholder="5" style="width:80px;"></div>
-        <div class="fg" style="margin:0;flex:1;"><label>Reward (App pe dikhega)</label><input class="fi" id="ms-r" placeholder="Free Paneer Roll"></div>
-        <button class="btn btn-y" onclick="addMs()">➕</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2>🎂 Birthday Reward</h2>
-      <p class="hint">Customer ki birthday pe yahi text app pe dikhega.</p>
-      <div class="fg"><label>Reward Text</label><input class="fi" id="bday-txt" placeholder="Free Paneer Roll + 15% off"></div>
-      <div class="fg2">
-        <div class="fg"><label>Discount %</label><input class="fi" id="bday-d" type="number" placeholder="15"></div>
-        <div class="fg"><label>Bonus Pts</label><input class="fi" id="bday-pts-inp" type="number" placeholder="50"></div>
-      </div>
-      <button class="btn btn-y btn-full" onclick="saveBday()" style="padding:.72rem;">💾 Save</button>
-    </div>
-    <div class="card">
-      <h2>👥 Referral Rewards</h2>
-      <div class="fg4">
-        <div class="fg"><label>1st Refer Pts</label><input class="fi" id="ref1" type="number" placeholder="50"></div>
-        <div class="fg"><label>2nd Refer Pts</label><input class="fi" id="ref2" type="number" placeholder="70"></div>
-        <div class="fg"><label>3rd Refer Pts</label><input class="fi" id="ref3" type="number" placeholder="100"></div>
-      </div>
-      <div class="fg2">
-        <div class="fg"><label>Max Refs</label><input class="fi" id="ref-max" type="number" placeholder="3"></div>
-        <div class="fg"><label>3rd Free Item</label><input class="fi" id="ref3-item" placeholder="Aloo Roll (optional)"></div>
-      </div>
-      <button class="btn btn-y btn-full" onclick="saveRefs()" style="padding:.72rem;">💾 Save</button>
-    </div>
-    <div class="card">
-      <h2>⚠️ Profit Warning</h2>
-      <div class="fg2">
-        <div class="fg"><label>Warning % (Yellow)</label><input class="fi" id="w-pct" type="number" placeholder="5"></div>
-        <div class="fg"><label>Critical % (Red)</label><input class="fi" id="c-pct" type="number" placeholder="8"></div>
-      </div>
-      <div id="eff-disc" style="font-size:.78rem;color:var(--m);padding:.6rem;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:.7rem;"></div>
-      <button class="btn btn-y btn-full" onclick="saveWarn()" style="padding:.72rem;">💾 Save</button>
-    </div>
-  </div>
+  // ═══════════════════════════════════════════════════════
+  //  AUTH
+  // ═══════════════════════════════════════════════════════
+  const PASS_KEY = 'krh_admin_pass';
 
-  <!-- CUSTOMERS -->
-  <div class="tc" id="tc-custs">
-    <div class="card">
-      <div class="fr">
-        <input class="fsi" style="flex:1;min-width:120px;" id="f-s" placeholder="🔍 Naam, Phone, ID..." oninput="filtC()">
-        <select class="fsi" id="f-t" onchange="filtC()"><option value="">All</option><option>Silver</option><option>Gold</option><option>VIP Diamond</option></select>
-        <select class="fsi" id="f-so" onchange="filtC()"><option value="rec">Latest</option><option value="pts">Points ↓</option><option value="vis">Visits ↓</option><option value="ia">Inactive First</option></select>
-        <button class="btn btn-gh" style="padding:.45rem .6rem;font-size:.72rem;" onclick="loadC()">🔄</button>
-        <button class="btn btn-gh" style="padding:.45rem .6rem;font-size:.72rem;" onclick="filtUnver()">❌ Unver</button>
-      </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Naam</th><th>Phone</th><th>Points</th><th>Tier</th><th>Visits</th><th>Last</th><th>Action</th></tr></thead>
-          <tbody id="ctbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--m);">Loading...</td></tr></tbody>
-        </table>
-      </div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.65rem;" id="pag"></div>
-      <div style="margin-top:.5rem;font-size:.72rem;color:var(--m);" id="cc"></div>
-    </div>
-  </div>
-
-  <!-- ALERTS -->
-  <div class="tc" id="tc-alerts">
-    <div class="card"><h2>🚨 Smart Alerts</h2><div id="al-list"><div style="color:var(--m);font-size:.82rem;">Loading...</div></div></div>
-    <div class="card"><h2>📊 Segments</h2><div id="seg-sum"></div></div>
-    <div class="card"><h2>📱 Social Tasks</h2><p class="hint">Verify karo → points auto-credit</p><div id="st-list"><div style="color:var(--m);font-size:.82rem;">Loading...</div></div></div>
-  </div>
-
-  <!-- HELP -->
-  <div class="tc" id="tc-help">
-    <div class="card"><h2>💬 Open Requests</h2><div id="help-open"><div style="color:var(--m);font-size:.82rem;">Loading...</div></div></div>
-    <div class="card"><h2>✅ Resolved</h2><div id="help-res"><div style="color:var(--m);font-size:.82rem;">Loading...</div></div></div>
-  </div>
-
-  <!-- REFERRALS -->
-  <div class="tc" id="tc-refs">
-    <div class="card"><h2>⏳ Pending</h2><div id="ref-pend"></div></div>
-    <div class="card"><h2>✅ Verified</h2><div id="ref-done"></div></div>
-  </div>
-
-  <!-- POSTS -->
-  <div class="tc" id="tc-posts"><div id="posts-list"></div></div>
-
-  <!-- BILLS -->
-  <div class="tc" id="tc-bills">
-    <div class="card">
-      <h2>🧾 Bill History + Correction</h2>
-      <p class="hint">Staff ya owner ne galat bill banaya? Yahan correct karo — points automatically adjust honge.</p>
-      <div class="fr">
-        <input class="fsi" id="bill-srch-inp" placeholder="Customer phone ya bill ID..." oninput="srchBills()" style="flex:1;">
-        <button class="btn btn-gh" style="padding:.45rem .65rem;font-size:.73rem;" onclick="loadTodayBills()">🔄 Aaj ke</button>
-      </div>
-      <div id="bills-list"><div style="color:var(--m);font-size:.82rem;">Loading...</div></div>
-    </div>
-  </div>
-
-  <!-- INVENTORY -->
-  <div class="tc" id="tc-inv">
-    <div class="card">
-      <h2>📦 Stock</h2>
-      <div class="sg sg-3">
-        <div class="sc"><div class="sv" id="inv-in" style="color:#66bb6a;">—</div><div class="sl">In Stock</div></div>
-        <div class="sc"><div class="sv" id="inv-lw" style="color:#FFA726;">—</div><div class="sl">Low</div></div>
-        <div class="sc"><div class="sv" id="inv-out" style="color:#ef5350;">—</div><div class="sl">Out</div></div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>📋 Sab Items</h2>
-      <div class="fr">
-        <input class="fsi" id="inv-q" placeholder="Search..." oninput="filtInv()" style="flex:1;">
-        <button class="btn btn-y" onclick="loadInv()" style="padding:.45rem .7rem;font-size:.73rem;">🔄</button>
-      </div>
-      <div id="inv-list"></div>
-    </div>
-  </div>
-
-  <!-- EXPORT -->
-  <div class="tc" id="tc-exp">
-    <div class="card">
-      <h2>📥 Export CSV</h2>
-      <button class="btn btn-y btn-full" onclick="expAll()" style="margin-bottom:.6rem;">📊 All Customers</button>
-      <button class="btn btn-gh btn-full" onclick="expBday()" style="margin-bottom:.6rem;">🎂 Birthday List</button>
-      <button class="btn btn-gh btn-full" onclick="expRefs()" style="margin-bottom:.6rem;">🔗 Referrals</button>
-      <button class="btn btn-gh btn-full" onclick="expIa()">😴 Inactive</button>
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div class="tc" id="tc-cfg">
-    <div class="card">
-      <h2>⚙️ Points Settings</h2>
-      <div class="fg2">
-        <div class="fg"><label>₹ per 1 Point</label><input class="fi" id="s-rate" type="number" placeholder="10" oninput="cfgPreview()"><div style="font-size:.68rem;color:var(--m);margin-top:.2rem;" id="s-hint"></div></div>
-        <div class="fg"><label>Welcome Points</label><input class="fi" id="s-wel" type="number" placeholder="50" oninput="cfgPreview()"></div>
-      </div>
-      <div class="fg2">
-        <div class="fg"><label>100 pts = ₹ Off</label><input class="fi" id="s-rdm" type="number" placeholder="10" oninput="cfgPreview()"></div>
-        <div class="fg"><label>Shop Name</label><input class="fi" id="s-nm" placeholder="The Kathi Roll Hub"></div>
-      </div>
-      <div class="fg2">
-        <div class="fg"><label>Help WA No.</label><input class="fi" id="s-hwa" placeholder="8619721224"></div>
-        <div class="fg"><label>Help Active?</label><select class="fs" id="s-hon"><option value="1">✅ ON</option><option value="0">❌ OFF</option></select></div>
-      </div>
-      <div id="s-prev" style="background:rgba(255,214,0,.06);border:1px solid var(--b);border-radius:9px;padding:.8rem;margin-bottom:.8rem;font-size:.77rem;color:var(--m);line-height:1.8;"></div>
-      <div id="s-eco" style="margin-bottom:.8rem;"></div>
-      <button class="btn btn-y btn-full" onclick="saveCfg()" style="padding:.72rem;">💾 Save — App pe Live Update</button>
-    </div>
-    <div class="card">
-      <h2>🔐 Password Change</h2>
-      <input class="fi" id="new-pw" type="password" placeholder="Naya password..." style="margin-bottom:.7rem;">
-      <button class="btn btn-gh" onclick="chPw()">🔐 Change</button>
-    </div>
-    <div class="card" style="border-color:rgba(239,83,80,.3);">
-      <h2 style="color:#ef5350;">🛡️ Firebase Rules</h2>
-      <p class="hint" style="color:rgba(239,83,80,.7);">Yeh rules set hain to koi browser console se points hack nahi kar sakta!</p>
-      <div style="background:var(--c);border-radius:9px;padding:.8rem;font-size:.68rem;color:var(--m);font-family:monospace;line-height:1.8;white-space:pre-wrap;overflow-x:auto;margin-bottom:.8rem;">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email == 'vishtechsoftwareservices@gmail.com';
-    }
-    match /rollhub_customers/{cId} {
-      allow read, create: if true;
-      allow update, delete: if isAdmin();
-    }
-    match /rollhub_transactions/{tId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /rollhub_config/{cId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /rollhub_socialTasks/{tId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-    match /rollhub_referrals/{rId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-    match /rollhub_help/{hId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-    match /rollhub_bills/{bId} {
-      allow read, write: if isAdmin();
-    }
-    match /rollhub_inventory/{iId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+  function getPass() {
+    return localStorage.getItem(PASS_KEY) || 'admin123';
   }
-}</div>
-      <a href="https://console.firebase.google.com/project/the-kathi-roll-hub/firestore/rules" target="_blank" class="btn btn-r btn-full" style="text-decoration:none;display:block;text-align:center;padding:.72rem;">🔗 Firebase Console mein Set Karo</a>
-    </div>
-  </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  window.doLogin = function() {
+    const v     = document.getElementById('gate-pass').value;
+    const errEl = document.getElementById('gate-err');
+    errEl.style.display = 'none';
 
-  <!-- Bootstrap JS -->
-  <script src="lib/bootstrap.bundle.min.js"></script>
+    if (v === getPass()) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      initApp();
+    } else {
+      errEl.style.display = 'block';
+      document.getElementById('gate-pass').select();
+    }
+  };
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  document.getElementById('gate-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.doLogin();
+  });
 
-  <!-- App Scripts (load in order) -->
-  <script src="js/firebase-config.js"></script>
-  <script src="js/admin-globals.js"></script>
-  <script src="js/admin-auth.js"></script>
-  <script src="js/admin-config-settings.js"></script>
-  <script src="js/admin-dashboard.js"></script>
-  <script src="js/admin-customers.js"></script>
-  <script src="js/admin-menu.js"></script>
-  <script src="js/admin-rewards.js"></script>
-  <script src="js/admin-alerts.js"></script>
-  <script src="js/admin-help.js"></script>
-  <script src="js/admin-referrals.js"></script>
-  <script src="js/admin-billing.js"></script>
-  <script src="js/admin-bills-correction.js"></script>
-  <script src="js/admin-counter-mode.js"></script>
-  <script src="js/admin-inventory.js"></script>
-  <script src="js/admin-posts.js"></script>
-  <script src="js/admin-export.js"></script>
-  <script src="js/admin-correction-modal.js"></script>
+  window.doLogout = function() {
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('gate-pass').value = '';
+  };
 
+  // ═══════════════════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════════════════
+  function initApp() {
+    // Date in topbar
+    document.getElementById('tb-date').textContent =
+      new Date().toLocaleDateString('en-IN',{ weekday:'short', day:'numeric', month:'short' });
+
+    // Shop name from settings
+    const sh = JSON.parse(localStorage.getItem(LS.shop) || '{}');
+    if (sh.loc)  document.getElementById('sb-location').textContent = sh.loc;
+
+    // Badges
+    updateBadges();
+    setInterval(updateBadges, 8000);
+  }
+
+  function updateBadges() {
+    const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+    const fb    = JSON.parse(localStorage.getItem('krh_feedback') || '[]');
+
+    // Points pending
+    let pending = 0;
+    users.forEach(u => {
+      const p = u.socialPending || {}, d = u.socialDone || {};
+      pending += Object.keys(p).filter(k => p[k] && !d[k]).length;
+    });
+    setBadge('badge-points',   pending);
+
+    // Feedback unread
+    setBadge('badge-feedback', fb.length);
+
+    // Alerts (bday + inactive)
+    const today = new Date();
+    const bdays = users.filter(u => {
+      if (!u.dob) return false;
+      const d = new Date(u.dob);
+      const n = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+      if (n < today) n.setFullYear(today.getFullYear() + 1);
+      return Math.ceil((n - today) / 864e5) <= 7;
+    }).length;
+    setBadge('badge-alerts', bdays);
+  }
+
+  function setBadge(id, count) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = count > 0 ? 'block' : 'none';
+    el.textContent   = count;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SIDEBAR
+  // ═══════════════════════════════════════════════════════
+  let sidebarCollapsed = false;
+
+  window.toggleSidebar = function() {
+    sidebarCollapsed = !sidebarCollapsed;
+    document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+    const btn = document.querySelector('.btn-toggle-sb');
+    btn.textContent = sidebarCollapsed ? '➡' : '⬅';
+  };
+
+  window.toggleMobileSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('sb-overlay').classList.toggle('show');
+  };
+
+  window.closeSidebar = function() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sb-overlay').classList.remove('show');
+  };
+
+  // ═══════════════════════════════════════════════════════
+  //  PAGE ROUTING
+  // ═══════════════════════════════════════════════════════
+  window.loadPage = function(name, title) {
+    // Update iframe
+    document.getElementById('content-frame').src = `pages/${name}.html`;
+
+    // Update topbar title
+    document.getElementById('topbar-title').textContent = title || name;
+
+    // Update active nav
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + name);
+    if (navEl) navEl.classList.add('active');
+
+    // Close mobile sidebar
+    closeSidebar();
+  };
+
+  // ═══════════════════════════════════════════════════════
+  //  COUNTER MODAL (quick billing)
+  // ═══════════════════════════════════════════════════════
+  let ctUser = null, ctPay = 'cash', ctDiscPct = 0;
+
+  window.openCounter = function() {
+    document.getElementById('counter-modal').classList.add('open');
+    setTimeout(() => document.getElementById('ct-mob').focus(), 100);
+  };
+
+  window.closeCounter = function() {
+    document.getElementById('counter-modal').classList.remove('open');
+    document.getElementById('ct-mob').value = '';
+    document.getElementById('ct-result').style.display = 'none';
+    document.getElementById('ct-amt').value   = '';
+    document.getElementById('ct-final').value = '';
+    document.getElementById('ct-disc').textContent      = '0';
+    document.getElementById('ct-final-show').textContent= '0';
+    ctUser = null; ctDiscPct = 0; ctPay = 'cash';
+  };
+
+  window.ctLookup = function() {
+    const mob  = document.getElementById('ct-mob').value.trim();
+    if (mob.length !== 10) { alert('10-digit mobile dalein'); return; }
+    const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+    ctUser = users.find(u => u.mobile === mob);
+    if (!ctUser) {
+      document.getElementById('ct-result').style.display = 'none';
+      alert('Customer nahi mila. Pehle register karwao.');
+      return;
+    }
+
+    const s       = JSON.parse(localStorage.getItem(LS.settings) || '{}');
+    const discPct = s.defaultWelcomeDisc || 10;
+    const code    = 'ROLL' + mob.slice(-4).toUpperCase();
+
+    document.getElementById('ct-name').textContent = ctUser.name;
+    document.getElementById('ct-sub').textContent  =
+      `${ctUser.visits||0} visits · ${ctUser.points||0} pts · ${code}`;
+
+    // Offers
+    const offers = [{ id:'welcome', label:`${discPct}% Welcome OFF`, pct: discPct }];
+    const today  = new Date();
+    const dob    = ctUser.dob ? new Date(ctUser.dob) : null;
+    if (dob && dob.getDate()===today.getDate() && dob.getMonth()===today.getMonth()) {
+      offers.push({ id:'bday', label:'🎂 Birthday 15% OFF', pct: 15 });
+    }
+    const vGoal = s.defaultVisitThreshold || 5;
+    if ((ctUser.visits||0) % vGoal === 0 && (ctUser.visits||0) > 0) {
+      offers.push({ id:'visit', label:'🔥 Visit Milestone', pct: 0 });
+    }
+
+    document.getElementById('ct-offers').innerHTML =
+      offers.map(o => `
+        <div class="offer-item" data-pct="${o.pct}" onclick="ctSelOffer(this,${o.pct})"
+          style="background:var(--inp-bg);border:1.5px solid var(--inp-br);border-radius:var(--r-sm);
+          padding:10px 14px;display:flex;justify-content:space-between;
+          cursor:pointer;margin-bottom:7px;transition:border-color .15s">
+          <span style="font-size:13px;font-weight:600;color:var(--txt)">${o.label}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--green)">${o.pct>0 ? o.pct+'% OFF' : '✓'}</span>
+        </div>`).join('');
+
+    document.getElementById('ct-result').style.display = 'block';
+  };
+
+  window.ctSelOffer = function(el, pct) {
+    document.querySelectorAll('.offer-item').forEach(i => {
+      i.style.borderColor = 'var(--inp-br)';
+      i.style.background  = 'var(--inp-bg)';
+    });
+    el.style.borderColor = 'var(--green)';
+    el.style.background  = '#f0fdf4';
+    ctDiscPct = pct;
+    ctCalc();
+  };
+
+  window.ctCalc = function() {
+    const amt  = parseFloat(document.getElementById('ct-amt').value) || 0;
+    const disc = Math.round(amt * ctDiscPct / 100);
+    const final= amt - disc;
+    document.getElementById('ct-final').value        = final;
+    document.getElementById('ct-disc').textContent   = disc;
+    document.getElementById('ct-final-show').textContent = final;
+  };
+
+  window.ctSelPay = function(el, method) {
+    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('on'));
+    el.classList.add('on');
+    ctPay = method;
+  };
+
+  window.ctConfirm = function() {
+    if (!ctUser) return;
+    const amt   = parseFloat(document.getElementById('ct-amt').value)   || 0;
+    const final = parseFloat(document.getElementById('ct-final').value) || amt;
+    const disc  = amt - final;
+
+    const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+    const idx   = users.findIndex(u => u.mobile === ctUser.mobile);
+    if (idx === -1) return;
+
+    users[idx].visits = (users[idx].visits || 0) + 1;
+    users[idx].points = (users[idx].points || 0) + 5;
+    users[idx].saved  = (users[idx].saved  || 0) + disc;
+    localStorage.setItem(LS.users, JSON.stringify(users));
+
+    const bills = JSON.parse(localStorage.getItem(LS.bills) || '[]');
+    bills.unshift({
+      mobile: ctUser.mobile, name: ctUser.name,
+      amt, final, discount: disc,
+      offer: ctDiscPct > 0 ? 'welcome' : 'none',
+      payment: ctPay, time: new Date().toISOString()
+    });
+    localStorage.setItem(LS.bills, JSON.stringify(bills));
+
+    const s    = JSON.parse(localStorage.getItem(LS.settings) || '{}');
+    const goal = s.defaultVisitThreshold || 5;
+    const v    = users[idx].visits;
+    const rew  = s.defaultVisitReward || 'FREE item';
+    alert(v % goal === 0
+      ? `🎉 Visit ${v} — ${users[idx].name} ko ${rew} milega!`
+      : `✅ Bill done! Visit #${v} · +5 pts`
+    );
+
+    closeCounter();
+    // Refresh current page if billing page is open
+    const frame = document.getElementById('content-frame');
+    if (frame.src.includes('billing') || frame.src.includes('dashboard')) {
+      frame.contentWindow?.location.reload();
+    }
+    updateBadges();
+  };
+
+  window.ctReceipt = function() {
+    if (!ctUser) return;
+    const amt   = parseFloat(document.getElementById('ct-amt').value)   || 0;
+    const final = parseFloat(document.getElementById('ct-final').value) || amt;
+    const disc  = amt - final;
+    const sh    = JSON.parse(localStorage.getItem(LS.shop) || '{}');
+    const msg   = encodeURIComponent(
+      `🧾 *${sh.name || 'Kathi Roll Hub'} — Bill Receipt*\n` +
+      `────────────────\n` +
+      `👤 ${ctUser.name}\n📱 ${ctUser.mobile}\n` +
+      `────────────────\n` +
+      `💰 Amount: ₹${amt}\n${disc>0?`🎁 Discount: -₹${disc}\n`:''}` +
+      `✅ *Final: ₹${final}*\n💳 ${ctPay.toUpperCase()}\n` +
+      `────────────────\n` +
+      `⭐ Points: ${(ctUser.points||0)+5}\n` +
+      `Dhanyawaad! Dobara aana 🙏`
+    );
+    window.open(`https://wa.me/${ctUser.mobile}?text=${msg}`, '_blank');
+  };
+</script>
 </body>
 </html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <style>
+    body { background: var(--bg); padding: 0; margin: 0; }
+    .page { padding: 24px 20px 80px; max-width: 960px; }
+
+    .search-bar {
+      display: flex; gap: 10px; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 12px 16px;
+      margin-bottom: 16px; box-shadow: var(--shadow-sm); flex-wrap: wrap;
+    }
+    .search-icon { font-size: 18px; color: var(--txt3); flex-shrink: 0; }
+    .search-input {
+      flex: 1; min-width: 160px; background: none; border: none; outline: none;
+      font-family: var(--font); font-size: 15px; color: var(--txt); font-weight: 500;
+    }
+    .search-input::placeholder { color: var(--txt3); font-weight: 400; }
+    .filter-select {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); color: var(--txt);
+      font-family: var(--font); font-size: 13px; font-weight: 600;
+      padding: 7px 12px; outline: none; cursor: pointer;
+    }
+    .cust-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+    @media(max-width:640px){ .cust-stats { grid-template-columns: repeat(2,1fr); } }
+    .tbl-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .tbl-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .tbl-title { font-size: 15px; font-weight: 700; color: var(--txt); }
+    .tbl-count { font-size: 13px; color: var(--txt2); font-weight: 500; }
+    .tr-fraud td { background: #fff5f5; }
+    .cust-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+    .action-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-bg.open { display: flex; }
+    .modal-card { background: var(--card); border-radius: var(--r-xl); padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: pop-modal .2s ease; }
+    @keyframes pop-modal { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+    .modal-title { font-size: 17px; font-weight: 800; color: var(--txt); margin-bottom: 6px; }
+    .modal-sub   { font-size: 13px; color: var(--txt2); margin-bottom: 20px; }
+    .modal-btns  { display: flex; gap: 10px; margin-top: 16px; }
+    .coupon-result { border-radius: var(--r-md); padding: 14px; margin-top: 12px; display: none; }
+    .coupon-result.valid   { background: #f0fdf4; border: 1.5px solid var(--green); }
+    .coupon-result.invalid { background: #fff5f5; border: 1.5px solid var(--red); }
+    .cr-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .cr-sub   { font-size: 12.5px; font-weight: 500; }
+    .streak-mini { display: flex; gap: 4px; align-items: center; }
+    .sdot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; }
+    .sdot.done { background: #ca8a04; }
+    .sdot.goal { background: var(--green); }
+    @media(max-width:600px){ .hide-sm { display:none; } }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--txt); color: var(--card); font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 99px; z-index: 999; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="cust-stats" id="cust-stats"></div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="search-inp" placeholder="Name ya mobile number se search karo..." oninput="filterCustomers()"/>
+    <select class="filter-select" id="filter-sel" onchange="filterCustomers()">
+      <option value="">Sab Customers</option>
+      <option value="active">✅ Active (7 din)</option>
+      <option value="inactive">😴 Inactive (30+)</option>
+      <option value="bday">🎂 Birthday this week</option>
+      <option value="highpts">⭐ High Points (200+)</option>
+      <option value="fraud">⚠️ Flagged</option>
+      <option value="newjoin">🆕 New (7 din)</option>
+    </select>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-header">
+      <div><div class="tbl-title">👥 Customer List</div><div class="tbl-count" id="result-count">Loading...</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCustomers()">📥 Export CSV</button>
+    </div>
+    <div class="tbl-wrap">
+      <table id="cust-table">
+        <thead><tr>
+          <th>Customer</th><th>Mobile</th>
+          <th class="hide-sm">Visits / Streak</th>
+          <th>Points</th>
+          <th class="hide-sm">Saved</th>
+          <th class="hide-sm">Joined</th>
+          <th>Actions</th>
+        </tr></thead>
+        <tbody id="cust-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- POINTS MODAL -->
+<div class="modal-bg" id="pts-modal" onclick="if(event.target===this)closePtsModal()">
+  <div class="modal-card">
+    <div class="modal-title">⭐ Points Adjust Karo</div>
+    <div class="modal-sub" id="pts-modal-sub"></div>
+    <div class="field"><label class="lbl">Points (+ ya -)</label><input class="inp" type="number" id="pts-amount" placeholder="+50 ya -20"/></div>
+    <div class="field"><label class="lbl">Reason</label><input class="inp" type="text" id="pts-reason" placeholder="Birthday bonus..."/></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="flex:1" onclick="closePtsModal()">Cancel</button>
+      <button class="btn btn-yellow" style="flex:2" onclick="confirmPts()">⭐ Apply</button>
+    </div>
+    <div class="msg-ok" id="pts-ok"></div>
+    <div class="msg-err" id="pts-err"></div>
+  </div>
+</div>
+
+<!-- COUPON MODAL -->
+<div class="modal-bg" id="coupon-modal" onclick="if(event.target===this)closeCouponModal()">
+  <div class="modal-card">
+    <div class="modal-title">🎁 Coupon Verify Karo</div>
+    <div class="modal-sub" id="coupon-modal-sub"></div>
+    <div class="field">
+      <label class="lbl">Coupon Code</label>
+      <input class="inp" type="text" id="coupon-code-inp" placeholder="e.g. ROLL4521" style="text-transform:uppercase;letter-spacing:2px;font-size:16px" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')verifyCouponModal()"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="verifyCouponModal()">🔍 Verify Karo</button>
+    <div class="coupon-result" id="coupon-result">
+      <div class="cr-title" id="coupon-result-title"></div>
+      <div class="cr-sub"   id="coupon-result-sub"></div>
+    </div>
+    <div class="modal-btns" id="coupon-mark-btns" style="display:none">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeCouponModal()">Close</button>
+      <button class="btn btn-success" style="flex:2" onclick="markCouponUsedModal()">✅ Mark as Used</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { getAllUsers, addVisit, adjustPoints, toggleFraud, validateCoupon, markCouponUsed, fmtDate, daysSince, genCode, exportCSV } from '../js/admin.js';
+  import { DEFAULTS } from '../../shared/constants.js';
+
+  let allUsers=[], filtered=[], activeMob=null, couponData=null;
+
+  async function init() {
+    allUsers = await getAllUsers();
+    filtered = [...allUsers];
+    renderStats(); renderTable();
+    setInterval(async () => {
+      const f = await getAllUsers();
+      if (JSON.stringify(f) !== JSON.stringify(allUsers)) { allUsers=f; filterCustomers(); renderStats(); }
+    }, 4000);
+  }
+
+  function renderStats() {
+    const t=new Date(), bills=JSON.parse(localStorage.getItem('krh_bills')||'[]');
+    const act=allUsers.filter(u=>{const lb=bills.filter(b=>b.mobile===u.mobile)[0];return lb&&daysSince(lb.time)<=7;}).length;
+    const nw=allUsers.filter(u=>daysSince(u.joined)<=7).length;
+    const bdt=allUsers.filter(u=>{if(!u.dob)return false;const d=new Date(u.dob);return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth();}).length;
+    document.getElementById('cust-stats').innerHTML=`
+      <div class="stat-card"><span class="sc-icon">👥</span><div class="sc-val">${allUsers.length}</div><div class="sc-lbl">Total Members</div></div>
+      <div class="stat-card"><span class="sc-icon">✅</span><div class="sc-val g">${act}</div><div class="sc-lbl">Active (7 din)</div></div>
+      <div class="stat-card"><span class="sc-icon">🆕</span><div class="sc-val b">${nw}</div><div class="sc-lbl">New This Week</div></div>
+      <div class="stat-card"><span class="sc-icon">🎂</span><div class="sc-val y">${bdt}</div><div class="sc-lbl">Birthday Today</div></div>`;
+  }
+
+  window.filterCustomers = function() {
+    const q=( document.getElementById('search-inp').value||''  ).toLowerCase();
+    const f=document.getElementById('filter-sel').value;
+    const t=new Date(), bills=JSON.parse(localStorage.getItem('krh_bills')||'[]');
+    filtered=allUsers.filter(u=>{
+      if(q&&!u.name.toLowerCase().includes(q)&&!u.mobile.includes(q))return false;
+      if(f==='active'){const lb=bills.filter(b=>b.mobile===u.mobile)[0];return lb&&daysSince(lb.time)<=7;}
+      if(f==='inactive'){const lb=bills.filter(b=>b.mobile===u.mobile)[0];return !lb||daysSince(lb.time)>=30;}
+      if(f==='bday'){if(!u.dob)return false;const d=new Date(u.dob);const n=new Date(t.getFullYear(),d.getMonth(),d.getDate());if(n<t)n.setFullYear(t.getFullYear()+1);return Math.ceil((n-t)/864e5)<=7;}
+      if(f==='highpts')return(u.points||0)>=200;
+      if(f==='fraud')return!!u.fraudFlag;
+      if(f==='newjoin')return daysSince(u.joined)<=7;
+      return true;
+    });
+    renderTable();
+  };
+
+  function renderTable() {
+    const tbody=document.getElementById('cust-tbody');
+    document.getElementById('result-count').textContent=`${filtered.length} customers found`;
+    const s=JSON.parse(localStorage.getItem('krh_settings')||'{}'  );
+    if(!filtered.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state" style="text-align:center;padding:48px;color:var(--txt2)"><span style="font-size:36px;display:block;margin-bottom:10px">🔍</span>Koi customer nahi mila</div></td></tr>';return;}
+    tbody.innerHTML=filtered.map(u=>{
+      const goal=s.visitRewards?.[u.mobile]?.threshold||s.defaultVisitThreshold||DEFAULTS.visitGoal;
+      const cycle=(u.visits||0)%goal;
+      const isBday=u.dob&&(()=>{const d=new Date(u.dob),t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth();})();
+      const code=genCode(u.mobile,'welcome');
+      const dotsN=Math.min(goal,10);
+      const dots=Array.from({length:dotsN},(_,i)=>`<div class="sdot${i<cycle?' done':i===dotsN-1?' goal':''  }"></div>`).join('');
+      return `<tr class="${u.fraudFlag?'tr-fraud':''  }">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="cust-avatar">${u.name[0].toUpperCase()}</div>
+          <div><div class="td-name">${isBday?'🎂 ':''  }${u.name}${u.fraudFlag?' <span class="badge badge-red" style="font-size:10px">Flagged</span>':''  }</div>
+          <div class="td-sub" style="font-size:11px">${code}</div></div></div></td>
+        <td style="font-size:13px;color:var(--txt2)">${u.mobile}</td>
+        <td class="hide-sm"><div style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:5px">${u.visits||0} visits</div>
+          <div class="streak-mini">${dots}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:3px">${cycle}/${goal} streak</div></td>
+        <td><span style="font-size:15px;font-weight:800;color:#ca8a04">${u.points||0}</span><div style="font-size:11px;color:var(--txt3)">pts</div></td>
+        <td class="hide-sm" style="font-size:13px;color:var(--green);font-weight:700">₹${u.saved||0}</td>
+        <td class="hide-sm" style="font-size:12px;color:var(--txt3)">${fmtDate(u.joined)}</td>
+        <td><div class="action-group">
+          <button class="btn btn-success btn-sm" onclick="doAddVisit('${u.mobile}','${u.name}')">➕ Visit</button>
+          <button class="btn btn-yellow btn-sm"  onclick="openPtsModal('${u.mobile}','${u.name}')">⭐ Pts</button>
+          <button class="btn btn-ghost btn-sm"   onclick="openCouponModal('${u.mobile}','${u.name}')">🎁 Coupon</button>
+          <button class="btn btn-sm ${u.fraudFlag?'btn-danger':'btn-ghost'}" onclick="doToggleFraud('${u.mobile}')">${u.fraudFlag?'🚩':'⚑'}</button>
+        </div></td></tr>`;
+    }).join('');
+  }
+
+  window.doAddVisit = async function(mob,name) {
+    const r=await addVisit(mob);
+    if(!r.success){showToast('❌ '+r.message);return;}
+    showToast(r.milestone?`🎉 Visit #${r.visits}! ${name} ko ${r.reward} milega!`:`✅ Visit #${r.visits} — ${name} · +5 pts`, r.milestone?4000:2500);
+    allUsers=await getAllUsers(); filterCustomers(); renderStats();
+  };
+
+  window.openPtsModal=function(mob,name){activeMob=mob;document.getElementById('pts-modal-sub').textContent=`${name} (${mob})`;document.getElementById('pts-amount').value='';document.getElementById('pts-reason').value='';document.getElementById('pts-ok').style.display=document.getElementById('pts-err').style.display='none';document.getElementById('pts-modal').classList.add('open');setTimeout(()=>document.getElementById('pts-amount').focus(),100);};
+  window.closePtsModal=function(){document.getElementById('pts-modal').classList.remove('open');activeMob=null;};
+  window.confirmPts=async function(){
+    const amt=parseInt(document.getElementById('pts-amount').value)||0;
+    const rsn=document.getElementById('pts-reason').value.trim()||'Admin adjustment';
+    const ok=document.getElementById('pts-ok'),er=document.getElementById('pts-err');
+    ok.style.display=er.style.display='none';
+    if(!amt){er.textContent='Amount zaroor dalein';er.style.display='block';return;}
+    const r=await adjustPoints(activeMob,amt,rsn);
+    if(r.success){ok.textContent=`✅ ${r.name} — ${amt>0?'+':''  }${amt} pts. New: ${r.newPoints}`;ok.style.display='block';allUsers=await getAllUsers();filterCustomers();setTimeout(closePtsModal,1800);}
+    else{er.textContent='❌ '+(r.message||'Error');er.style.display='block';}
+  };
+
+  window.openCouponModal=function(mob,name){activeMob=mob;couponData=null;document.getElementById('coupon-modal-sub').textContent=`${name} (${mob})`;document.getElementById('coupon-code-inp').value='';document.getElementById('coupon-result').style.display='none';document.getElementById('coupon-mark-btns').style.display='none';document.getElementById('coupon-modal').classList.add('open');setTimeout(()=>document.getElementById('coupon-code-inp').focus(),100);};
+  window.closeCouponModal=function(){document.getElementById('coupon-modal').classList.remove('open');activeMob=couponData=null;};
+  window.verifyCouponModal=async function(){
+    const code=document.getElementById('coupon-code-inp').value.trim();
+    if(!code||!activeMob)return;
+    const r=await validateCoupon(code,activeMob);
+    const resEl=document.getElementById('coupon-result'),tEl=document.getElementById('coupon-result-title'),sEl=document.getElementById('coupon-result-sub'),bEl=document.getElementById('coupon-mark-btns');
+    resEl.style.display='block';bEl.style.display='none';couponData=null;
+    if(r.valid){resEl.className='coupon-result valid';tEl.style.color='var(--green)';tEl.textContent='✅ Valid Coupon!';sEl.textContent=`${r.label} — Mark as used karein`;bEl.style.display='flex';couponData=r;}
+    else{resEl.className='coupon-result invalid';tEl.style.color='var(--red)';tEl.textContent='❌ Invalid';sEl.textContent=r.message;}
+  };
+  window.markCouponUsedModal=async function(){if(!activeMob||!couponData)return;await markCouponUsed(activeMob,couponData.type);showToast(`✅ Coupon marked used!`);closeCouponModal();};
+  window.doToggleFraud=async function(mob){const r=await toggleFraud(mob);showToast(r.flagged?'⚠️ Flagged!':'✅ Unflagged');allUsers=await getAllUsers();filterCustomers();};
+  window.exportCustomers=()=>exportCSV('customers');
+
+  function showToast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+  init();
+</script>
+</body>
+</html>
