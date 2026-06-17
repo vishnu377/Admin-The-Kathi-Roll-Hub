@@ -110,6 +110,25 @@
   <!-- Stat cards -->
   <div class="stat-grid-4" id="stat-grid"></div>
 
+  <!-- QR Scan tracking -->
+  <div class="card" id="qr-card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleQrList()">
+      <div class="card-title" style="margin-bottom:0"><span class="ct-icon">📱</span> QR Code Se Aaye Customers</div>
+      <span id="qr-toggle-arrow" style="font-size:13px;color:var(--txt3);transition:transform .2s">▼</span>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:12px">
+      <div>
+        <div style="font-size:26px;font-weight:800;color:var(--txt)" id="qr-today-count">0</div>
+        <div style="font-size:11px;color:var(--txt3);font-weight:700">Aaj QR Se Aaye</div>
+      </div>
+      <div>
+        <div style="font-size:26px;font-weight:800;color:var(--txt)" id="qr-total-count">0</div>
+        <div style="font-size:11px;color:var(--txt3);font-weight:700">Total QR Se Aaye</div>
+      </div>
+    </div>
+    <div id="qr-list" style="display:none;margin-top:14px"></div>
+  </div>
+
   <!-- Chart + Top customers -->
   <div class="two-col">
     <div class="card">
@@ -174,6 +193,7 @@
 
   function render() {
     renderStats();
+    renderQrStats();
     renderChart();
     renderTop();
     renderActivity();
@@ -218,6 +238,38 @@
         <span class="ic">⭐</span><div class="vl">${(totalP/1000).toFixed(1)}k</div>
         <div class="lb">Total Points</div><div class="sb">Distributed</div></div>`;
   }
+
+  function renderQrStats() {
+    const today = new Date().toDateString();
+    const qrUsers = users.filter(u => u.joinSource === 'qr');
+    const qrToday = qrUsers.filter(u => new Date(u.joined).toDateString() === today);
+
+    document.getElementById('qr-today-count').textContent = qrToday.length;
+    document.getElementById('qr-total-count').textContent = qrUsers.length;
+
+    const listEl = document.getElementById('qr-list');
+    if (!qrUsers.length) {
+      listEl.innerHTML = '<div style="font-size:12.5px;color:var(--txt3);text-align:center;padding:14px">Abhi tak koi QR se nahi aaya</div>';
+      return;
+    }
+    const sorted = [...qrUsers].sort((a,b) => new Date(b.joined) - new Date(a.joined));
+    listEl.innerHTML = sorted.map(u => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--txt)">${u.name}</div>
+          <div style="font-size:11px;color:var(--txt3)">${u.mobile}</div>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);font-weight:600">${fmtDate(u.joined)}</div>
+      </div>`).join('');
+  }
+
+  window.toggleQrList = function() {
+    const listEl  = document.getElementById('qr-list');
+    const arrowEl = document.getElementById('qr-toggle-arrow');
+    const isOpen  = listEl.style.display !== 'none';
+    listEl.style.display = isOpen ? 'none' : 'block';
+    arrowEl.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
 
   function renderChart() {
     const days = Array.from({length:7},(_,i)=>{

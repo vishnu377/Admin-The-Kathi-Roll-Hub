@@ -484,7 +484,7 @@
     // ── Firestore-first lookup ──────────────────────────────
     let found = null;
     try {
-      const snap = await getDoc(doc(db, 'rollhub_customers', mob));
+      const snap = await getDoc(doc(db, 'users', mob));
       if (snap.exists()) found = { mobile: mob, ...snap.data() };
     } catch (e) { console.warn('Firestore lookup failed', e); }
     if (!found) {
@@ -659,14 +659,14 @@
 
     // ── Firestore update (best effort) ───────────────────────
     try {
-      await updateDoc(doc(db, 'rollhub_customers', mob), {
+      await updateDoc(doc(db, 'users', mob), {
         visits: newVisits, points: newPoints, saved: newSaved,
         lastVisit: new Date().toISOString()
       });
     } catch (e) { console.warn('Firestore customer update failed', e); }
 
     try {
-      await addDoc(collection(db, 'rollhub_bills'), {
+      await addDoc(collection(db, 'bills'), {
         mobile: mob, name: ctUser.name, amt, final, discount: disc,
         offer: ctRewardId ? 'reward' : (ctDiscPct > 0 ? 'welcome' : 'none'),
         payment: ctPay, time: new Date().toISOString(), visitNumber: newVisits
@@ -747,6 +747,7 @@
 </script>
 </body>
 </html>
+
 
 
 
