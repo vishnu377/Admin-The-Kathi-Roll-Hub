@@ -1,6 +1,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============================================================
 //  admin/js/admin.js  —  Firebase-FIRST version
 //
@@ -468,14 +481,82 @@ export async function validateCoupon(code, mobile) {
   };
 
   const hit = map[code.toUpperCase()];
-  if (!hit) return { valid: false, message: '❌ Invalid ya expired coupon code.' };
-  return { valid: true, ...hit, user };
+  if (hit) return { valid: true, ...hit, user };
+
+  // ── Check admin-created rewards collection ──────────────────
+  try {
+    const cfg = await import('../../shared/firebase-config.js');
+    const snap = await cfg.getDocs(
+      cfg.query(cfg.collection(cfg.db, 'rewards'),
+        cfg.where('code', '==', code.toUpperCase()),
+        cfg.where('active', '==', true))
+    );
+    if (!snap.empty) {
+      const rw = snap.docs[0].data();
+      const rwId = snap.docs[0].id;
+      // Check expiry
+      if (rw.expiryDate && new Date(rw.expiryDate) < today) {
+        return { valid: false, message: '❌ Yeh coupon expire ho gaya hai.' };
+      }
+      // Check single-use per customer
+      if (rw.singleUse && rw.usedBy && rw.usedBy.includes(mobile)) {
+        return { valid: false, message: '❌ Yeh coupon already use ho chuka hai.' };
+      }
+      // Check max uses
+      if (rw.maxUses && (rw.usageCount || 0) >= rw.maxUses) {
+        return { valid: false, message: '❌ Yeh coupon ki limit khatam ho gayi.' };
+      }
+      return {
+        valid: true,
+        type: 'reward',
+        rewardId: rwId,
+        disc: parseInt(rw.discountPct) || 0,
+        label: rw.title || rw.label || rw.name || 'Special Offer',
+        user
+      };
+    }
+  } catch (e) {
+    console.warn('[validateCoupon] rewards check failed:', e.message);
+  }
+
+  return { valid: false, message: '❌ Invalid ya expired coupon code.' };
 }
 
-export async function markCouponUsed(mobile, couponType) {
+export async function markCouponUsed(mobile, couponType, rewardId, savedAmt) {
   await updateUser(mobile, {
     [`couponUsed_${couponType}`]: new Date().toISOString()
   });
+
+  // ── If it's a reward-type coupon, update usage in rewards collection ──
+  if (rewardId) {
+    try {
+      const cfg = await import('../../shared/firebase-config.js');
+      const ref = cfg.doc(cfg.db, 'rewards', rewardId);
+      const snap = await cfg.getDoc(ref);
+      if (snap.exists()) {
+        const rw = snap.data();
+        const usedBy = rw.usedBy || [];
+        if (!usedBy.includes(mobile)) usedBy.push(mobile);
+        const amt = parseInt(savedAmt) || 0;
+        const prevSaved = parseInt(rw.savedAmount) || 0;
+        const amounts = rw.savedAmounts || {};
+        amounts[mobile] = (parseInt(amounts[mobile]) || 0) + amt;
+        await cfg.updateDoc(ref, {
+          usageCount: (rw.usageCount || 0) + 1,
+          usedBy: usedBy,
+          savedAmount: prevSaved + amt,
+          savedAmounts: amounts
+        });
+        // Also bump customer's lifetime "saved" stat so dashboard total reflects it
+        if (amt > 0) {
+          await updateUser(mobile, { saved: cfg.increment ? cfg.increment(amt) : amt });
+        }
+      }
+    } catch (e) {
+      console.warn('[markCouponUsed] reward update failed:', e.message);
+    }
+  }
+
   return { success: true };
 }
 

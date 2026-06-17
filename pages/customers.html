@@ -1,3 +1,9 @@
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -243,7 +249,19 @@
     if(r.valid){resEl.className='coupon-result valid';tEl.style.color='var(--green)';tEl.textContent='✅ Valid Coupon!';sEl.textContent=`${r.label} — Mark as used karein`;bEl.style.display='flex';couponData=r;}
     else{resEl.className='coupon-result invalid';tEl.style.color='var(--red)';tEl.textContent='❌ Invalid';sEl.textContent=r.message;}
   };
-  window.markCouponUsedModal=async function(){if(!activeMob||!couponData)return;await markCouponUsed(activeMob,couponData.type);showToast(`✅ Coupon marked used!`);closeCouponModal();};
+  window.markCouponUsedModal=async function(){
+    if(!activeMob||!couponData)return;
+    var billAmt = 0;
+    if (couponData.type === 'reward' && couponData.disc > 0) {
+      var orderAmt = prompt('Order ka subtotal kitna tha? (₹) — discount calculate karne ke liye', '');
+      if (orderAmt !== null && orderAmt.trim() !== '') {
+        billAmt = Math.round((parseFloat(orderAmt) || 0) * couponData.disc / 100);
+      }
+    }
+    await markCouponUsed(activeMob,couponData.type,couponData.rewardId,billAmt);
+    showToast(`✅ Coupon marked used!`);
+    closeCouponModal();
+  };
   window.doToggleFraud=async function(mob){const r=await toggleFraud(mob);showToast(r.flagged?'⚠️ Flagged!':'✅ Unflagged');allUsers=await getAllUsers();filterCustomers();};
   window.exportCustomers=()=>exportCSV('customers');
 
@@ -252,3 +270,4 @@
 </script>
 </body>
 </html>
+

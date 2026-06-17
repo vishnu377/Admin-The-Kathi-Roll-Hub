@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -504,6 +503,8 @@ window.clearCust = function() {
 // ─────────────────────────────────────────────────────────
 //  COUPONS
 // ─────────────────────────────────────────────────────────
+var activeRewardCoupons = []; // cache for reward lookups
+
 function renderCoupons() {
   if (!customer) return;
   var s      = lsSettings();
@@ -521,11 +522,38 @@ function renderCoupons() {
   if (customer.specialOffer && customer.specialOffer.active)
     coupons.push({ type:'special', pct: customer.specialOffer.discount||0, label:'🎁 ' + customer.specialOffer.label });
 
+  renderCouponChips(coupons);
+
+  // ── Also fetch admin-created rewards for this customer ──────
+  if (DB) {
+    DB.collection("rewards").where("active", "==", true).get()
+      .then(function(snap) {
+        activeRewardCoupons = [];
+        snap.forEach(function(doc) {
+          var rw = doc.data();
+          var alreadyUsed = rw.singleUse && rw.usedBy && rw.usedBy.indexOf(mob) !== -1;
+          var maxedOut = rw.maxUses && (rw.usageCount||0) >= rw.maxUses;
+          var expired = rw.expiryDate && new Date(rw.expiryDate) < today;
+          if (alreadyUsed || maxedOut || expired) return;
+          activeRewardCoupons.push({
+            type: 'reward',
+            rewardId: doc.id,
+            pct: parseInt(rw.discountPct) || 0,
+            label: '🎁 ' + (rw.title || rw.label || rw.name || 'Offer'),
+            code: rw.code || ''
+          });
+        });
+        renderCouponChips(coupons.concat(activeRewardCoupons));
+      })
+      .catch(function(e) { console.warn('rewards fetch failed', e); });
+  }
+}
+
+function renderCouponChips(coupons) {
   document.getElementById('coupon-sec').style.display = 'block';
   var html = '';
   coupons.forEach(function(c) {
-    var on = appliedCoupon && appliedCoupon.type === c.type;
-    // Safe: serialize coupon as data attribute, parse on click
+    var on = appliedCoupon && appliedCoupon.type === c.type && appliedCoupon.rewardId === c.rewardId;
     var dataVal = encodeURIComponent(JSON.stringify(c));
     html += '<span class="chip' + (on?' on':'') + '" onclick="applyCoupon(decodeURIComponent(\'' + dataVal + '\'))">';
     html += c.label + (c.pct > 0 ? ' (' + c.pct + '%)' : '');
@@ -536,7 +564,8 @@ function renderCoupons() {
 
 window.applyCoupon = function(raw) {
   var c = JSON.parse(raw);
-  appliedCoupon = (appliedCoupon && appliedCoupon.type === c.type) ? null : c;
+  var same = appliedCoupon && appliedCoupon.type === c.type && appliedCoupon.rewardId === c.rewardId;
+  appliedCoupon = same ? null : c;
   renderCoupons(); renderSummary();
 };
 
@@ -600,6 +629,27 @@ window.generateBill = function() {
     if (si !== -1) { stock[si].qty = Math.max(0,(stock[si].qty||0)-ci.qty); stockChanged=true; }
   });
   if (stockChanged) localStorage.setItem('krh_stock', JSON.stringify(stock));
+
+  // ── If a reward-type coupon was used, mark it used + log savedAmount ──
+  if (appliedCoupon && appliedCoupon.type === 'reward' && appliedCoupon.rewardId && DB) {
+    var rwRef = DB.collection("rewards").doc(appliedCoupon.rewardId);
+    rwRef.get().then(function(doc) {
+      if (!doc.exists) return;
+      var rw = doc.data();
+      var usedBy = rw.usedBy || [];
+      var mob = customer ? customer.mobile : 'guest';
+      if (usedBy.indexOf(mob) === -1) usedBy.push(mob);
+      var prevSaved = parseInt(rw.savedAmount) || 0;
+      var amounts = rw.savedAmounts || {}; // per-customer breakdown
+      amounts[mob] = (parseInt(amounts[mob]) || 0) + disc;
+      rwRef.update({
+        usageCount: (rw.usageCount || 0) + 1,
+        usedBy: usedBy,
+        savedAmount: prevSaved + disc,   // global running total
+        savedAmounts: amounts            // { mobile: amountSavedByThem }
+      }).catch(function(e){ console.warn('reward mark-used failed', e); });
+    }).catch(function(e){ console.warn('reward fetch failed', e); });
+  }
 
   // Save bill
   saveBillDB(bill, function() {
@@ -722,15 +772,3 @@ window.newBill = function() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
