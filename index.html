@@ -296,6 +296,17 @@
         </div>
       </div>
 
+      <div id="ct-applied-banner" style="display:none;background:#f0fdf4;border:1.5px solid var(--green);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:10px">
+        <div style="font-size:12.5px;font-weight:700;color:#166534">
+          ✅ Applied: <span id="ct-applied-name"></span> — Code <span id="ct-applied-code" style="font-family:monospace;letter-spacing:1px"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <input type="text" id="ct-verify-inp" placeholder="Customer se code bolwao (optional)..." maxlength="20" oninput="this.value=this.value.toUpperCase();ctCheckVerify()"
+            style="flex:1;background:#fff;border:1.5px solid #bbf7d0;border-radius:6px;padding:6px 10px;font-size:12px;font-family:monospace;letter-spacing:1px;outline:none"/>
+          <span id="ct-verify-status" style="font-size:16px"></span>
+        </div>
+      </div>
+
       <div style="background:var(--yellow);border-radius:var(--r-md);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <span style="font-size:13px;font-weight:700;color:#000">Discount: ₹<span id="ct-disc">0</span></span>
         <span style="font-size:22px;font-weight:800;color:#000">₹<span id="ct-final-show">0</span></span>
@@ -313,7 +324,10 @@
 </div>
 
 <script type="module">
-  import { LS } from '../shared/constants.js';
+  import { LS } from './shared/constants.js';
+  import {
+    db, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs
+  } from './shared/firebase-config.js';
 
   // ═══════════════════════════════════════════════════════
   //  AUTH
@@ -444,7 +458,7 @@
   // ═══════════════════════════════════════════════════════
   //  COUNTER MODAL (quick billing)
   // ═══════════════════════════════════════════════════════
-  let ctUser = null, ctPay = 'cash', ctDiscPct = 0;
+  let ctUser = null, ctPay = 'cash', ctDiscPct = 0, ctRewardId = null, ctExpectedCode = '';
 
   window.openCounter = function() {
     document.getElementById('counter-modal').classList.add('open');
@@ -459,14 +473,25 @@
     document.getElementById('ct-final').value = '';
     document.getElementById('ct-disc').textContent      = '0';
     document.getElementById('ct-final-show').textContent= '0';
-    ctUser = null; ctDiscPct = 0; ctPay = 'cash';
+    document.getElementById('ct-applied-banner').style.display = 'none';
+    ctUser = null; ctDiscPct = 0; ctPay = 'cash'; ctRewardId = null; ctExpectedCode = '';
   };
 
-  window.ctLookup = function() {
+  window.ctLookup = async function() {
     const mob  = document.getElementById('ct-mob').value.trim();
     if (mob.length !== 10) { alert('10-digit mobile dalein'); return; }
-    const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
-    ctUser = users.find(u => u.mobile === mob);
+
+    // ── Firestore-first lookup ──────────────────────────────
+    let found = null;
+    try {
+      const snap = await getDoc(doc(db, 'rollhub_customers', mob));
+      if (snap.exists()) found = { mobile: mob, ...snap.data() };
+    } catch (e) { console.warn('Firestore lookup failed', e); }
+    if (!found) {
+      const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+      found = users.find(u => u.mobile === mob);
+    }
+    ctUser = found;
     if (!ctUser) {
       document.getElementById('ct-result').style.display = 'none';
       alert('Customer nahi mila. Pehle register karwao.');
@@ -481,40 +506,108 @@
     document.getElementById('ct-sub').textContent  =
       `${ctUser.visits||0} visits · ${ctUser.points||0} pts · ${code}`;
 
-    // Offers
-    const offers = [{ id:'welcome', label:`${discPct}% Welcome OFF`, pct: discPct }];
+    // ── Built-in offers ──────────────────────────────────────
+    const offers = [];
+    const isFirstVisit = (ctUser.visits || 0) === 0;
+    if (isFirstVisit) {
+      offers.push({ id:'welcome', label:`Welcome Discount`, pct: discPct, code: code });
+    }
     const today  = new Date();
     const dob    = ctUser.dob ? new Date(ctUser.dob) : null;
     if (dob && dob.getDate()===today.getDate() && dob.getMonth()===today.getMonth()) {
-      offers.push({ id:'bday', label:'🎂 Birthday 15% OFF', pct: 15 });
+      const yr = today.getFullYear();
+      offers.push({ id:'bday', label:'🎂 Birthday Special', pct: 15, code: 'BDAY'+mob.slice(-4).toUpperCase()+yr });
     }
     const vGoal = s.defaultVisitThreshold || 5;
     if ((ctUser.visits||0) % vGoal === 0 && (ctUser.visits||0) > 0) {
-      offers.push({ id:'visit', label:'🔥 Visit Milestone', pct: 0 });
+      offers.push({ id:'visit', label:'🔥 Visit Milestone', pct: 0, code: 'VIS'+mob.slice(-4).toUpperCase() });
     }
 
     document.getElementById('ct-offers').innerHTML =
       offers.map(o => `
-        <div class="offer-item" data-pct="${o.pct}" onclick="ctSelOffer(this,${o.pct})"
+        <div class="offer-item" data-pct="${o.pct}" data-base-bg="var(--inp-bg)" data-base-br="var(--inp-br)" onclick="ctSelOffer(this,${o.pct},null,'${o.label.replace(/'/g,"")}','${o.code}')"
           style="background:var(--inp-bg);border:1.5px solid var(--inp-br);border-radius:var(--r-sm);
-          padding:10px 14px;display:flex;justify-content:space-between;
-          cursor:pointer;margin-bottom:7px;transition:border-color .15s">
-          <span style="font-size:13px;font-weight:600;color:var(--txt)">${o.label}</span>
-          <span style="font-size:13px;font-weight:700;color:var(--green)">${o.pct>0 ? o.pct+'% OFF' : '✓'}</span>
+          padding:10px 14px;cursor:pointer;margin-bottom:7px;transition:border-color .15s">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--txt)">${o.label}</span>
+            <span style="font-size:13px;font-weight:700;color:var(--green)">${o.pct>0 ? o.pct+'% OFF' : '✓'}</span>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--txt3);margin-top:4px;font-family:monospace;letter-spacing:1px">Code: ${o.code}</div>
         </div>`).join('');
 
+    if (!offers.length) {
+      document.getElementById('ct-offers').innerHTML =
+        '<div style="font-size:12.5px;color:var(--txt3);text-align:center;padding:10px">Koi built-in offer abhi eligible nahi hai</div>';
+    }
+
     document.getElementById('ct-result').style.display = 'block';
+
+    // ── Fetch admin-created rewards too (Firestore) ──────────
+    try {
+      const snap = await getDocs(query(collection(db, 'rewards'), where('active','==',true)));
+      const extraHtml = [];
+      snap.forEach(d => {
+        const rw = d.data();
+        const alreadyUsed = rw.singleUse && rw.usedBy && rw.usedBy.indexOf(mob) !== -1;
+        const maxedOut = rw.maxUses && (rw.usageCount||0) >= rw.maxUses;
+        const expired = rw.expiryDate && new Date(rw.expiryDate) < today;
+        if (alreadyUsed || maxedOut || expired) return;
+        const pct = parseInt(rw.discountPct) || 0;
+        const title = rw.title || rw.label || rw.name || 'Offer';
+        const rwCode = rw.code || '—';
+        extraHtml.push(`
+          <div class="offer-item reward-offer" data-pct="${pct}" data-base-bg="#fffbe6" data-base-br="#ffe58f" onclick="ctSelOffer(this,${pct},'${d.id}','${title.replace(/'/g,"")}','${rwCode}')"
+            style="background:#fffbe6;border:1.5px solid #ffe58f;border-radius:var(--r-sm);
+            padding:10px 14px;cursor:pointer;margin-bottom:7px;transition:border-color .15s">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;font-weight:600;color:var(--txt)">🎁 ${title}</span>
+              <span style="font-size:13px;font-weight:700;color:var(--green)">${pct>0 ? pct+'% OFF' : '✓'}</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:#9a7000;margin-top:4px;font-family:monospace;letter-spacing:1px">Code: ${rwCode}</div>
+          </div>`);
+      });
+      if (extraHtml.length) {
+        document.getElementById('ct-offers').innerHTML += extraHtml.join('');
+      }
+    } catch (e) { console.warn('rewards fetch failed', e); }
   };
 
-  window.ctSelOffer = function(el, pct) {
+  window.ctSelOffer = function(el, pct, rewardId, offerName, offerCode) {
+    const alreadyOn = el.style.borderColor === 'var(--green)' || el.getAttribute('data-selected') === '1';
     document.querySelectorAll('.offer-item').forEach(i => {
-      i.style.borderColor = 'var(--inp-br)';
-      i.style.background  = 'var(--inp-bg)';
+      i.style.borderColor = i.getAttribute('data-base-br') || 'var(--inp-br)';
+      i.style.background  = i.getAttribute('data-base-bg') || 'var(--inp-bg)';
+      i.removeAttribute('data-selected');
     });
-    el.style.borderColor = 'var(--green)';
-    el.style.background  = '#f0fdf4';
-    ctDiscPct = pct;
+
+    const bannerEl = document.getElementById('ct-applied-banner');
+    if (alreadyOn) {
+      // Toggle off — deselect
+      ctDiscPct = 0; ctRewardId = null;
+      if (bannerEl) bannerEl.style.display = 'none';
+    } else {
+      el.style.borderColor = 'var(--green)';
+      el.style.background  = '#f0fdf4';
+      el.setAttribute('data-selected', '1');
+      ctDiscPct  = pct;
+      ctRewardId = rewardId || null;
+      if (bannerEl) {
+        bannerEl.style.display = 'block';
+        document.getElementById('ct-applied-name').textContent = offerName || '';
+        document.getElementById('ct-applied-code').textContent = offerCode || '';
+        document.getElementById('ct-verify-inp').value = '';
+        document.getElementById('ct-verify-status').textContent = '';
+        ctExpectedCode = offerCode || '';
+      }
+    }
     ctCalc();
+  };
+
+  window.ctCheckVerify = function() {
+    const v = document.getElementById('ct-verify-inp').value.trim();
+    const statusEl = document.getElementById('ct-verify-status');
+    if (!v) { statusEl.textContent = ''; return; }
+    statusEl.textContent = (v === ctExpectedCode) ? '✅' : '❌';
   };
 
   window.ctCalc = function() {
@@ -532,44 +625,84 @@
     ctPay = method;
   };
 
-  window.ctConfirm = function() {
+  window.ctConfirm = async function() {
     if (!ctUser) return;
     const amt   = parseFloat(document.getElementById('ct-amt').value)   || 0;
     const final = parseFloat(document.getElementById('ct-final').value) || amt;
     const disc  = amt - final;
+    const mob   = ctUser.mobile;
 
+    const s    = JSON.parse(localStorage.getItem(LS.settings) || '{}');
+    const goal = s.defaultVisitThreshold || 5;
+    const ptsAdd = s.defaultPerVisitPts || 5;
+    const newVisits = (ctUser.visits || 0) + 1;
+    const newPoints = (ctUser.points || 0) + ptsAdd;
+    const newSaved  = (ctUser.saved  || 0) + disc;
+
+    // ── Firestore update (best effort) ───────────────────────
+    try {
+      await updateDoc(doc(db, 'rollhub_customers', mob), {
+        visits: newVisits, points: newPoints, saved: newSaved,
+        lastVisit: new Date().toISOString()
+      });
+    } catch (e) { console.warn('Firestore customer update failed', e); }
+
+    try {
+      await addDoc(collection(db, 'rollhub_bills'), {
+        mobile: mob, name: ctUser.name, amt, final, discount: disc,
+        offer: ctRewardId ? 'reward' : (ctDiscPct > 0 ? 'welcome' : 'none'),
+        payment: ctPay, time: new Date().toISOString(), visitNumber: newVisits
+      });
+    } catch (e) { console.warn('Firestore bill add failed', e); }
+
+    // Mark reward as used + track per-customer savings
+    if (ctRewardId && disc > 0) {
+      try {
+        const rwRef = doc(db, 'rewards', ctRewardId);
+        const rwDoc = await getDoc(rwRef);
+        if (rwDoc.exists()) {
+          const rw = rwDoc.data();
+          const usedBy = rw.usedBy || [];
+          if (usedBy.indexOf(mob) === -1) usedBy.push(mob);
+          const amounts = rw.savedAmounts || {};
+          amounts[mob] = (parseInt(amounts[mob]) || 0) + disc;
+          await updateDoc(rwRef, {
+            usageCount: (rw.usageCount || 0) + 1,
+            usedBy: usedBy,
+            savedAmount: (parseInt(rw.savedAmount) || 0) + disc,
+            savedAmounts: amounts
+          });
+        }
+      } catch (e) { console.warn('reward mark-used failed', e); }
+    }
+
+    // ── LocalStorage sync (always, for offline fallback) ────
     const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
-    const idx   = users.findIndex(u => u.mobile === ctUser.mobile);
-    if (idx === -1) return;
-
-    users[idx].visits = (users[idx].visits || 0) + 1;
-    users[idx].points = (users[idx].points || 0) + 5;
-    users[idx].saved  = (users[idx].saved  || 0) + disc;
-    localStorage.setItem(LS.users, JSON.stringify(users));
-
+    const idx   = users.findIndex(u => u.mobile === mob);
+    if (idx !== -1) {
+      users[idx].visits = newVisits; users[idx].points = newPoints; users[idx].saved = newSaved;
+      localStorage.setItem(LS.users, JSON.stringify(users));
+    }
     const bills = JSON.parse(localStorage.getItem(LS.bills) || '[]');
     bills.unshift({
-      mobile: ctUser.mobile, name: ctUser.name,
-      amt, final, discount: disc,
-      offer: ctDiscPct > 0 ? 'welcome' : 'none',
+      mobile: mob, name: ctUser.name, amt, final, discount: disc,
+      offer: ctRewardId ? 'reward' : (ctDiscPct > 0 ? 'welcome' : 'none'),
       payment: ctPay, time: new Date().toISOString()
     });
     localStorage.setItem(LS.bills, JSON.stringify(bills));
 
-    const s    = JSON.parse(localStorage.getItem(LS.settings) || '{}');
-    const goal = s.defaultVisitThreshold || 5;
-    const v    = users[idx].visits;
-    const rew  = s.defaultVisitReward || 'FREE item';
-    alert(v % goal === 0
-      ? `🎉 Visit ${v} — ${users[idx].name} ko ${rew} milega!`
-      : `✅ Bill done! Visit #${v} · +5 pts`
+    ctUser.visits = newVisits; ctUser.points = newPoints; ctUser.saved = newSaved;
+
+    const rew = s.defaultVisitReward || 'FREE item';
+    alert(newVisits % goal === 0
+      ? `🎉 Visit ${newVisits} — ${ctUser.name} ko ${rew} milega!`
+      : `✅ Bill done! Visit #${newVisits} · +${ptsAdd} pts`
     );
 
     closeCounter();
-    // Refresh current page if billing page is open
     const frame = document.getElementById('content-frame');
-    if (frame.src.includes('billing') || frame.src.includes('dashboard')) {
-      frame.contentWindow?.location.reload();
+    if (frame && frame.src && (frame.src.includes('billing') || frame.src.includes('dashboard') || frame.src.includes('customers'))) {
+      try { frame.contentWindow?.location.reload(); } catch(e) {}
     }
     updateBadges();
   };
@@ -596,3 +729,4 @@
 </script>
 </body>
 </html>
+
