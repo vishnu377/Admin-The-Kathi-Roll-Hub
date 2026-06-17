@@ -1,3 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============================================================
 //  admin/js/rewards.js
 //  Rewards & Coupons management
@@ -32,6 +47,9 @@ async function initFirebase() {
   }
 }
 
+// ── Auto-init Firebase on module load ────────────────────────
+const _fbReady = initFirebase();
+
 // ── LocalStorage key ─────────────────────────────────────────
 const RK = 'krh_rewards';
 
@@ -56,6 +74,7 @@ export const REWARD_CONDITIONS = {
 
 /** Get all rewards */
 export async function getAllRewards() {
+  await _fbReady;
   if (FIREBASE_READY) {
     try {
       const snap = await getDDocsFn(
@@ -74,6 +93,7 @@ export async function getAllRewards() {
 
 /** Create new reward */
 export async function createReward(data) {
+  await _fbReady;
   const reward = {
     ...data,
     id:         data.id || Date.now().toString(),
