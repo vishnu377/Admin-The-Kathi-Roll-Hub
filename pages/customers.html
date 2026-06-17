@@ -1,9 +1,3 @@
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -252,7 +246,10 @@
   window.markCouponUsedModal=async function(){
     if(!activeMob||!couponData)return;
     var billAmt = 0;
-    if (couponData.type === 'reward' && couponData.disc > 0) {
+    if (couponData.type === 'reward' && couponData.discFlat > 0) {
+      // Flat ₹ discount — amount is fixed, no need to ask
+      billAmt = couponData.discFlat;
+    } else if (couponData.type === 'reward' && couponData.disc > 0) {
       var orderAmt = prompt('Order ka subtotal kitna tha? (₹) — discount calculate karne ke liye', '');
       if (orderAmt !== null && orderAmt.trim() !== '') {
         billAmt = Math.round((parseFloat(orderAmt) || 0) * couponData.disc / 100);
@@ -270,4 +267,7 @@
 </script>
 </body>
 </html>
+
+
+
 

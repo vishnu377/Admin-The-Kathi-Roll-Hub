@@ -458,7 +458,7 @@
   // ═══════════════════════════════════════════════════════
   //  COUNTER MODAL (quick billing)
   // ═══════════════════════════════════════════════════════
-  let ctUser = null, ctPay = 'cash', ctDiscPct = 0, ctRewardId = null, ctExpectedCode = '';
+  let ctUser = null, ctPay = 'cash', ctDiscPct = 0, ctDiscFlat = 0, ctDiscType = 'discount', ctRewardId = null, ctExpectedCode = '';
 
   window.openCounter = function() {
     document.getElementById('counter-modal').classList.add('open');
@@ -474,7 +474,7 @@
     document.getElementById('ct-disc').textContent      = '0';
     document.getElementById('ct-final-show').textContent= '0';
     document.getElementById('ct-applied-banner').style.display = 'none';
-    ctUser = null; ctDiscPct = 0; ctPay = 'cash'; ctRewardId = null; ctExpectedCode = '';
+    ctUser = null; ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctPay = 'cash'; ctRewardId = null; ctExpectedCode = '';
   };
 
   window.ctLookup = async function() {
@@ -525,7 +525,7 @@
 
     document.getElementById('ct-offers').innerHTML =
       offers.map(o => `
-        <div class="offer-item" data-pct="${o.pct}" data-base-bg="var(--inp-bg)" data-base-br="var(--inp-br)" onclick="ctSelOffer(this,${o.pct},null,'${o.label.replace(/'/g,"")}','${o.code}')"
+        <div class="offer-item" data-pct="${o.pct}" data-base-bg="var(--inp-bg)" data-base-br="var(--inp-br)" onclick="ctSelOffer(this,${o.pct},null,'${o.label.replace(/'/g,"")}','${o.code}',0,'discount')"
           style="background:var(--inp-bg);border:1.5px solid var(--inp-br);border-radius:var(--r-sm);
           padding:10px 14px;cursor:pointer;margin-bottom:7px;transition:border-color .15s">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -552,16 +552,27 @@
         const maxedOut = rw.maxUses && (rw.usageCount||0) >= rw.maxUses;
         const expired = rw.expiryDate && new Date(rw.expiryDate) < today;
         if (alreadyUsed || maxedOut || expired) return;
-        const pct = parseInt(rw.discountPct) || 0;
+
+        const rType = rw.type || 'discount';
+        const rVal  = rw.value || rw.discountPct || 0;
+        let badge, calcPct, calcFlat;
+        if (rType === 'cashback') {
+          badge = '₹' + rVal + ' OFF'; calcPct = 0; calcFlat = parseFloat(rVal) || 0;
+        } else if (rType === 'free_item') {
+          badge = '🎁 FREE'; calcPct = 0; calcFlat = 0;
+        } else {
+          badge = (parseInt(rVal)||0) + '% OFF'; calcPct = parseInt(rVal) || 0; calcFlat = 0;
+        }
+
         const title = rw.title || rw.label || rw.name || 'Offer';
         const rwCode = rw.code || '—';
         extraHtml.push(`
-          <div class="offer-item reward-offer" data-pct="${pct}" data-base-bg="#fffbe6" data-base-br="#ffe58f" onclick="ctSelOffer(this,${pct},'${d.id}','${title.replace(/'/g,"")}','${rwCode}')"
+          <div class="offer-item reward-offer" data-pct="${calcPct}" data-flat="${calcFlat}" data-type="${rType}" data-base-bg="#fffbe6" data-base-br="#ffe58f" onclick="ctSelOffer(this,${calcPct},'${d.id}','${title.replace(/'/g,"")}','${rwCode}',${calcFlat},'${rType}')"
             style="background:#fffbe6;border:1.5px solid #ffe58f;border-radius:var(--r-sm);
             padding:10px 14px;cursor:pointer;margin-bottom:7px;transition:border-color .15s">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:13px;font-weight:600;color:var(--txt)">🎁 ${title}</span>
-              <span style="font-size:13px;font-weight:700;color:var(--green)">${pct>0 ? pct+'% OFF' : '✓'}</span>
+              <span style="font-size:13px;font-weight:700;color:var(--green)">${badge}</span>
             </div>
             <div style="font-size:11px;font-weight:700;color:#9a7000;margin-top:4px;font-family:monospace;letter-spacing:1px">Code: ${rwCode}</div>
           </div>`);
@@ -572,7 +583,7 @@
     } catch (e) { console.warn('rewards fetch failed', e); }
   };
 
-  window.ctSelOffer = function(el, pct, rewardId, offerName, offerCode) {
+  window.ctSelOffer = function(el, pct, rewardId, offerName, offerCode, flatAmt, discType) {
     const alreadyOn = el.style.borderColor === 'var(--green)' || el.getAttribute('data-selected') === '1';
     document.querySelectorAll('.offer-item').forEach(i => {
       i.style.borderColor = i.getAttribute('data-base-br') || 'var(--inp-br)';
@@ -583,13 +594,15 @@
     const bannerEl = document.getElementById('ct-applied-banner');
     if (alreadyOn) {
       // Toggle off — deselect
-      ctDiscPct = 0; ctRewardId = null;
+      ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctRewardId = null;
       if (bannerEl) bannerEl.style.display = 'none';
     } else {
       el.style.borderColor = 'var(--green)';
       el.style.background  = '#f0fdf4';
       el.setAttribute('data-selected', '1');
-      ctDiscPct  = pct;
+      ctDiscPct  = pct || 0;
+      ctDiscFlat = flatAmt || 0;
+      ctDiscType = discType || 'discount';
       ctRewardId = rewardId || null;
       if (bannerEl) {
         bannerEl.style.display = 'block';
@@ -612,7 +625,12 @@
 
   window.ctCalc = function() {
     const amt  = parseFloat(document.getElementById('ct-amt').value) || 0;
-    const disc = Math.round(amt * ctDiscPct / 100);
+    let disc;
+    if (ctDiscFlat > 0) {
+      disc = Math.min(ctDiscFlat, amt); // flat ₹ off, capped at bill amount
+    } else {
+      disc = Math.round(amt * ctDiscPct / 100);
+    }
     const final= amt - disc;
     document.getElementById('ct-final').value        = final;
     document.getElementById('ct-disc').textContent   = disc;
@@ -729,4 +747,6 @@
 </script>
 </body>
 </html>
+
+
 

@@ -1,19 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ============================================================
 //  admin/js/admin.js  —  Firebase-FIRST version
 //
@@ -506,12 +492,21 @@ export async function validateCoupon(code, mobile) {
       if (rw.maxUses && (rw.usageCount || 0) >= rw.maxUses) {
         return { valid: false, message: '❌ Yeh coupon ki limit khatam ho gayi.' };
       }
+      const rType = rw.type || 'discount';
+      const rVal  = rw.value || rw.discountPct || 0;
+      let labelSuffix;
+      if (rType === 'cashback')  labelSuffix = '₹' + rVal + ' OFF';
+      else if (rType === 'free_item') labelSuffix = 'FREE ' + rVal;
+      else labelSuffix = (parseInt(rVal) || 0) + '% OFF';
+
       return {
         valid: true,
         type: 'reward',
         rewardId: rwId,
-        disc: parseInt(rw.discountPct) || 0,
-        label: rw.title || rw.label || rw.name || 'Special Offer',
+        discType: rType,
+        disc: rType === 'discount' ? (parseInt(rVal) || 0) : 0,       // % value
+        discFlat: rType === 'cashback' ? (parseFloat(rVal) || 0) : 0, // ₹ value
+        label: (rw.title || rw.label || rw.name || 'Special Offer') + ' — ' + labelSuffix,
         user
       };
     }
@@ -683,3 +678,13 @@ export const genCode   = (mob, type = 'welcome') => {
     ? `${pfx[type]}${sfx}${new Date().getFullYear()}`
     : `${pfx[type]}${sfx}`;
 };
+
+
+
+
+
+
+
+
+
+
