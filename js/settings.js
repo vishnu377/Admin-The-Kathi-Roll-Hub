@@ -9,12 +9,6 @@
 
 
 
-
-
-
-
-
-
 // ============================================================
 //  admin/js/settings.js  —  Firebase-FIRST version
 //
@@ -512,3 +506,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     el(id)?.addEventListener('change', updatePreview);
   });
 });
+
+
