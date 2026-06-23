@@ -320,6 +320,33 @@
       </div>
     </div>
 
+    <!-- Best Seller badge toggle -->
+    <div style="margin-bottom:16px">
+      <label class="lbl">Marketing Badge</label>
+      <div class="cat-type-row">
+        <button type="button" class="cat-type-btn" id="btn-bestseller" onclick="toggleBestSeller()">
+          ⭐ Best Seller
+        </button>
+      </div>
+    </div>
+
+    <!-- Preparation Time -->
+    <div class="field" style="max-width:220px;margin-bottom:16px">
+      <label class="lbl">Preparation Time (minutes)</label>
+      <input class="inp inp-sm" type="number" id="f-preptime" placeholder="10" min="0"/>
+      <p style="font-size:11px;color:var(--txt3);margin-top:4px">Customer ko dikhega "10 mins mein banega"</p>
+    </div>
+
+    <!-- Variants (Half/Full, Single/Double Egg, etc) -->
+    <div style="margin-bottom:16px">
+      <label class="lbl">Variants / Sizes (optional)</label>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Agar yahan koi variant add karoge, customer ko order karte waqt ek choose karna hoga. Khali rakho toh item single-price rahega.</p>
+      <div id="variant-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addVariantRow()" style="margin-top:6px">
+        ➕ Variant Add Karo
+      </button>
+    </div>
+
     <div class="msg-err" id="add-err" style="margin-bottom:10px"></div>
     <button class="btn btn-yellow btn-full" id="add-btn" onclick="addItem()">
       🏷️ Add to Menu
@@ -352,7 +379,32 @@
           <option value="veg">🟢 Veg only</option>
           <option value="non-veg">🔴 Non-Veg only</option>
         </select>
+        <select class="cat-filter" id="sort-filter" onchange="filterMenu()">
+          <option value="">Sort: Default</option>
+          <option value="profit-high">💰 Sort by Profit (High→Low)</option>
+          <option value="profit-low">💸 Sort by Profit (Low→High)</option>
+          <option value="price-high">⬆️ Price (High→Low)</option>
+          <option value="price-low">⬇️ Price (Low→High)</option>
+        </select>
       </div>
+    </div>
+
+    <!-- Bulk Status Toggle -->
+    <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg)">
+      <span style="font-size:12.5px;font-weight:700;color:var(--txt2)">⚡ Bulk Action:</span>
+      <select class="cat-filter" id="bulk-cat">
+        <option value="">Category chuno...</option>
+        <option>Kathi Roll</option>
+        <option>Momos</option>
+        <option>Chinese</option>
+        <option>Shake</option>
+        <option>Coffee</option>
+        <option>Snacks</option>
+        <option>Dessert</option>
+        <option>Other</option>
+      </select>
+      <button class="btn btn-danger btn-sm" onclick="bulkSetAvailability(false)">❌ Sab Out of Stock</button>
+      <button class="btn btn-success btn-sm" onclick="bulkSetAvailability(true)">✅ Sab Available</button>
     </div>
 
     <div class="tbl-wrap">
@@ -407,6 +459,9 @@
   let filteredItems = [];
   let selEmoji     = '🌯';
   let selType      = 'veg';
+  let isBestSeller = false;
+  let variantRows  = [];   // [{ id, name, price }]
+  let variantIdSeq = 0;
   let dirtyPrices  = {};   // { id: { price, disc } }
 
   // ── Emoji picker ───────────────────────────────────────────
@@ -430,6 +485,50 @@
     document.getElementById('btn-veg').classList.toggle('on', type === 'veg');
     document.getElementById('btn-non').classList.toggle('on', type === 'non-veg');
   };
+
+  // ── Best Seller toggle ──────────────────────────────────────
+  window.toggleBestSeller = function() {
+    isBestSeller = !isBestSeller;
+    document.getElementById('btn-bestseller').classList.toggle('on', isBestSeller);
+  };
+
+  // ── Variants management ─────────────────────────────────────
+  window.addVariantRow = function() {
+    const id = 'v' + (variantIdSeq++);
+    variantRows.push({ id, name: '', price: '' });
+    renderVariantRows();
+  };
+
+  window.removeVariantRow = function(id) {
+    variantRows = variantRows.filter(v => v.id !== id);
+    renderVariantRows();
+  };
+
+  window.updateVariantField = function(id, field, value) {
+    const row = variantRows.find(v => v.id === id);
+    if (row) row[field] = value;
+  };
+
+  function renderVariantRows() {
+    const wrap = document.getElementById('variant-rows');
+    if (!wrap) return;
+    wrap.innerHTML = variantRows.map(v => `
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+        <input class="inp inp-sm" type="text" placeholder="e.g. Half"
+          value="${v.name}" style="flex:1.4"
+          onchange="updateVariantField('${v.id}','name',this.value)"/>
+        <span style="color:var(--txt3);font-size:13px">₹</span>
+        <input class="inp inp-sm" type="number" placeholder="50" min="0"
+          value="${v.price}" style="flex:1"
+          onchange="updateVariantField('${v.id}','price',this.value)"/>
+        <button type="button" class="btn btn-icon-only" onclick="removeVariantRow('${v.id}')" title="Remove">🗑️</button>
+      </div>`).join('');
+  }
+
+  function resetVariantRows() {
+    variantRows = [];
+    renderVariantRows();
+  }
 
   // ── Margin calculator ──────────────────────────────────────
   window.calcMargin = function() {
@@ -472,12 +571,22 @@
     const q    = (document.getElementById('search-inp').value || '').toLowerCase();
     const cat  = document.getElementById('cat-filter').value;
     const type = document.getElementById('type-filter').value;
+    const sort = document.getElementById('sort-filter').value;
     filteredItems = allItems.filter(i => {
       if (q    && !i.name.toLowerCase().includes(q)) return false;
       if (cat  && i.category !== cat)                return false;
       if (type && i.type     !== type)               return false;
       return true;
     });
+
+    if (sort) {
+      const marginOf = i => (i.cost && i.price) ? Math.round((i.price - i.cost) / i.price * 100) : -1;
+      if (sort === 'profit-high') filteredItems.sort((a,b) => marginOf(b) - marginOf(a));
+      if (sort === 'profit-low')  filteredItems.sort((a,b) => marginOf(a) - marginOf(b));
+      if (sort === 'price-high')  filteredItems.sort((a,b) => (b.price||0) - (a.price||0));
+      if (sort === 'price-low')   filteredItems.sort((a,b) => (a.price||0) - (b.price||0));
+    }
+
     renderTable();
   };
 
@@ -509,7 +618,11 @@
             <div style="display:flex;align-items:center;gap:10px">
               <div class="menu-item-emoji">${item.emoji || '🌯'}</div>
               <div>
-                <div class="item-name">${item.name}</div>
+                <div class="item-name">
+                  ${item.name}
+                  ${item.isBestSeller ? '<span style="font-size:10px;font-weight:800;color:#92400e;background:#fef9c3;padding:2px 8px;border-radius:99px;margin-left:6px">⭐ Best Seller</span>' : ''}
+                </div>
+                ${item.prepTime ? '<div class="item-cat">⏱️ ' + item.prepTime + ' mins</div>' : ''}
                 ${item.showOnApp === false
                   ? '<div class="item-cat" style="color:var(--txt3)">Hidden from app</div>'
                   : ''}
@@ -543,6 +656,11 @@
                 onchange="priceChanged('${item.id}', 'price', this.value)"
               />
             </div>
+            ${item.variants && item.variants.length
+              ? '<div style="font-size:10.5px;color:var(--txt3);margin-top:4px">' +
+                item.variants.map(v => v.name + ': ₹' + v.price).join(' · ') +
+                '</div>'
+              : ''}
           </td>
 
           <!-- Discount (inline edit) -->
@@ -586,6 +704,12 @@
           <td>
             <div style="display:flex;gap:6px">
               <button class="btn btn-icon-only"
+                onclick="toggleItemBestSeller('${item.id}', ${!item.isBestSeller})"
+                title="${item.isBestSeller ? 'Remove Best Seller badge' : 'Mark as Best Seller'}"
+                style="${item.isBestSeller ? 'color:#ca8a04' : ''}">
+                ⭐
+              </button>
+              <button class="btn btn-icon-only"
                 onclick="deleteItem('${item.id}', '${item.name.replace(/'/g,'\\u0027')}')"
                 title="Delete">
                 🗑️
@@ -622,6 +746,11 @@
       discount:  disc,
       margin,
       showOnApp: document.getElementById('f-show').value === '1',
+      isBestSeller: isBestSeller,
+      prepTime: parseInt(document.getElementById('f-preptime').value) || 0,
+      variants: variantRows
+        .filter(v => v.name.trim() && parseFloat(v.price) > 0)
+        .map(v => ({ name: v.name.trim(), price: parseFloat(v.price) })),
       available: true,
       addedAt:   new Date().toISOString(),
     };
@@ -639,9 +768,13 @@
       document.getElementById('f-price').value = '';
       document.getElementById('f-cost').value  = '';
       document.getElementById('f-disc').value  = '0';
+      document.getElementById('f-preptime').value = '';
+      resetVariantRows();
       selEmoji = '🌯';
       document.getElementById('emoji-preview').textContent = '🌯';
       setType('veg');
+      isBestSeller = false;
+      document.getElementById('btn-bestseller').classList.remove('on');
       document.getElementById('margin-result').innerHTML = '— daalo toh dikhega';
       showToast('✅ ' + item.name + ' menu mein add ho gaya!');
     } catch (e) {
@@ -664,6 +797,41 @@
       showToast(available ? '✅ Available mark kiya!' : '❌ Out of Stock mark kiya!');
     } catch (e) {
       showToast('❌ Save failed');
+    }
+  };
+
+  // ── Toggle Best Seller badge on existing item ──────────────
+  window.toggleItemBestSeller = async function(id, isBestSeller) {
+    const idx = allItems.findIndex(i => i.id === id);
+    if (idx !== -1) allItems[idx].isBestSeller = isBestSeller;
+    filterMenu();
+
+    try {
+      await saveMenuItem({ id, isBestSeller });
+      showToast(isBestSeller ? '⭐ Best Seller badge laga diya!' : 'Best Seller badge hata diya');
+    } catch (e) {
+      showToast('❌ Save failed');
+    }
+  };
+
+  // ── Bulk Status Toggle ──────────────────────────────────────
+  window.bulkSetAvailability = async function(available) {
+    const cat = document.getElementById('bulk-cat').value;
+    if (!cat) { showToast('Pehle category chuno'); return; }
+
+    const matching = allItems.filter(i => i.category === cat);
+    if (!matching.length) { showToast('Iss category mein koi item nahi hai'); return; }
+
+    if (!confirm(`"${cat}" ke ${matching.length} item(s) ko ${available ? 'Available' : 'Out of Stock'} mark karna hai?`)) return;
+
+    try {
+      await Promise.all(matching.map(i => saveMenuItem({ id: i.id, available })));
+      matching.forEach(i => { const idx = allItems.findIndex(a => a.id === i.id); if (idx !== -1) allItems[idx].available = available; });
+      filterMenu();
+      renderStats();
+      showToast(`✅ ${matching.length} "${cat}" item(s) ${available ? 'Available' : 'Out of Stock'} mark ho gaye!`);
+    } catch (e) {
+      showToast('❌ Bulk update failed: ' + e.message);
     }
   };
 
@@ -751,3 +919,12 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+

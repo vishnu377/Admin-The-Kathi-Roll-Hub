@@ -1,5 +1,3 @@
-
-
 // ============================================================
 //  admin/js/admin.js  —  Firebase-FIRST version
 //
@@ -10,7 +8,7 @@
 //     export { increment } from "https://...firebase-firestore.js";
 // ============================================================
 
-import { LS, COLLECTIONS, DEFAULTS } from '../../shared/constants.js';
+import { LS, COLLECTIONS, DEFAULTS } from '../shared/constants.js';
 
 // ── Firebase imports ─────────────────────────────────────────
 let db, docFn, collFn,
@@ -22,7 +20,7 @@ let db, docFn, collFn,
 
 async function initFirebase() {
   try {
-    const cfg        = await import('../../shared/firebase-config.js');
+    const cfg        = await import('../shared/firebase-config.js');
     db                = cfg.db;
     docFn             = cfg.doc;
     collFn            = cfg.collection;
@@ -194,6 +192,41 @@ export async function addVisit(mobile) {
     milestone,
     reward:    milestone ? reward : null,
   };
+}
+
+// ============================================================
+//  USERS — adjustVisit (manual override, +1 or -1)
+//  Used only from Customer Profile Modal's "Manual Adjustment"
+//  — never from main billing flow (that uses addVisit above).
+// ============================================================
+export async function adjustVisit(mobile, delta) {
+  await _fbReady;
+
+  const user = await getUser(mobile);
+  if (!user) return { success: false, message: 'User not found' };
+
+  const s        = getSettings();
+  const perVisit = s.defaultPerVisitPts || DEFAULTS.perVisit || 5;
+
+  const newV = Math.max(0, (user.visits || 0) + delta);
+  const ptsDelta = delta > 0 ? perVisit : -perVisit;
+  const newP = Math.max(0, (user.points || 0) + ptsDelta);
+
+  if (FIREBASE_READY) {
+    try {
+      await updateDocFn(docFn(db, COLLECTIONS.users, mobile), {
+        visits: newV, points: newP,
+      });
+      _patchLS(mobile, { visits: newV, points: newP });
+    } catch (e) {
+      console.warn('[adjustVisit] Firestore failed, using LS:', e.message);
+      _patchLS(mobile, { visits: newV, points: newP });
+    }
+  } else {
+    _patchLS(mobile, { visits: newV, points: newP });
+  }
+
+  return { success: true, visits: newV, points: newP, name: user.name };
 }
 
 // ============================================================
@@ -471,7 +504,7 @@ export async function validateCoupon(code, mobile) {
 
   // ── Check admin-created rewards collection ──────────────────
   try {
-    const cfg = await import('../../shared/firebase-config.js');
+    const cfg = await import('../shared/firebase-config.js');
     const snap = await cfg.getDocs(
       cfg.query(cfg.collection(cfg.db, 'rewards'),
         cfg.where('code', '==', code.toUpperCase()),
@@ -504,8 +537,8 @@ export async function validateCoupon(code, mobile) {
         type: 'reward',
         rewardId: rwId,
         discType: rType,
-        disc: rType === 'discount' ? (parseInt(rVal) || 0) : 0,       // % value
-        discFlat: rType === 'cashback' ? (parseFloat(rVal) || 0) : 0, // ₹ value
+        disc: rType === 'discount' ? (parseInt(rVal) || 0) : 0,
+        discFlat: rType === 'cashback' ? (parseFloat(rVal) || 0) : 0,
         label: (rw.title || rw.label || rw.name || 'Special Offer') + ' — ' + labelSuffix,
         user
       };
@@ -525,7 +558,7 @@ export async function markCouponUsed(mobile, couponType, rewardId, savedAmt) {
   // ── If it's a reward-type coupon, update usage in rewards collection ──
   if (rewardId) {
     try {
-      const cfg = await import('../../shared/firebase-config.js');
+      const cfg = await import('../shared/firebase-config.js');
       const ref = cfg.doc(cfg.db, 'rewards', rewardId);
       const snap = await cfg.getDoc(ref);
       if (snap.exists()) {
@@ -542,9 +575,8 @@ export async function markCouponUsed(mobile, couponType, rewardId, savedAmt) {
           savedAmount: prevSaved + amt,
           savedAmounts: amounts
         });
-        // Also bump customer's lifetime "saved" stat so dashboard total reflects it
         if (amt > 0) {
-          await updateUser(mobile, { saved: cfg.increment ? cfg.increment(amt) : amt });
+          await updateUser(mobile, { saved: (parseInt((await getUser(mobile))?.saved) || 0) + amt });
         }
       }
     } catch (e) {
@@ -678,7 +710,6 @@ export const genCode   = (mob, type = 'welcome') => {
     ? `${pfx[type]}${sfx}${new Date().getFullYear()}`
     : `${pfx[type]}${sfx}`;
 };
-
 
 
 
