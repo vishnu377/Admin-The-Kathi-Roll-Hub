@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -271,6 +270,10 @@
 
     <!-- Result -->
     <div id="ct-result" style="display:none">
+      <div id="ct-alert-banner" style="display:none;background:#fff5f5;border:1.5px solid var(--red);border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:3px">🚨 STAFF ALERT</div>
+        <div style="font-size:13px;color:#7f1d1d;font-weight:600" id="ct-alert-text"></div>
+      </div>
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;margin-bottom:12px">
         <div style="font-size:16px;font-weight:700;color:var(--txt)" id="ct-name"></div>
         <div style="font-size:13px;color:var(--txt2);margin-top:3px" id="ct-sub"></div>
@@ -314,11 +317,25 @@
         <span style="font-size:22px;font-weight:800;color:#000">₹<span id="ct-final-show">0</span></span>
       </div>
 
-      <button class="btn btn-success btn-full" onclick="ctConfirm()" style="margin-bottom:8px">
-        ✅ Confirm Bill + Mark Visit
+      <button class="btn btn-success btn-full" id="ct-confirm-btn" onclick="ctConfirm()">
+        ✅ Confirm & Save Bill
       </button>
-      <button class="btn btn-ghost btn-full" onclick="ctReceipt()" style="color:var(--green);border-color:var(--green)">
+    </div>
+
+    <!-- ── SUCCESS STATE (shown only after bill is saved) ──────── -->
+    <div id="ct-success" style="display:none;text-align:center;padding:10px 0">
+      <div style="font-size:48px;margin-bottom:8px">🎉</div>
+      <div style="font-size:17px;font-weight:800;color:var(--txt);margin-bottom:4px" id="ct-success-title">Bill Saved!</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:20px" id="ct-success-sub"></div>
+
+      <button class="btn btn-ghost btn-full" onclick="ctReceipt()" style="color:var(--green);border-color:var(--green);margin-bottom:8px">
         📲 WhatsApp Receipt
+      </button>
+      <button class="btn btn-ghost btn-full" onclick="ctPrint()" style="color:var(--blue);border-color:var(--blue);margin-bottom:8px">
+        🖨️ Print Receipt
+      </button>
+      <button class="btn btn-yellow btn-full" onclick="ctNewBill()">
+        ➕ New Bill
       </button>
     </div>
 
@@ -460,7 +477,7 @@
   // ═══════════════════════════════════════════════════════
   //  COUNTER MODAL (quick billing)
   // ═══════════════════════════════════════════════════════
-  let ctUser = null, ctPay = 'cash', ctDiscPct = 0, ctDiscFlat = 0, ctDiscType = 'discount', ctRewardId = null, ctExpectedCode = '';
+  let ctUser = null, ctPay = 'cash', ctDiscPct = 0, ctDiscFlat = 0, ctDiscType = 'discount', ctRewardId = null, ctExpectedCode = '', ctLastBill = null, ctAppliedCode = '';
 
   window.openCounter = function() {
     document.getElementById('counter-modal').classList.add('open');
@@ -476,7 +493,11 @@
     document.getElementById('ct-disc').textContent      = '0';
     document.getElementById('ct-final-show').textContent= '0';
     document.getElementById('ct-applied-banner').style.display = 'none';
-    ctUser = null; ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctPay = 'cash'; ctRewardId = null; ctExpectedCode = '';
+    document.getElementById('ct-alert-banner').style.display = 'none';
+    document.getElementById('ct-success').style.display = 'none';
+    const cBtn = document.getElementById('ct-confirm-btn');
+    if (cBtn) { cBtn.disabled = false; cBtn.textContent = '✅ Confirm & Save Bill'; }
+    ctUser = null; ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctPay = 'cash'; ctRewardId = null; ctExpectedCode = ''; ctLastBill = null; ctAppliedCode = '';
   };
 
   window.ctLookup = async function() {
@@ -507,6 +528,14 @@
     document.getElementById('ct-name').textContent = ctUser.name;
     document.getElementById('ct-sub').textContent  =
       `${ctUser.visits||0} visits · ${ctUser.points||0} pts · ${code}`;
+
+    const alertBanner = document.getElementById('ct-alert-banner');
+    if (ctUser.noteIsAlert && ctUser.adminNotes) {
+      alertBanner.style.display = 'block';
+      document.getElementById('ct-alert-text').textContent = ctUser.adminNotes;
+    } else {
+      alertBanner.style.display = 'none';
+    }
 
     // ── Built-in offers ──────────────────────────────────────
     const offers = [];
@@ -596,7 +625,7 @@
     const bannerEl = document.getElementById('ct-applied-banner');
     if (alreadyOn) {
       // Toggle off — deselect
-      ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctRewardId = null;
+      ctDiscPct = 0; ctDiscFlat = 0; ctDiscType = 'discount'; ctRewardId = null; ctAppliedCode = '';
       if (bannerEl) bannerEl.style.display = 'none';
     } else {
       el.style.borderColor = 'var(--green)';
@@ -606,6 +635,7 @@
       ctDiscFlat = flatAmt || 0;
       ctDiscType = discType || 'discount';
       ctRewardId = rewardId || null;
+      ctAppliedCode = offerCode || '';
       if (bannerEl) {
         bannerEl.style.display = 'block';
         document.getElementById('ct-applied-name').textContent = offerName || '';
@@ -648,34 +678,62 @@
   window.ctConfirm = async function() {
     if (!ctUser) return;
     const amt   = parseFloat(document.getElementById('ct-amt').value)   || 0;
+    if (amt <= 0) { alert('Bill amount dalein'); return; }
     const final = parseFloat(document.getElementById('ct-final').value) || amt;
-    const disc  = amt - final;
+    const disc  = Math.round((amt - final) * 100) / 100;
     const mob   = ctUser.mobile;
+
+    // ── Disable button immediately — prevent double-click/double-save ──
+    const btn = document.getElementById('ct-confirm-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Saving...';
 
     const s    = JSON.parse(localStorage.getItem(LS.settings) || '{}');
     const goal = s.defaultVisitThreshold || 5;
-    const ptsAdd = s.defaultPerVisitPts || 5;
+    const visitBonus  = s.defaultPerVisitPts || 5;
+    const perRupeeRate = s.pointsPer10Rs || 0;
+    const spendPts = Math.floor((amt / 10) * perRupeeRate);
+    const ptsAdd   = visitBonus + spendPts;
+
     const newVisits = (ctUser.visits || 0) + 1;
     const newPoints = (ctUser.points || 0) + ptsAdd;
     const newSaved  = (ctUser.saved  || 0) + disc;
+    const nowIso    = new Date().toISOString();
 
-    // ── Firestore update (best effort) ───────────────────────
+    let saveOk = true;
+
+    // ── Build extra fields for built-in coupon auto-mark-used ──
+    const extraFields = {};
+    if (ctAppliedCode.startsWith('ROLL')) extraFields.couponUsed_welcome = nowIso;
+    if (ctAppliedCode.startsWith('BDAY')) extraFields.couponUsed_birthday = nowIso;
+
+    // ── 1. Customer update ───────────────────────────────────
     try {
       await updateDoc(doc(db, 'users', mob), {
         visits: newVisits, points: newPoints, saved: newSaved,
-        lastVisit: new Date().toISOString()
+        lastVisit: nowIso, ...extraFields
       });
-    } catch (e) { console.warn('Firestore customer update failed', e); }
+    } catch (e) {
+      console.warn('Firestore customer update failed', e);
+      saveOk = false;
+    }
 
+    // ── 2. Bill record ───────────────────────────────────────
+    let billId = null;
     try {
-      await addDoc(collection(db, 'bills'), {
+      const billRef = await addDoc(collection(db, 'bills'), {
         mobile: mob, name: ctUser.name, amt, final, discount: disc,
         offer: ctRewardId ? 'reward' : (ctDiscPct > 0 ? 'welcome' : 'none'),
-        payment: ctPay, time: new Date().toISOString(), visitNumber: newVisits
+        payment: ctPay, time: nowIso, visitNumber: newVisits,
+        pointsEarned: ptsAdd
       });
-    } catch (e) { console.warn('Firestore bill add failed', e); }
+      billId = billRef.id;
+    } catch (e) {
+      console.warn('Firestore bill add failed', e);
+      saveOk = false;
+    }
 
-    // Mark reward as used + track per-customer savings
+    // ── 3. Mark reward as used (expires coupon for customer) ──
     if (ctRewardId && disc > 0) {
       try {
         const rwRef = doc(db, 'rewards', ctRewardId);
@@ -696,7 +754,7 @@
       } catch (e) { console.warn('reward mark-used failed', e); }
     }
 
-    // ── LocalStorage sync (always, for offline fallback) ────
+    // ── LocalStorage sync (offline fallback, always do this) ──
     const users = JSON.parse(localStorage.getItem(LS.users) || '[]');
     const idx   = users.findIndex(u => u.mobile === mob);
     if (idx !== -1) {
@@ -707,59 +765,106 @@
     bills.unshift({
       mobile: mob, name: ctUser.name, amt, final, discount: disc,
       offer: ctRewardId ? 'reward' : (ctDiscPct > 0 ? 'welcome' : 'none'),
-      payment: ctPay, time: new Date().toISOString()
+      payment: ctPay, time: nowIso, pointsEarned: ptsAdd
     });
     localStorage.setItem(LS.bills, JSON.stringify(bills));
 
+    btn.disabled = false;
+    btn.textContent = '✅ Confirm & Save Bill';
+
+    if (!saveOk) {
+      alert('⚠️ Kuch save nahi hua — internet check karo aur dobara try karo. Bill abhi tak confirm NAHI hua hai.');
+      return; // ── Do NOT show success/WhatsApp/Print — save failed ──
+    }
+
+    // ── Save successful — store last-bill data for receipt/print ──
     ctUser.visits = newVisits; ctUser.points = newPoints; ctUser.saved = newSaved;
+    ctLastBill = {
+      name: ctUser.name, mobile: mob, amt, final, disc, pay: ctPay,
+      points: newPoints, pointsEarned: ptsAdd, visits: newVisits, billId,
+      isMilestone: newVisits % goal === 0,
+      rewardLabel: s.defaultVisitReward || 'FREE item'
+    };
 
-    const rew = s.defaultVisitReward || 'FREE item';
-    alert(newVisits % goal === 0
-      ? `🎉 Visit ${newVisits} — ${ctUser.name} ko ${rew} milega!`
-      : `✅ Bill done! Visit #${newVisits} · +${ptsAdd} pts`
-    );
+    // ── Show success state, hide the form ─────────────────────
+    document.getElementById('ct-result').style.display  = 'none';
+    document.getElementById('ct-success').style.display  = 'block';
+    document.getElementById('ct-success-title').textContent =
+      ctLastBill.isMilestone ? `🎉 Visit ${newVisits} — Milestone!` : '✅ Bill Saved!';
+    document.getElementById('ct-success-sub').textContent =
+      ctLastBill.isMilestone
+        ? `${ctUser.name} ko ${ctLastBill.rewardLabel} milega! · +${ptsAdd} pts`
+        : `${ctUser.name} · ₹${final} · +${ptsAdd} pts`;
 
-    closeCounter();
+    // ── Refresh dashboard/customers iframe if open ─────────────
     const frame = document.getElementById('content-frame');
-    if (frame && frame.src && (frame.src.includes('billing') || frame.src.includes('dashboard') || frame.src.includes('customers'))) {
+    if (frame && frame.src && (frame.src.includes('dashboard') || frame.src.includes('customers'))) {
       try { frame.contentWindow?.location.reload(); } catch(e) {}
     }
     updateBadges();
   };
 
   window.ctReceipt = function() {
-    if (!ctUser) return;
-    const amt   = parseFloat(document.getElementById('ct-amt').value)   || 0;
-    const final = parseFloat(document.getElementById('ct-final').value) || amt;
-    const disc  = amt - final;
-    const sh    = JSON.parse(localStorage.getItem(LS.shop) || '{}');
-    const msg   = encodeURIComponent(
+    if (!ctLastBill) return;
+    const b  = ctLastBill;
+    const sh = JSON.parse(localStorage.getItem(LS.shop) || '{}');
+    const msg = encodeURIComponent(
       `🧾 *${sh.name || 'Kathi Roll Hub'} — Bill Receipt*\n` +
       `────────────────\n` +
-      `👤 ${ctUser.name}\n📱 ${ctUser.mobile}\n` +
+      `👤 ${b.name}\n📱 ${b.mobile}\n` +
       `────────────────\n` +
-      `💰 Amount: ₹${amt}\n${disc>0?`🎁 Discount: -₹${disc}\n`:''}` +
-      `✅ *Final: ₹${final}*\n💳 ${ctPay.toUpperCase()}\n` +
+      `💰 Amount: ₹${b.amt}\n${b.disc>0?`🎁 Discount: -₹${b.disc}\n`:''}` +
+      `✅ *Final: ₹${b.final}*\n💳 ${b.pay.toUpperCase()}\n` +
       `────────────────\n` +
-      `⭐ Points: ${(ctUser.points||0)+5}\n` +
+      `⭐ Points Earned: +${b.pointsEarned}\n` +
+      `⭐ Total Points: ${b.points}\n` +
       `Dhanyawaad! Dobara aana 🙏`
     );
-    window.open(`https://wa.me/${ctUser.mobile}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${b.mobile}?text=${msg}`, '_blank');
+  };
+
+  window.ctPrint = function() {
+    if (!ctLastBill) return;
+    const b  = ctLastBill;
+    const sh = JSON.parse(localStorage.getItem(LS.shop) || '{}');
+    const html = `
+      <html><head><title>Receipt</title>
+      <style>
+        body{font-family:monospace;width:280px;margin:0 auto;padding:16px;font-size:13px}
+        .c{text-align:center} .b{font-weight:700} hr{border:none;border-top:1px dashed #000;margin:8px 0}
+        .row{display:flex;justify-content:space-between}
+      </style></head><body>
+      <div class="c b" style="font-size:15px">${sh.name || 'Kathi Roll Hub'}</div>
+      <div class="c">${sh.loc || ''}</div>
+      <hr/>
+      <div class="row"><span>Customer</span><span class="b">${b.name}</span></div>
+      <div class="row"><span>Mobile</span><span>${b.mobile}</span></div>
+      <div class="row"><span>Date</span><span>${new Date().toLocaleString('en-IN')}</span></div>
+      <hr/>
+      <div class="row"><span>Bill Amount</span><span>₹${b.amt}</span></div>
+      ${b.disc>0?`<div class="row"><span>Discount</span><span>-₹${b.disc}</span></div>`:''}
+      <div class="row b" style="font-size:15px"><span>Final</span><span>₹${b.final}</span></div>
+      <div class="row"><span>Payment</span><span>${b.pay.toUpperCase()}</span></div>
+      <hr/>
+      <div class="row"><span>Points Earned</span><span>+${b.pointsEarned}</span></div>
+      <div class="row"><span>Total Points</span><span>${b.points}</span></div>
+      <hr/>
+      <div class="c">Dhanyawaad! Dobara aana 🙏</div>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 250);
+  };
+
+  window.ctNewBill = function() {
+    ctLastBill = null;
+    closeCounter();
+    openCounter();
   };
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
