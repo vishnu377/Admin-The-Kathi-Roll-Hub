@@ -548,7 +548,7 @@
         title, type: 'discount', value: pct, code,
         active: true, singleUse: true, usedBy: [],
         usageCount: 0, maxUses: 1,
-        personalFor: pmUser.mobile,
+        targetMobile: pmUser.mobile,
         createdAt: new Date().toISOString(),
       });
       showToast(`✅ Personal coupon "${code}" ban gaya!`);
@@ -582,7 +582,6 @@
 </script>
 </body>
 </html>
-
 
 
 
