@@ -344,7 +344,7 @@ export async function getAllBills() {
       const snap = await getDDocsFn(
         queryFn(collFn(db, COLLECTIONS.bills), orderByFn('time', 'desc'))
       );
-      const bills = snap.docs.map(d => d.data());
+      const bills = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       localStorage.setItem(LS.bills, JSON.stringify(bills));
       return bills;
     } catch (e) { console.warn('[getAllBills] Firestore failed:', e.message); }
@@ -710,8 +710,6 @@ export const genCode   = (mob, type = 'welcome') => {
     ? `${pfx[type]}${sfx}${new Date().getFullYear()}`
     : `${pfx[type]}${sfx}`;
 };
-
-
 
 
 
