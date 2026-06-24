@@ -1,9 +1,10 @@
+
 // ============================================================
 //  admin/js/bills-history.js  —  Bill History / Ledger page
 // ============================================================
 
 import { getAllBills, fmtDate } from './admin.js';
-import { db, doc, updateDoc } from '../shared/firebase-config.js';
+import { db, doc, updateDoc, getDoc } from '../shared/firebase-config.js';
 
 let allBills = [];
 let filtered = [];
@@ -82,10 +83,14 @@ function renderTable() {
       <td class="hide-sm" style="font-size:12.5px;color:${b.discount > 0 ? 'var(--green)' : 'var(--txt3)'};font-weight:600">
         ${b.discount > 0 ? '-₹' + b.discount : '—'}
       </td>
-      <td><span class="status-badge ${status}">${statusLabel}</span></td>
+      <td>
+        <span class="status-badge ${status}">${statusLabel}</span>
+        ${(b.amountDue > 0) ? `<div style="font-size:10.5px;color:var(--red);font-weight:700;margin-top:3px">₹${b.amountDue} baki</div>` : ''}
+      </td>
       <td class="hide-sm" style="font-size:12.5px;color:var(--txt2)">${payLabel}</td>
       <td>
         <div style="display:flex;gap:6px">
+          ${(status === 'pending' || status === 'partial') ? `<button class="btn btn-success btn-sm" onclick="bhMarkPaid(${idx})">✅ Mark Paid</button>` : ''}
           ${status !== 'cancelled' ? `<button class="btn btn-danger btn-sm" onclick="bhCancelBill(${idx})">🗑️ Cancel</button>` : ''}
         </div>
       </td>
@@ -113,6 +118,40 @@ window.bhCancelBill = async function(idx) {
     const realIdx = allBills.findIndex(b => b.id === bill.id);
     if (realIdx !== -1) allBills[realIdx].status = 'cancelled';
     bhToast('✅ Bill cancel ho gaya');
+    renderStats();
+    renderTable();
+  } catch (e) {
+    bhToast('❌ Failed: ' + e.message);
+  }
+};
+
+// ── Mark a pending/partial bill as fully paid — reduces customer's udhaar ──
+window.bhMarkPaid = async function(idx) {
+  const bill = [...filtered].sort((a, b) => new Date(b.time) - new Date(a.time))[idx];
+  if (!bill || !bill.mobile) return;
+
+  const due = parseFloat(bill.amountDue) || 0;
+  if (!confirm(`"${bill.name}" ne baki ₹${due} de diye? Bill 'Paid' mark ho jayega.`)) return;
+
+  try {
+    if (bill.id) {
+      await updateDoc(doc(db, 'bills', bill.id), { status: 'paid', amountDue: 0 });
+    }
+
+    // Reduce customer's totalDebt by this bill's due amount
+    const custSnap = await getDoc(doc(db, 'users', bill.mobile));
+    if (custSnap.exists()) {
+      const custData = custSnap.data();
+      const newDebt = Math.max(0, (parseFloat(custData.totalDebt) || 0) - due);
+      await updateDoc(doc(db, 'users', bill.mobile), { totalDebt: newDebt });
+    }
+
+    bill.status = 'paid';
+    bill.amountDue = 0;
+    const realIdx = allBills.findIndex(b => b.id === bill.id);
+    if (realIdx !== -1) { allBills[realIdx].status = 'paid'; allBills[realIdx].amountDue = 0; }
+
+    bhToast('✅ Payment received — udhaar clear ho gaya!');
     renderStats();
     renderTable();
   } catch (e) {

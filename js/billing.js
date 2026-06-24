@@ -44,6 +44,16 @@ window.cbLookup = async function() {
   document.getElementById('cb-cust-name').textContent = cbUser.name;
   document.getElementById('cb-cust-sub').textContent =
     `${cbUser.visits || 0} visits · ${cbUser.points || 0} pts`;
+
+  const udhaarEl = document.getElementById('cb-udhaar-alert');
+  const debt = parseFloat(cbUser.totalDebt) || 0;
+  if (debt > 0) {
+    udhaarEl.style.display = 'block';
+    udhaarEl.textContent = `🚨 Inka ₹${debt} udhaar baki hai!`;
+  } else {
+    udhaarEl.style.display = 'none';
+  }
+
   foundEl.classList.add('show');
 
   await cbLoadOffers();
@@ -323,6 +333,35 @@ window.cbSelPay = function(el, method) {
   cbPay = method;
 };
 
+// ── Payment status (Full Paid / Partial / Udhaar) — auto-detected ──
+window.cbUpdatePaymentStatus = function() {
+  const subtotal = cbSubtotal();
+  let disc = 0;
+  if (cbAppliedOffer) {
+    disc = cbAppliedOffer.flat > 0
+      ? Math.min(cbAppliedOffer.flat, subtotal)
+      : Math.round(subtotal * (cbAppliedOffer.pct / 100));
+  }
+  const total = subtotal - disc;
+  const paidInput = document.getElementById('cb-amt-paid');
+  const statusEl = document.getElementById('cb-payment-status');
+
+  const paidVal = paidInput.value.trim();
+  if (paidVal === '') { statusEl.style.display = 'none'; return; }
+
+  const paid = parseFloat(paidVal) || 0;
+  const due = Math.max(0, total - paid);
+
+  statusEl.style.display = 'block';
+  if (due <= 0) {
+    statusEl.innerHTML = '<span style="color:var(--green);font-weight:700;font-size:12.5px">✅ Full Paid</span>';
+  } else if (paid > 0) {
+    statusEl.innerHTML = `<span style="color:#92400e;font-weight:700;font-size:12.5px">⏳ Partial — ₹${due} baki rahega (Udhaar)</span>`;
+  } else {
+    statusEl.innerHTML = `<span style="color:var(--red);font-weight:700;font-size:12.5px">🚨 Pura Udhaar — ₹${due}</span>`;
+  }
+};
+
 // ── Confirm (single trigger — saves everything atomically) ────
 window.cbConfirm = async function() {
   if (!cbUser) { cbToast('Pehle customer dhundo'); return; }
@@ -343,6 +382,12 @@ window.cbConfirm = async function() {
   const mob = cbUser.mobile;
   const nowIso = new Date().toISOString();
 
+  // ── Payment status calculation ───────────────────────────
+  const paidInputVal = document.getElementById('cb-amt-paid').value.trim();
+  const amountPaid = paidInputVal === '' ? final : (parseFloat(paidInputVal) || 0);
+  const amountDue = Math.max(0, final - amountPaid);
+  const paymentStatus = amountDue <= 0 ? 'paid' : (amountPaid > 0 ? 'partial' : 'pending');
+
   const s = JSON.parse(localStorage.getItem(LS.settings) || '{}');
   const goal = s.defaultVisitThreshold || 5;
   const visitBonus = s.defaultPerVisitPts || 5;
@@ -353,9 +398,10 @@ window.cbConfirm = async function() {
   const newVisits = (cbUser.visits || 0) + 1;
   const newPoints = (cbUser.points || 0) + ptsAdd;
   const newSaved = (cbUser.saved || 0) + disc;
+  const newDebt = Math.max(0, (parseFloat(cbUser.totalDebt) || 0) + amountDue);
 
   let saveOk = true;
-  const extraFields = {};
+  const extraFields = { totalDebt: newDebt };
   if (cbAppliedOffer && cbAppliedOffer.type === 'welcome') extraFields.couponUsed_welcome = nowIso;
   if (cbAppliedOffer && cbAppliedOffer.type === 'birthday') extraFields.couponUsed_birthday = nowIso;
 
@@ -374,7 +420,8 @@ window.cbConfirm = async function() {
       mobile: mob, name: cbUser.name, amt: subtotal, final, discount: disc,
       offer: cbAppliedOffer ? (cbAppliedOffer.type === 'reward' ? 'reward' : cbAppliedOffer.type) : 'none',
       payment: cbPay, time: nowIso, visitNumber: newVisits,
-      pointsEarned: ptsAdd, items: itemsSnapshot
+      pointsEarned: ptsAdd, items: itemsSnapshot,
+      status: paymentStatus, amountPaid, amountDue
     });
     billId = billRef.id;
   } catch (e) { console.warn('bill add failed', e); saveOk = false; }
@@ -451,6 +498,14 @@ window.cbConfirm = async function() {
   document.getElementById('cs-final').textContent = '₹' + final;
   document.getElementById('cs-payment').textContent = { cash: '💵 Cash', upi: '📲 UPI', card: '💳 Card' }[cbPay] || cbPay;
   document.getElementById('cs-points').textContent = '+' + ptsAdd;
+
+  const dueRowEl = document.getElementById('cs-due-row');
+  if (amountDue > 0) {
+    dueRowEl.style.display = 'flex';
+    document.getElementById('cs-due-amt').textContent = '₹' + amountDue;
+  } else {
+    dueRowEl.style.display = 'none';
+  }
 };
 
 window.cbWhatsAppReceipt = function() {
@@ -501,7 +556,10 @@ window.cbNewBill = function() {
   cbUser = null; cbCart = []; cbAppliedOffer = null; cbPay = 'cash'; cbLastBill = null;
   document.getElementById('cb-mob').value = '';
   document.getElementById('cb-cust-found').classList.remove('show');
+  document.getElementById('cb-udhaar-alert').style.display = 'none';
   document.getElementById('cb-item-search').value = '';
+  document.getElementById('cb-amt-paid').value = '';
+  document.getElementById('cb-payment-status').style.display = 'none';
   document.getElementById('cb-offers-card').style.display = 'none';
   document.querySelector('.pos-grid').style.display = 'grid';
   document.getElementById('cart-success').style.display = 'none';
@@ -518,10 +576,6 @@ function cbToast(msg, dur = 2500) {
 
 // ── Init ─────────────────────────────────────────────────────
 cbLoadMenu();
-
-
-
-
 
 
 
