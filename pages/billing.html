@@ -7,28 +7,176 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../css/admin.css"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);font-family:'Inter',sans-serif;height:100svh;display:flex;align-items:center;justify-content:center;padding:20px}
-    .wrap{text-align:center;max-width:420px}
-    .icon{font-size:64px;margin-bottom:20px}
-    h1{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:10px}
-    p{font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:28px}
-    .btn-big{
-      background:var(--yellow);color:#000;border:none;border-radius:var(--r-lg);
-      font-family:'Inter',sans-serif;font-size:16px;font-weight:800;
-      padding:16px 32px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
-      box-shadow:var(--shadow-md);
+    body { background: var(--bg); margin: 0; padding: 0; }
+    .page { padding: 20px; max-width: 1200px; }
+    .pos-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+    @media(max-width:900px){ .pos-grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 16px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+    .cust-found { background: var(--bg); border-radius: var(--r-md); padding: 12px 14px; margin-top: 10px; display: none; }
+    .cust-found.show { display: block; }
+
+    .item-results { max-height: 280px; overflow-y: auto; margin-top: 10px; }
+    .item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer;
+      transition: background .12s; margin-bottom: 6px; border: 1px solid var(--border);
     }
-    .hint{margin-top:18px;font-size:12px;color:var(--txt3)}
+    .item-row:hover { background: var(--bg); border-color: var(--blue); }
+    .item-row.out { opacity: .45; cursor: not-allowed; }
+    .item-row .ir-name { font-size: 13.5px; font-weight: 700; color: var(--txt); }
+    .item-row .ir-sub  { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+    .item-row .ir-price { font-size: 13px; font-weight: 800; color: var(--txt); flex-shrink: 0; }
+
+    .cart-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .cart-row:last-child { border-bottom: none; }
+    .cr-name { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--txt); }
+    .cr-variant { font-size: 11px; color: var(--txt3); }
+    .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--border);
+      background: var(--bg); font-size: 14px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; color: var(--txt);
+    }
+    .qty-val { font-size: 13px; font-weight: 800; min-width: 18px; text-align: center; }
+    .cr-price { font-size: 13.5px; font-weight: 800; color: var(--txt); width: 60px; text-align: right; }
+    .cr-del { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--red); padding: 2px 4px; }
+
+    .empty-cart { text-align: center; padding: 32px 16px; color: var(--txt3); font-size: 13px; }
+
+    .sum-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: var(--txt2); }
+    .sum-row.total { font-size: 18px; font-weight: 800; color: var(--txt); border-top: 1.5px solid var(--border); margin-top: 8px; padding-top: 12px; }
+    .sum-row .neg { color: var(--green); }
+
+    .pay-btns { display: flex; gap: 8px; margin-top: 4px; }
+    .pay-btn {
+      flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1.5px solid var(--border);
+      background: var(--bg); font-family: var(--font); font-size: 12.5px; font-weight: 700;
+      color: var(--txt2); cursor: pointer; transition: all .15s;
+    }
+    .pay-btn.on { border-color: var(--yellow); background: #fff8e1; color: #92400e; }
+
+    .offer-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #fffbe6; border: 1.5px solid #ffe58f; border-radius: 99px;
+      padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--txt);
+      cursor: pointer; margin: 0 6px 6px 0; transition: all .15s;
+    }
+    .offer-chip.on { background: #f0fdf4; border-color: var(--green); color: #166534; }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-bg.open { display: flex; }
+    .modal-card { background: var(--card); border-radius: var(--r-xl); padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,.2); }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--txt); color: var(--card); font-size: 13px; font-weight: 700;
+      padding: 10px 20px; border-radius: 99px; z-index: 999; opacity: 0; transition: opacity .3s; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    #cart-success { display: none; text-align: center; padding: 30px 16px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="icon">⚡</div>
-    <h1>Fast Billing yahan se hota hai!</h1>
-    <p>Top bar ka <strong>⚡ Counter</strong> button kahin se bhi kaam karta hai — customer ka mobile number daalo, offer select karo, bill amount likho, aur 3 click mein bill ready!</p>
-    <button class="btn-big" onclick="window.parent.openCounter()">⚡ Counter Kholo</button>
-    <div class="hint">Yeh button top bar mein hamesha available hai — yahan tak aane ki zarurat nahi padegi.</div>
+<div class="page">
+
+  <div class="pos-grid">
+
+    <div>
+      <div class="card" style="margin-bottom: 14px">
+        <div class="card-title">👤 Customer</div>
+        <div style="display:flex;gap:8px">
+          <input class="inp" type="tel" id="cb-mob" maxlength="10" inputmode="numeric"
+            placeholder="Mobile number..." onkeydown="if(event.key==='Enter')cbLookup()"/>
+          <button class="btn btn-yellow" onclick="cbLookup()" style="white-space:nowrap">🔍 Find</button>
+        </div>
+        <div class="cust-found" id="cb-cust-found">
+          <div style="font-size:14px;font-weight:700;color:var(--txt)" id="cb-cust-name"></div>
+          <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="cb-cust-sub"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🌯 Menu Items</div>
+        <input class="inp" type="text" id="cb-item-search" placeholder="🔍 Item search karo..." oninput="cbFilterItems()"/>
+        <div class="item-results" id="cb-item-results"></div>
+        <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="cbOpenCustomItem()">
+          ➕ Custom Item Add Karo
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom: 14px">
+        <div class="card-title">🛒 Cart <span id="cb-cart-count" style="color:var(--txt3);font-weight:600"></span></div>
+        <div id="cb-cart-list">
+          <div class="empty-cart" id="cb-empty-cart">Cart khali hai — item add karo</div>
+        </div>
+      </div>
+
+      <div class="card" id="cb-offers-card" style="display:none;margin-bottom:14px">
+        <div class="card-title">🎁 Available Offers</div>
+        <div id="cb-offers-list"></div>
+      </div>
+
+      <div class="card" id="cb-summary-section" style="display:none">
+        <div class="sum-row"><span>Subtotal</span><span id="cb-subtotal">₹0</span></div>
+        <div class="sum-row" id="cb-disc-row" style="display:none"><span>Discount</span><span class="neg" id="cb-disc-amt">-₹0</span></div>
+        <div class="sum-row total"><span>Total</span><span id="cb-total">₹0</span></div>
+
+        <div style="margin-top:14px">
+          <label class="lbl">Payment</label>
+          <div class="pay-btns">
+            <button class="pay-btn on" onclick="cbSelPay(this,'cash')">💵 Cash</button>
+            <button class="pay-btn"    onclick="cbSelPay(this,'upi')">📲 UPI</button>
+            <button class="pay-btn"    onclick="cbSelPay(this,'card')">💳 Card</button>
+          </div>
+        </div>
+
+        <button class="btn btn-success btn-full" id="cb-confirm-btn" style="margin-top:16px" onclick="cbConfirm()">
+          ✅ Confirm & Save Bill
+        </button>
+      </div>
+
+      <div class="card" id="cart-success">
+        <div style="font-size:48px;margin-bottom:8px">🎉</div>
+        <div style="font-size:17px;font-weight:800;color:var(--txt);margin-bottom:4px" id="cs-title">Bill Saved!</div>
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:20px" id="cs-sub"></div>
+        <button class="btn btn-ghost btn-full" style="color:var(--green);border-color:var(--green);margin-bottom:8px" onclick="cbWhatsAppReceipt()">📲 WhatsApp Receipt</button>
+        <button class="btn btn-ghost btn-full" style="color:var(--blue);border-color:var(--blue);margin-bottom:8px" onclick="cbPrintReceipt()">🖨️ Print Receipt</button>
+        <button class="btn btn-yellow btn-full" onclick="cbNewBill()">➕ New Bill</button>
+      </div>
+    </div>
+
   </div>
+</div>
+
+<div class="modal-bg" id="cb-custom-modal" onclick="if(event.target===this)cbCloseCustomItem()">
+  <div class="modal-card">
+    <div style="font-size:16px;font-weight:800;color:var(--txt);margin-bottom:14px">➕ Custom Item</div>
+    <div class="field" style="margin-bottom:12px">
+      <label class="lbl">Item Name</label>
+      <input class="inp" type="text" id="cb-ci-name" placeholder="e.g. Extra Cheese"/>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label class="lbl">Price ₹</label>
+      <input class="inp" type="number" id="cb-ci-price" placeholder="0" min="0"/>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="cbCloseCustomItem()">Cancel</button>
+      <button class="btn btn-success" style="flex:2" onclick="cbAddCustomItem()">✅ Cart Mein Add Karo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="cb-toast"></div>
+
+<script type="module" src="../js/billing.js"></script>
 </body>
 </html>
