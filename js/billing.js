@@ -1,18 +1,3 @@
-x
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ============================================================
 //  admin/js/billing.js  —  Cart-based POS billing
 //  Mirrors the proven Firestore pattern from index.html Counter
@@ -533,3 +518,10 @@ function cbToast(msg, dur = 2500) {
 
 // ── Init ─────────────────────────────────────────────────────
 cbLoadMenu();
+
+
+
+
+
+
+
