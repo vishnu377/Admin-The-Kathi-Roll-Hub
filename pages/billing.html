@@ -1,4 +1,21 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -145,7 +162,7 @@
         </button>
       </div>
 
-      <div class="card" id="cart-success">
+      <div class="card" id="cart-success" style="display:none">
         <div style="font-size:48px;margin-bottom:8px;text-align:center">🎉</div>
         <div style="font-size:17px;font-weight:800;color:var(--txt);margin-bottom:4px;text-align:center" id="cs-title">Bill Saved!</div>
         <div style="font-size:13px;color:var(--txt2);margin-bottom:16px;text-align:center" id="cs-sub"></div>
@@ -170,6 +187,8 @@
     </div>
 
   </div>
+
+  <!-- Success card lives OUTSIDE pos-grid so hiding the grid doesn't hide it -->
 </div>
 
 <div class="modal-bg" id="cb-custom-modal" onclick="if(event.target===this)cbCloseCustomItem()">
@@ -195,9 +214,6 @@
 <script type="module" src="../js/billing.js"></script>
 </body>
 </html>
-
-
-
 
 
 
