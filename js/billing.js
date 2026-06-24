@@ -1,3 +1,18 @@
+x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============================================================
 //  admin/js/billing.js  —  Cart-based POS billing
 //  Mirrors the proven Firestore pattern from index.html Counter
@@ -431,6 +446,26 @@ window.cbConfirm = async function() {
   document.getElementById('cs-sub').textContent = cbLastBill.isMilestone
     ? `${cbUser.name} ko ${cbLastBill.rewardLabel} milega! · +${ptsAdd} pts`
     : `${cbUser.name} · ₹${final} · +${ptsAdd} pts`;
+
+  // ── Populate itemized bill summary ─────────────────────────
+  const itemsListEl = document.getElementById('cs-items-list');
+  itemsListEl.innerHTML = itemsSnapshot.map(i => `
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--txt2)">
+      <span>${i.name}${i.variant ? ' (' + i.variant + ')' : ''} <span style="color:var(--txt3)">x${i.qty}</span></span>
+      <span style="font-weight:700;color:var(--txt)">₹${i.price * i.qty}</span>
+    </div>`).join('');
+
+  document.getElementById('cs-subtotal').textContent = '₹' + subtotal;
+  const discRowEl = document.getElementById('cs-disc-row');
+  if (disc > 0) {
+    discRowEl.style.display = 'flex';
+    document.getElementById('cs-disc-amt').textContent = '-₹' + disc;
+  } else {
+    discRowEl.style.display = 'none';
+  }
+  document.getElementById('cs-final').textContent = '₹' + final;
+  document.getElementById('cs-payment').textContent = { cash: '💵 Cash', upi: '📲 UPI', card: '💳 Card' }[cbPay] || cbPay;
+  document.getElementById('cs-points').textContent = '+' + ptsAdd;
 };
 
 window.cbWhatsAppReceipt = function() {
