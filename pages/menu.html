@@ -224,6 +224,20 @@
     <div class="ss"><div class="ss-accent" style="background:#ca8a04"></div><span class="ss-icon">📂</span><div class="ss-val y" id="s-cats">—</div><div class="ss-lbl">Categories</div></div>
   </div>
 
+  <!-- ── Manage Categories ── -->
+  <div class="form-card" id="cat-manage-card">
+    <div class="form-card-title">📂 Categories Manage Karo</div>
+    <p style="font-size:12px;color:var(--txt3);margin-top:-10px;margin-bottom:14px">
+      Yahan apni categories add/delete karo (e.g. "Egg Rolls", "Pizza"). Jo bhi yahan add karoge, wahi "Add Item" form ke dropdown mein dikhega.
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input class="inp" type="text" id="cat-new-name" placeholder="e.g. Pizza" style="flex:1"/>
+      <button class="btn btn-yellow" onclick="addCategory()" style="white-space:nowrap">➕ Add Category</button>
+    </div>
+    <div class="msg-err" id="cat-err" style="margin-bottom:10px;display:none"></div>
+    <div id="cat-chip-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+
   <!-- ── Add Item Form ── -->
   <div class="form-card" id="add-form">
     <div class="form-card-title">➕ Naya Item Add Karo</div>
@@ -297,14 +311,7 @@
       <div class="field">
         <label class="lbl">Category</label>
         <select class="inp inp-sm" id="f-cat">
-          <option>Kathi Roll</option>
-          <option>Momos</option>
-          <option>Chinese</option>
-          <option>Shake</option>
-          <option>Coffee</option>
-          <option>Snacks</option>
-          <option>Dessert</option>
-          <option>Other</option>
+          <option value="">— pehle category add karo —</option>
         </select>
       </div>
       <div class="field">
@@ -365,14 +372,6 @@
         </div>
         <select class="cat-filter" id="cat-filter" onchange="filterMenu()">
           <option value="">Sab Categories</option>
-          <option>Kathi Roll</option>
-          <option>Momos</option>
-          <option>Chinese</option>
-          <option>Shake</option>
-          <option>Coffee</option>
-          <option>Snacks</option>
-          <option>Dessert</option>
-          <option>Other</option>
         </select>
         <select class="cat-filter" id="type-filter" onchange="filterMenu()">
           <option value="">Veg + Non-veg</option>
@@ -394,14 +393,6 @@
       <span style="font-size:12.5px;font-weight:700;color:var(--txt2)">⚡ Bulk Action:</span>
       <select class="cat-filter" id="bulk-cat">
         <option value="">Category chuno...</option>
-        <option>Kathi Roll</option>
-        <option>Momos</option>
-        <option>Chinese</option>
-        <option>Shake</option>
-        <option>Coffee</option>
-        <option>Snacks</option>
-        <option>Dessert</option>
-        <option>Other</option>
       </select>
       <button class="btn btn-danger btn-sm" onclick="bulkSetAvailability(false)">❌ Sab Out of Stock</button>
       <button class="btn btn-success btn-sm" onclick="bulkSetAvailability(true)">✅ Sab Available</button>
@@ -451,12 +442,14 @@
 <script type="module">
   import {
     getMenu, saveMenuItem, deleteMenuItem,
+    getCategories, saveCategory, deleteCategory,
     fmtDate
   } from '../js/admin.js';
 
   // ── State ──────────────────────────────────────────────────
   let allItems     = [];
   let filteredItems = [];
+  let categoriesCache = [];   // [{ id, name, sortOrder }]
   let selEmoji     = '🌯';
   let selType      = 'veg';
   let isBestSeller = false;
@@ -552,7 +545,105 @@
     renderTable();
   };
 
-  loadMenu();
+  (async function initPage() {
+    await loadCategories();
+    await loadMenu();
+  })();
+
+  // ── Categories — load, render, add, delete ──────────────────
+  window.loadCategories = async function() {
+    categoriesCache = await getCategories();
+    renderCategorySelects();
+    renderCategoryChips();
+  };
+
+  function renderCategorySelects() {
+    const opts = categoriesCache.map(c =>
+      `<option value="${c.name.replace(/"/g,'&quot;')}">${c.name}</option>`
+    ).join('');
+
+    const fCat = document.getElementById('f-cat');
+    if (fCat) {
+      const prev = fCat.value;
+      fCat.innerHTML = categoriesCache.length
+        ? opts
+        : '<option value="">— pehle category add karo —</option>';
+      if (categoriesCache.some(c => c.name === prev)) fCat.value = prev;
+    }
+
+    const catFilter = document.getElementById('cat-filter');
+    if (catFilter) {
+      const prev = catFilter.value;
+      catFilter.innerHTML = '<option value="">Sab Categories</option>' + opts;
+      catFilter.value = prev;
+    }
+
+    const bulkCat = document.getElementById('bulk-cat');
+    if (bulkCat) {
+      const prev = bulkCat.value;
+      bulkCat.innerHTML = '<option value="">Category chuno...</option>' + opts;
+      bulkCat.value = prev;
+    }
+  }
+
+  function renderCategoryChips() {
+    const wrap = document.getElementById('cat-chip-list');
+    if (!wrap) return;
+
+    if (!categoriesCache.length) {
+      wrap.innerHTML = '<p style="font-size:12.5px;color:var(--txt3)">Koi category nahi hai abhi. Upar se ek add karo.</p>';
+      return;
+    }
+
+    wrap.innerHTML = categoriesCache.map(c => {
+      const count = allItems.filter(i => i.category === c.name).length;
+      return `
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1.5px solid var(--border);border-radius:99px;padding:6px 8px 6px 14px;font-size:13px;font-weight:600;color:var(--txt)">
+          ${c.name}
+          <span style="font-size:11px;color:var(--txt3);font-weight:700">(${count})</span>
+          <button type="button" onclick="deleteCategoryUI('${c.id}','${c.name.replace(/'/g,'\\u0027')}')"
+            style="border:none;background:var(--card);border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;color:var(--red);display:flex;align-items:center;justify-content:center;line-height:1"
+            title="Delete category">✕</button>
+        </span>`;
+    }).join('');
+  }
+
+  window.addCategory = async function() {
+    const inp = document.getElementById('cat-new-name');
+    const errEl = document.getElementById('cat-err');
+    errEl.style.display = 'none';
+
+    const name = inp.value.trim();
+    if (!name) { errEl.textContent = '❌ Category naam daalo'; errEl.style.display = 'block'; return; }
+
+    const res = await saveCategory(name);
+    if (!res.success) {
+      errEl.textContent = '❌ ' + res.message;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    inp.value = '';
+    await loadCategories();
+    showToast('✅ "' + name + '" category add ho gayi!');
+  };
+
+  window.deleteCategoryUI = async function(id, name) {
+    if (!confirm(`"${name}" category delete karna chahte ho?`)) return;
+
+    const res = await deleteCategory(id);
+    if (!res.success) {
+      if (res.blocked) {
+        alert(`⚠️ "${name}" delete nahi ho sakti.\n\n${res.message}`);
+      } else {
+        showToast('❌ Delete failed: ' + (res.message || ''));
+      }
+      return;
+    }
+
+    await loadCategories();
+    showToast('✅ "' + name + '" category delete ho gayi');
+  };
 
   // ── Stats ──────────────────────────────────────────────────
   function renderStats() {
@@ -564,6 +655,7 @@
     setText('s-avail', avail);
     setText('s-out',   out);
     setText('s-cats',  cats);
+    renderCategoryChips();
   }
 
   // ── Filter ─────────────────────────────────────────────────
@@ -728,6 +820,7 @@
     const price = parseFloat(document.getElementById('f-price').value) || 0;
     if (!name)  { showErr('Item name zaroor daalo'); return; }
     if (!price) { showErr('Price zaroor daalo'); return; }
+    if (!categoriesCache.length) { showErr('Pehle ek category add karo upar wale "Categories Manage Karo" box se'); return; }
 
     const cost = parseFloat(document.getElementById('f-cost').value) || 0;
     const disc = parseFloat(document.getElementById('f-disc').value) || 0;
@@ -919,6 +1012,16 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
 
 
