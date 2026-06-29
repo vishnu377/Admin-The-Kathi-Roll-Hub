@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -224,18 +226,19 @@
     <div class="ss"><div class="ss-accent" style="background:#ca8a04"></div><span class="ss-icon">📂</span><div class="ss-val y" id="s-cats">—</div><div class="ss-lbl">Categories</div></div>
   </div>
 
-  <!-- ── Manage Categories ── -->
-  <div class="form-card" id="cat-manage-card">
-    <div class="form-card-title">📂 Categories Manage Karo</div>
-    <p style="font-size:12px;color:var(--txt3);margin-top:-10px;margin-bottom:14px">
-      Yahan apni categories add/delete karo (e.g. "Egg Rolls", "Pizza"). Jo bhi yahan add karoge, wahi "Add Item" form ke dropdown mein dikhega.
+  <!-- ── One-time Bulk Seed ── -->
+  <div class="form-card" id="seed-card" style="border:1.5px dashed var(--blue)">
+    <div class="form-card-title">🌱 Saare Menu Items Ek Saath Add Karo (One-Time)</div>
+    <p style="font-size:12.5px;color:var(--txt3);margin-top:-8px;margin-bottom:14px">
+      Yeh button tumhare poore menu-card ke ~149 items ek click mein Firestore mein daal dega
+      (Egg/Chicken/Veg/Paneer Rolls → "Kathi Roll", Momos → "Momos", Chinese/Rice/Noodles/Pasta → "Chinese",
+      Shakes → "Shake", Coffee → "Coffee", Maggie/Fries/Extra → "Snacks"). Sirf EK BAAR chalao —
+      dobara chalane se items duplicate ho jayenge. Kaam hone ke baad yeh button hata dena.
     </p>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input class="inp" type="text" id="cat-new-name" placeholder="e.g. Pizza" style="flex:1"/>
-      <button class="btn btn-yellow" onclick="addCategory()" style="white-space:nowrap">➕ Add Category</button>
-    </div>
-    <div class="msg-err" id="cat-err" style="margin-bottom:10px;display:none"></div>
-    <div id="cat-chip-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    <button class="btn btn-yellow btn-full" id="seed-btn" onclick="bulkSeedMenu()">
+      🌱 Saare ~149 Items Add Karo
+    </button>
+    <div id="seed-progress" style="margin-top:10px;font-size:13px;font-weight:600;color:var(--txt2);display:none"></div>
   </div>
 
   <!-- ── Add Item Form ── -->
@@ -311,7 +314,14 @@
       <div class="field">
         <label class="lbl">Category</label>
         <select class="inp inp-sm" id="f-cat">
-          <option value="">— pehle category add karo —</option>
+          <option>Kathi Roll</option>
+          <option>Momos</option>
+          <option>Chinese</option>
+          <option>Shake</option>
+          <option>Coffee</option>
+          <option>Snacks</option>
+          <option>Dessert</option>
+          <option>Other</option>
         </select>
       </div>
       <div class="field">
@@ -372,6 +382,14 @@
         </div>
         <select class="cat-filter" id="cat-filter" onchange="filterMenu()">
           <option value="">Sab Categories</option>
+          <option>Kathi Roll</option>
+          <option>Momos</option>
+          <option>Chinese</option>
+          <option>Shake</option>
+          <option>Coffee</option>
+          <option>Snacks</option>
+          <option>Dessert</option>
+          <option>Other</option>
         </select>
         <select class="cat-filter" id="type-filter" onchange="filterMenu()">
           <option value="">Veg + Non-veg</option>
@@ -393,6 +411,14 @@
       <span style="font-size:12.5px;font-weight:700;color:var(--txt2)">⚡ Bulk Action:</span>
       <select class="cat-filter" id="bulk-cat">
         <option value="">Category chuno...</option>
+        <option>Kathi Roll</option>
+        <option>Momos</option>
+        <option>Chinese</option>
+        <option>Shake</option>
+        <option>Coffee</option>
+        <option>Snacks</option>
+        <option>Dessert</option>
+        <option>Other</option>
       </select>
       <button class="btn btn-danger btn-sm" onclick="bulkSetAvailability(false)">❌ Sab Out of Stock</button>
       <button class="btn btn-success btn-sm" onclick="bulkSetAvailability(true)">✅ Sab Available</button>
@@ -442,14 +468,12 @@
 <script type="module">
   import {
     getMenu, saveMenuItem, deleteMenuItem,
-    getCategories, saveCategory, deleteCategory,
     fmtDate
   } from '../js/admin.js';
 
   // ── State ──────────────────────────────────────────────────
   let allItems     = [];
   let filteredItems = [];
-  let categoriesCache = [];   // [{ id, name, sortOrder }]
   let selEmoji     = '🌯';
   let selType      = 'veg';
   let isBestSeller = false;
@@ -545,104 +569,222 @@
     renderTable();
   };
 
-  (async function initPage() {
-    await loadCategories();
-    await loadMenu();
-  })();
+  loadMenu();
 
-  // ── Categories — load, render, add, delete ──────────────────
-  window.loadCategories = async function() {
-    categoriesCache = await getCategories();
-    renderCategorySelects();
-    renderCategoryChips();
-  };
+  // ── ONE-TIME BULK SEED ──────────────────────────────────────
+  //  Transcribed from the 4 menu-card photos, mapped into the
+  //  8 fixed categories below. Run ONCE — running again will
+  //  create duplicate items (each gets a fresh Date.now() id).
+  // ─────────────────────────────────────────────────────────────
+  const SEED_ITEMS = [
+    // EGG ROLLS → Kathi Roll
+    { name:'Sin Egg Roll', price:60, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Dbl Egg Roll', price:70, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Triple Egg Roll', price:80, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Sin Egg Sin Noodles Roll', price:100, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Dbl Egg Dbl Noodles Roll', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Sin Egg Bhurji Roll', price:90, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Dbl Egg Bhurji Roll', price:110, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Sin Egg Cheese Roll', price:90, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Egg Cheese Roll', price:110, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Egg Sin Veggie Roll', price:70, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Dbl Egg Dbl Veggie Roll', price:110, type:'non-veg', category:'Kathi Roll', emoji:'🥚' },
+    { name:'Sin Egg Sin Aloo Roll', price:70, type:'non-veg', category:'Kathi Roll', emoji:'🥔' },
+    { name:'Dbl Egg Dbl Aloo Roll', price:110, type:'non-veg', category:'Kathi Roll', emoji:'🥔' },
+    { name:'Sin Egg Sin Paneer Roll', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Egg Dbl Paneer Roll', price:140, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Egg Dbl Paneer Roll', price:160, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Egg Sin Mushroom Roll', price:130, type:'non-veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Sin Egg Dbl Mushroom Roll', price:150, type:'non-veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Dbl Egg Dbl Mushroom Roll', price:170, type:'non-veg', category:'Kathi Roll', emoji:'🍄' },
+    // CHICKEN ROLLS → Kathi Roll
+    { name:'Single Chicken Roll', price:100, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Chicken Roll', price:130, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Chicken Cheese Roll', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Egg Sin Chicken Roll', price:110, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Egg Dbl Chicken Roll', price:140, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Egg Dbl Chicken Roll', price:150, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Chicken Malai Tikka', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Chicken Malai Tikka', price:150, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Chicken Keema Roll', price:130, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Chicken Keema Roll', price:170, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Chicken Kathi Roll', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Chicken Kathi Roll', price:150, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Tandoori Chicken Roll', price:120, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Tandoori Chicken Roll', price:150, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Chicken Korma Roll', price:130, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Chicken Korma Roll', price:170, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Sin Butter Chicken Roll', price:140, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    { name:'Dbl Butter Chicken Roll', price:180, type:'non-veg', category:'Kathi Roll', emoji:'🍗' },
+    // ALOO ROLLS → Kathi Roll
+    { name:'Sin Aloo Roll', price:60, type:'veg', category:'Kathi Roll', emoji:'🥔' },
+    { name:'Dbl Aloo Roll', price:80, type:'veg', category:'Kathi Roll', emoji:'🥔' },
+    { name:'Aloo Cheese Roll', price:90, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Tandoori Aloo Roll (Single)', price:80, type:'veg', category:'Kathi Roll', emoji:'🥔' },
+    { name:'Tandoori Aloo Roll (Double)', price:110, type:'veg', category:'Kathi Roll', emoji:'🥔' },
+    // VEG ROLLS → Kathi Roll
+    { name:'Sin Veg Kathi Roll', price:90, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Veggie Roll', price:60, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Veggie Roll', price:90, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Veg Cheese Roll', price:70, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Veg Pizza Roll', price:70, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Veg Pizza Roll', price:110, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Noodles Roll', price:80, type:'veg', category:'Kathi Roll', emoji:'🍜' },
+    { name:'Dbl Noodles Roll', price:100, type:'veg', category:'Kathi Roll', emoji:'🍜' },
+    { name:'Sin Veg Paneer Roll', price:90, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Veg Paneer Roll', price:110, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Cheese Roll', price:70, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Cheesy Corn Roll', price:90, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Cheesy Corn Roll', price:110, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Masala Corn Roll', price:80, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Masala Corn Roll', price:100, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    // CHAAP ROLLS → Kathi Roll
+    { name:'Sin Afghani Chaap Roll', price:110, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Afghani Chaap Roll', price:130, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Masala Chaap Roll', price:100, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Masala Chaap Roll', price:130, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Sin Tandoori Chaap Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    { name:'Dbl Tandoori Chaap Roll', price:140, type:'veg', category:'Kathi Roll', emoji:'🌿' },
+    // PANEER ROLLS → Kathi Roll
+    { name:'Sin Paneer Roll', price:100, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Roll', price:140, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Cheese Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Cheese Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Butter Masala Roll', price:130, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Butter Masala Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Pizza Roll', price:130, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Pizza Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Tikka Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Tikka Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Kathi Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Kathi Roll', price:150, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Bhurji Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Bhurji Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Sin Paneer Korma Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    { name:'Dbl Paneer Korma Roll', price:150, type:'veg', category:'Kathi Roll', emoji:'🧀' },
+    // MUSHROOM ROLLS → Kathi Roll
+    { name:'Sin Mushroom Roll', price:120, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Dbl Mushroom Roll', price:160, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Sin Mushroom Cheese Roll', price:140, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Dbl Mushroom Cheese Roll', price:180, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Sin Mushroom Kathi Roll', price:130, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    { name:'Dbl Mushroom Kathi Roll', price:170, type:'veg', category:'Kathi Roll', emoji:'🍄' },
+    // MOMOS → Momos
+    { name:'Steam Veg Momos', price:70, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Fried Veg Momos', price:90, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Steam Paneer Momos', price:100, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Fried Paneer Momos', price:120, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Kurkure Veg Momos', price:130, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Kurkure Paneer Momos', price:160, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Gravy Veg Momos', price:140, type:'veg', category:'Momos', emoji:'🥟' },
+    { name:'Gravy Paneer Momos', price:160, type:'veg', category:'Momos', emoji:'🥟' },
+    // EXTRA → Snacks
+    { name:'Mayonnaise', price:10, type:'veg', category:'Snacks', emoji:'🌿' },
+    { name:'Cheese', price:25, type:'veg', category:'Snacks', emoji:'🧀' },
+    { name:'Green Chutney', price:10, type:'veg', category:'Snacks', emoji:'🌿' },
+    { name:'Butter', price:10, type:'veg', category:'Snacks', emoji:'🌿' },
+    { name:'Ketchup Pouch', price:2, type:'veg', category:'Snacks', emoji:'🌿' },
+    { name:'Red Chutney', price:10, type:'veg', category:'Snacks', emoji:'🌿' },
+    // BEVERAGES → Coffee / Shake
+    { name:'Cold Coffee', price:60, type:'veg', category:'Coffee', emoji:'☕' },
+    { name:'Cold Coffee Strong', price:70, type:'veg', category:'Coffee', emoji:'☕' },
+    { name:'Cold Coffee With Vanilla', price:80, type:'veg', category:'Coffee', emoji:'☕' },
+    { name:'Chocolate Shake', price:90, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'Oreo Shake', price:100, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'KitKat Shake', price:100, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'Vanilla Shake', price:90, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'Butterscotch Shake', price:90, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'Mirinda Shake', price:90, type:'veg', category:'Shake', emoji:'🥤' },
+    { name:'Virgin Mojito', price:109, type:'veg', category:'Shake', emoji:'🧃' },
+    // CHINESE SNACK → Chinese
+    { name:'Veg Manchurian Dry', price:109, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Paneer Manchurian Dry', price:159, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Chilly Paneer Dry', price:159, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Crispy Corn', price:109, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Chilly Potato', price:109, type:'veg', category:'Chinese', emoji:'🥔' },
+    { name:'Honey Chilly Potato', price:129, type:'veg', category:'Chinese', emoji:'🥔' },
+    { name:'Soyabin Manchurian Dry', price:149, type:'veg', category:'Chinese', emoji:'🍲' },
+    // CHINESE MAIN COURSE → Chinese
+    { name:'Veg Manchurian Gravy', price:149, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Paneer Manchurian Gravy', price:179, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Chilly Paneer Gravy', price:179, type:'veg', category:'Chinese', emoji:'🍲' },
+    { name:'Chilly Mushroom Gravy', price:159, type:'veg', category:'Chinese', emoji:'🍄' },
+    // RICE → Chinese
+    { name:'Veg Fried Rice', price:90, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Schezwan Fried Rice', price:109, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Mushroom Rice', price:129, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Paneer Rice', price:139, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Paneer Schezwan Rice', price:149, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Corn Fry Rice', price:139, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Corn Paneer Mix Rice', price:159, type:'veg', category:'Chinese', emoji:'🍛' },
+    { name:'Fried Rice With Manchurian', price:209, type:'veg', category:'Chinese', emoji:'🍛' },
+    // NOODLES → Chinese
+    { name:'Veg Noodles', price:99, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Veg Manchurian Noodles', price:109, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Paneer Noodles', price:129, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Schezwan Noodles', price:109, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Hakka Noodles', price:109, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Mushroom Noodles', price:139, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Fry Corn Noodles', price:129, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Singapuri Noodles', price:159, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Chilly Garlic Noodles', price:139, type:'veg', category:'Chinese', emoji:'🍜' },
+    { name:'Cheese Noodles', price:159, type:'veg', category:'Chinese', emoji:'🍜' },
+    // PASTA → Chinese
+    { name:'Red Sauce Pasta', price:109, type:'veg', category:'Chinese', emoji:'🍝' },
+    { name:'White Sauce Pasta', price:129, type:'veg', category:'Chinese', emoji:'🍝' },
+    { name:'Cheese Pasta', price:159, type:'veg', category:'Chinese', emoji:'🍝' },
+    // MAGGIE → Snacks
+    { name:'Plain Maggie', price:59, type:'veg', category:'Snacks', emoji:'🍜' },
+    { name:'Plain Cheese Maggie', price:79, type:'veg', category:'Snacks', emoji:'🍜' },
+    { name:'Vegetable Masala Maggie', price:79, type:'veg', category:'Snacks', emoji:'🍜' },
+    { name:'Vegetable Masala Cheese Maggie', price:99, type:'veg', category:'Snacks', emoji:'🍜' },
+    { name:'Paneer Masala Maggie', price:89, type:'veg', category:'Snacks', emoji:'🍜' },
+    { name:'Paneer Cheese Masala Maggie', price:109, type:'veg', category:'Snacks', emoji:'🍜' },
+    // FRENCH FRIES → Snacks
+    { name:'French Fries', price:99, type:'veg', category:'Snacks', emoji:'🍟' },
+    { name:'Peri Peri French Fries', price:120, type:'veg', category:'Snacks', emoji:'🍟' },
+  ];
 
-  function renderCategorySelects() {
-    const opts = categoriesCache.map(c =>
-      `<option value="${c.name.replace(/"/g,'&quot;')}">${c.name}</option>`
-    ).join('');
+  window.bulkSeedMenu = async function() {
+    if (!confirm(`${SEED_ITEMS.length} items add karne wale ho. Sirf EK BAAR chalao. Confirm karo?`)) return;
 
-    const fCat = document.getElementById('f-cat');
-    if (fCat) {
-      const prev = fCat.value;
-      fCat.innerHTML = categoriesCache.length
-        ? opts
-        : '<option value="">— pehle category add karo —</option>';
-      if (categoriesCache.some(c => c.name === prev)) fCat.value = prev;
-    }
+    const btn = document.getElementById('seed-btn');
+    const progEl = document.getElementById('seed-progress');
+    btn.disabled = true;
+    progEl.style.display = 'block';
 
-    const catFilter = document.getElementById('cat-filter');
-    if (catFilter) {
-      const prev = catFilter.value;
-      catFilter.innerHTML = '<option value="">Sab Categories</option>' + opts;
-      catFilter.value = prev;
-    }
-
-    const bulkCat = document.getElementById('bulk-cat');
-    if (bulkCat) {
-      const prev = bulkCat.value;
-      bulkCat.innerHTML = '<option value="">Category chuno...</option>' + opts;
-      bulkCat.value = prev;
-    }
-  }
-
-  function renderCategoryChips() {
-    const wrap = document.getElementById('cat-chip-list');
-    if (!wrap) return;
-
-    if (!categoriesCache.length) {
-      wrap.innerHTML = '<p style="font-size:12.5px;color:var(--txt3)">Koi category nahi hai abhi. Upar se ek add karo.</p>';
-      return;
-    }
-
-    wrap.innerHTML = categoriesCache.map(c => {
-      const count = allItems.filter(i => i.category === c.name).length;
-      return `
-        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1.5px solid var(--border);border-radius:99px;padding:6px 8px 6px 14px;font-size:13px;font-weight:600;color:var(--txt)">
-          ${c.name}
-          <span style="font-size:11px;color:var(--txt3);font-weight:700">(${count})</span>
-          <button type="button" onclick="deleteCategoryUI('${c.id}','${c.name.replace(/'/g,'\\u0027')}')"
-            style="border:none;background:var(--card);border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;color:var(--red);display:flex;align-items:center;justify-content:center;line-height:1"
-            title="Delete category">✕</button>
-        </span>`;
-    }).join('');
-  }
-
-  window.addCategory = async function() {
-    const inp = document.getElementById('cat-new-name');
-    const errEl = document.getElementById('cat-err');
-    errEl.style.display = 'none';
-
-    const name = inp.value.trim();
-    if (!name) { errEl.textContent = '❌ Category naam daalo'; errEl.style.display = 'block'; return; }
-
-    const res = await saveCategory(name);
-    if (!res.success) {
-      errEl.textContent = '❌ ' + res.message;
-      errEl.style.display = 'block';
-      return;
-    }
-
-    inp.value = '';
-    await loadCategories();
-    showToast('✅ "' + name + '" category add ho gayi!');
-  };
-
-  window.deleteCategoryUI = async function(id, name) {
-    if (!confirm(`"${name}" category delete karna chahte ho?`)) return;
-
-    const res = await deleteCategory(id);
-    if (!res.success) {
-      if (res.blocked) {
-        alert(`⚠️ "${name}" delete nahi ho sakti.\n\n${res.message}`);
-      } else {
-        showToast('❌ Delete failed: ' + (res.message || ''));
+    let done = 0;
+    for (const it of SEED_ITEMS) {
+      const item = {
+        id: Date.now().toString() + '_' + done,
+        emoji: it.emoji || '🌯',
+        name: it.name,
+        type: it.type,
+        category: it.category,
+        price: it.price,
+        cost: 0,
+        discount: 0,
+        margin: null,
+        showOnApp: true,
+        isBestSeller: false,
+        prepTime: 0,
+        variants: [],
+        available: true,
+        addedAt: new Date().toISOString(),
+      };
+      try {
+        await saveMenuItem(item);
+      } catch (e) {
+        console.warn('seed item failed:', it.name, e.message);
       }
-      return;
+      done++;
+      progEl.textContent = `⏳ ${done} / ${SEED_ITEMS.length} items add ho gaye...`;
     }
 
-    await loadCategories();
-    showToast('✅ "' + name + '" category delete ho gayi');
+    progEl.textContent = `✅ Sab ${done} items add ho gaye! Page refresh ho rahi hai...`;
+    await loadMenu();
+    showToast(`✅ ${done} items menu mein add ho gaye!`);
+    btn.textContent = '✅ Done — yeh button ab hata sakte ho';
   };
 
   // ── Stats ──────────────────────────────────────────────────
@@ -655,7 +797,6 @@
     setText('s-avail', avail);
     setText('s-out',   out);
     setText('s-cats',  cats);
-    renderCategoryChips();
   }
 
   // ── Filter ─────────────────────────────────────────────────
@@ -820,7 +961,6 @@
     const price = parseFloat(document.getElementById('f-price').value) || 0;
     if (!name)  { showErr('Item name zaroor daalo'); return; }
     if (!price) { showErr('Price zaroor daalo'); return; }
-    if (!categoriesCache.length) { showErr('Pehle ek category add karo upar wale "Categories Manage Karo" box se'); return; }
 
     const cost = parseFloat(document.getElementById('f-cost').value) || 0;
     const disc = parseFloat(document.getElementById('f-disc').value) || 0;

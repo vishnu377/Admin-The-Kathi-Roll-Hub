@@ -1,3 +1,6 @@
+
+
+
 // ============================================================
 //  admin/js/admin.js  —  Firebase-FIRST version
 //
@@ -402,95 +405,6 @@ export async function deleteMenuItem(id) {
 }
 
 // ============================================================
-//  CATEGORIES  ← NAYA SECTION (dynamic, admin-managed)
-//
-//  Firestore collection: "categories"
-//  Doc shape: { id, name, sortOrder, createdAt }
-//
-//  getCategories()        → list saari categories, sortOrder se sorted
-//  saveCategory(name)     → naya category add karo (duplicate-safe)
-//  deleteCategory(id)     → category delete karo
-//                            (BLOCK hota hai agar usme items hain —
-//                             caller ko { blocked: true, count } milta hai)
-// ============================================================
-export async function getCategories() {
-  await _fbReady;
-
-  if (FIREBASE_READY) {
-    try {
-      const snap = await getDDocsFn(collFn(db, COLLECTIONS.categories));
-      const cats = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      localStorage.setItem(LS.categories, JSON.stringify(cats));
-      return cats;
-    } catch (e) { console.warn('[getCategories] Firestore failed:', e.message); }
-  }
-
-  return JSON.parse(localStorage.getItem(LS.categories) || '[]');
-}
-
-export async function saveCategory(name) {
-  await _fbReady;
-  const trimmed = (name || '').trim();
-  if (!trimmed) return { success: false, message: 'Category naam khali nahi ho sakta' };
-
-  const existing = await getCategories();
-  const dup = existing.find(c => c.name.toLowerCase() === trimmed.toLowerCase());
-  if (dup) return { success: false, message: 'Yeh category already maujood hai' };
-
-  const cat = {
-    id:        Date.now().toString(),
-    name:      trimmed,
-    sortOrder: existing.length,
-    createdAt: new Date().toISOString(),
-  };
-
-  if (FIREBASE_READY) {
-    try {
-      await setDocFn(docFn(db, COLLECTIONS.categories, cat.id), cat);
-    } catch (e) {
-      console.warn('[saveCategory] Firestore failed:', e.message);
-    }
-  }
-
-  const cats = await getCategories();
-  cats.push(cat);
-  localStorage.setItem(LS.categories, JSON.stringify(cats));
-  return { success: true, category: cat };
-}
-
-export async function deleteCategory(id) {
-  await _fbReady;
-
-  // ── Safety check: block delete if items still use this category ──
-  const cats = await getCategories();
-  const cat  = cats.find(c => c.id === id);
-  if (!cat) return { success: false, message: 'Category nahi mili' };
-
-  const menu  = await getMenu();
-  const count = menu.filter(m => m.category === cat.name).length;
-  if (count > 0) {
-    return {
-      success: false,
-      blocked: true,
-      count,
-      message: `"${cat.name}" mein abhi ${count} item(s) hain. Pehle unhe kisi doosri category mein move karo ya delete karo, phir yeh category delete ho sakegi.`,
-    };
-  }
-
-  if (FIREBASE_READY) {
-    try {
-      await deleteDocFn(docFn(db, COLLECTIONS.categories, id));
-    } catch (e) { console.warn('[deleteCategory] Firestore failed:', e.message); }
-  }
-
-  const remaining = cats.filter(c => c.id !== id);
-  localStorage.setItem(LS.categories, JSON.stringify(remaining));
-  return { success: true };
-}
-
-// ============================================================
 //  SETTINGS
 // ============================================================
 export function getSettings() {
@@ -799,3 +713,6 @@ export const genCode   = (mob, type = 'welcome') => {
     ? `${pfx[type]}${sfx}${new Date().getFullYear()}`
     : `${pfx[type]}${sfx}`;
 };
+
+
+
