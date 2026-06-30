@@ -1,3 +1,4 @@
+
 // ============================================================
 //  admin/js/billing.js  —  Cart-based POS billing
 //  Mirrors the proven Firestore pattern from index.html Counter
@@ -13,7 +14,7 @@ let cbUser      = null;
 let cbCart      = [];     // [{ id, name, price, qty, isCustom, variantName }]
 let cbMenu      = [];
 let cbPay       = 'cash';
-let cbAppliedOffer = null; // { rewardId, code, pct, flat, type, label }
+let cbAppliedOffers = []; // ARRAY now — multiple offers can stack
 let cbLastBill  = null;
 let cbItemIdSeq = 0;
 
@@ -276,27 +277,33 @@ async function cbLoadOffers() {
 
   if (!offers.length) { offersCardEl.style.display = 'none'; return; }
   offersCardEl.style.display = 'block';
-  listEl.innerHTML = offers.map((o, i) => `
+  listEl.innerHTML = '<p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Multiple offers select kar sakte ho — sabhi ek saath stack honge</p>'
+    + offers.map((o, i) => `
     <span class="offer-chip" onclick="cbSelectOffer(${i})" data-idx="${i}">
       ${o.label} ${o.pct > 0 ? '(' + o.pct + '%)' : (o.flat > 0 ? '(₹' + o.flat + ')' : '')}
     </span>`).join('');
   window._cbOffersCache = offers;
 }
 
+// ── Multi-select: clicking a chip toggles JUST that chip,
+//    other already-selected chips stay selected (stacking) ──────
 window.cbSelectOffer = function(idx) {
   const offers = window._cbOffersCache || [];
   const o = offers[idx];
   if (!o) return;
 
   const chips = document.querySelectorAll('.offer-chip');
-  const alreadyOn = chips[idx].classList.contains('on');
-  chips.forEach(c => c.classList.remove('on'));
+  const chip = chips[idx];
+  const isOn = chip.classList.contains('on');
 
-  if (alreadyOn) {
-    cbAppliedOffer = null;
+  if (isOn) {
+    // Deselect just this one
+    chip.classList.remove('on');
+    cbAppliedOffers = cbAppliedOffers.filter(applied => applied !== o);
   } else {
-    chips[idx].classList.add('on');
-    cbAppliedOffer = o;
+    // Select this one too, keep others as-is
+    chip.classList.add('on');
+    cbAppliedOffers.push(o);
   }
   cbRenderSummary();
 };
@@ -306,14 +313,23 @@ function cbSubtotal() {
   return cbCart.reduce((s, c) => s + (c.price * c.qty), 0);
 }
 
+// ── Total discount across ALL applied offers ──────────────────
+function cbTotalDiscount(subtotal) {
+  let disc = 0;
+  cbAppliedOffers.forEach(o => {
+    if (o.flat > 0) {
+      disc += o.flat;
+    } else if (o.pct > 0) {
+      disc += Math.round(subtotal * (o.pct / 100));
+    }
+  });
+  // Never let combined discount exceed the subtotal
+  return Math.min(disc, subtotal);
+}
+
 function cbRenderSummary() {
   const subtotal = cbSubtotal();
-  let disc = 0;
-  if (cbAppliedOffer) {
-    disc = cbAppliedOffer.flat > 0
-      ? Math.min(cbAppliedOffer.flat, subtotal)
-      : Math.round(subtotal * (cbAppliedOffer.pct / 100));
-  }
+  const disc = cbTotalDiscount(subtotal);
   const total = subtotal - disc;
 
   document.getElementById('cb-subtotal').textContent = '₹' + subtotal;
@@ -336,12 +352,7 @@ window.cbSelPay = function(el, method) {
 // ── Payment status (Full Paid / Partial / Udhaar) — auto-detected ──
 window.cbUpdatePaymentStatus = function() {
   const subtotal = cbSubtotal();
-  let disc = 0;
-  if (cbAppliedOffer) {
-    disc = cbAppliedOffer.flat > 0
-      ? Math.min(cbAppliedOffer.flat, subtotal)
-      : Math.round(subtotal * (cbAppliedOffer.pct / 100));
-  }
+  const disc = cbTotalDiscount(subtotal);
   const total = subtotal - disc;
   const paidInput = document.getElementById('cb-amt-paid');
   const statusEl = document.getElementById('cb-payment-status');
@@ -372,12 +383,7 @@ window.cbConfirm = async function() {
   btn.textContent = '⏳ Saving...';
 
   const subtotal = cbSubtotal();
-  let disc = 0;
-  if (cbAppliedOffer) {
-    disc = cbAppliedOffer.flat > 0
-      ? Math.min(cbAppliedOffer.flat, subtotal)
-      : Math.round(subtotal * (cbAppliedOffer.pct / 100));
-  }
+  const disc = cbTotalDiscount(subtotal);
   const final = subtotal - disc;
   const mob = cbUser.mobile;
   const nowIso = new Date().toISOString();
@@ -402,8 +408,11 @@ window.cbConfirm = async function() {
 
   let saveOk = true;
   const extraFields = { totalDebt: newDebt };
-  if (cbAppliedOffer && cbAppliedOffer.type === 'welcome') extraFields.couponUsed_welcome = nowIso;
-  if (cbAppliedOffer && cbAppliedOffer.type === 'birthday') extraFields.couponUsed_birthday = nowIso;
+  // Check ALL applied offers for welcome/birthday auto-mark (not just one)
+  cbAppliedOffers.forEach(o => {
+    if (o.type === 'welcome')  extraFields.couponUsed_welcome  = nowIso;
+    if (o.type === 'birthday') extraFields.couponUsed_birthday = nowIso;
+  });
 
   try {
     await updateDoc(doc(db, 'users', mob), {
@@ -414,11 +423,17 @@ window.cbConfirm = async function() {
 
   const itemsSnapshot = cbCart.map(c => ({ name: c.name, qty: c.qty, price: c.price, variant: c.variantName || null }));
 
+  // Build a readable label of all applied offers for the bill record
+  const offerLabel = cbAppliedOffers.length
+    ? cbAppliedOffers.map(o => o.type === 'reward' ? 'reward' : o.type).join('+')
+    : 'none';
+
   let billId = null;
   try {
     const billRef = await addDoc(collection(db, 'bills'), {
       mobile: mob, name: cbUser.name, amt: subtotal, final, discount: disc,
-      offer: cbAppliedOffer ? (cbAppliedOffer.type === 'reward' ? 'reward' : cbAppliedOffer.type) : 'none',
+      offer: offerLabel,
+      offersApplied: cbAppliedOffers.map(o => ({ label: o.label, type: o.type, pct: o.pct, flat: o.flat, code: o.code })),
       payment: cbPay, time: nowIso, visitNumber: newVisits,
       pointsEarned: ptsAdd, items: itemsSnapshot,
       status: paymentStatus, amountPaid, amountDue
@@ -426,19 +441,25 @@ window.cbConfirm = async function() {
     billId = billRef.id;
   } catch (e) { console.warn('bill add failed', e); saveOk = false; }
 
-  if (cbAppliedOffer && cbAppliedOffer.type === 'reward' && cbAppliedOffer.rewardId && disc > 0) {
+  // Mark EVERY applied reward as used (not just one)
+  for (const appliedOffer of cbAppliedOffers) {
+    if (appliedOffer.type !== 'reward' || !appliedOffer.rewardId) continue;
+    const offerShare = appliedOffer.flat > 0
+      ? appliedOffer.flat
+      : Math.round(subtotal * (appliedOffer.pct / 100));
+    if (offerShare <= 0) continue;
     try {
-      const rwRef = doc(db, 'rewards', cbAppliedOffer.rewardId);
+      const rwRef = doc(db, 'rewards', appliedOffer.rewardId);
       const rwDoc = await getDoc(rwRef);
       if (rwDoc.exists()) {
         const rw = rwDoc.data();
         const usedBy = rw.usedBy || [];
         if (usedBy.indexOf(mob) === -1) usedBy.push(mob);
         const amounts = rw.savedAmounts || {};
-        amounts[mob] = (parseInt(amounts[mob]) || 0) + disc;
+        amounts[mob] = (parseInt(amounts[mob]) || 0) + offerShare;
         await updateDoc(rwRef, {
           usageCount: (rw.usageCount || 0) + 1,
-          usedBy, savedAmount: (parseInt(rw.savedAmount) || 0) + disc,
+          usedBy, savedAmount: (parseInt(rw.savedAmount) || 0) + offerShare,
           savedAmounts: amounts
         });
       }
@@ -553,7 +574,7 @@ window.cbPrintReceipt = function() {
 };
 
 window.cbNewBill = function() {
-  cbUser = null; cbCart = []; cbAppliedOffer = null; cbPay = 'cash'; cbLastBill = null;
+  cbUser = null; cbCart = []; cbAppliedOffers = []; cbPay = 'cash'; cbLastBill = null;
   document.getElementById('cb-mob').value = '';
   document.getElementById('cb-cust-found').classList.remove('show');
   document.getElementById('cb-udhaar-alert').style.display = 'none';
@@ -576,6 +597,8 @@ function cbToast(msg, dur = 2500) {
 
 // ── Init ─────────────────────────────────────────────────────
 cbLoadMenu();
+
+
 
 
 
