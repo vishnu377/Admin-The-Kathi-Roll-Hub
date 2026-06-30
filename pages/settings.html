@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -110,6 +106,45 @@
         <label class="lbl">Zomato Link</label>
         <input class="inp" type="url" id="s-zomato" placeholder="https://zomato.com/..."/>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ 1b. FEATURE TOGGLES (NEW) ══════════════════════════ -->
+  <div class="sec-lbl">🎛️ Feature Toggles — Dashboard Pe Kya Dikhe</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px">
+      In features ko ON/OFF karke control karo ki customer ke dashboard pe
+      kya dikhega. OFF karne par woh section dashboard se turant gayab ho jaayega.
+    </p>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h4>🎟️ Welcome Discount</h4>
+        <p>Naye customer ko registration pe milne wala discount-coupon</p>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="ft-welcome" checked/>
+        <span class="toggle-sl"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h4>🎂 Birthday Offer</h4>
+        <p>Customer ke birthday pe dashboard banner aur coupon</p>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="ft-birthday" checked/>
+        <span class="toggle-sl"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h4>🔥 Visit Streak</h4>
+        <p>Visit-progress dots aur Nth-visit reward card</p>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="ft-streak" checked/>
+        <span class="toggle-sl"></span>
+      </label>
     </div>
   </div>
 
@@ -354,35 +389,6 @@
     </div>
   </div>
 
-  <!-- REMOVE OLD Firebase section below -->
-  <div style="display:none">
-    <div style="display:flex;align-items:flex-start;gap:14px">
-      <span style="font-size:28px">🔥</span>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:6px">
-          Firebase Firestore
-        </div>
-        <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:14px">
-          Abhi system <strong>LocalStorage</strong> (offline mode) use kar raha hai.<br/>
-          Firebase ke liye <code>shared/firebase-config.js</code> mein API keys daalo,
-          aur <code>admin/js/admin.js</code> ke import blocks uncomment karo.
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span class="badge badge-yellow">⚠️ LocalStorage Mode</span>
-          <span class="badge badge-gray">Single Device Only</span>
-        </div>
-        <div style="margin-top:14px;font-size:13px;color:var(--txt2)">
-          Firebase connect hone ke baad:
-          <ul style="margin-left:16px;margin-top:6px;line-height:2">
-            <li>Admin changes → customer dashboard real-time update (onSnapshot)</li>
-            <li>Multiple devices pe data sync</li>
-            <li>Data backup automatic</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ══ 6. DANGER ZONE ═══════════════════════════════════ -->
   <div class="sec-lbl">⚠️ Danger Zone</div>
   <div class="danger-box">
@@ -410,10 +416,5 @@
 <script type="module" src="../js/settings.js"></script>
 </body>
 </html>
-
-
-
-
-
 
 

@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 // ============================================================
 //  admin/js/settings.js  —  Firebase-FIRST version
 //
@@ -108,6 +97,11 @@ function fillInputs(sh, s) {
   sv('s-grev',  sh.grev    || '');
   sv('s-zomato',sh.zomato  || '');
 
+  // Feature toggles (default: ON, unless explicitly set to false)
+  sc('ft-welcome',  s.feature_welcomeDiscount !== false);
+  sc('ft-birthday', s.feature_birthdayOffer   !== false);
+  sc('ft-streak',   s.feature_visitStreak     !== false);
+
   // Offer defaults
   sv('o-disc',  s.defaultWelcomeDisc    || 10);
   sv('o-ppv',   s.defaultPerVisitPts    || 5);
@@ -169,6 +163,11 @@ window.saveAll = async function () {
       .split(',').map(x => parseInt(x.trim())).filter(Boolean);
 
     const settingsData = {
+      // Feature toggles
+      feature_welcomeDiscount: gc('ft-welcome'),
+      feature_birthdayOffer:   gc('ft-birthday'),
+      feature_visitStreak:     gc('ft-streak'),
+
       // Offer defaults
       defaultWelcomeDisc:    parseInt(gv('o-disc'))   || 10,
       defaultPerVisitPts:    parseInt(gv('o-ppv'))    || 5,
@@ -506,5 +505,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     el(id)?.addEventListener('change', updatePreview);
   });
 });
-
-
