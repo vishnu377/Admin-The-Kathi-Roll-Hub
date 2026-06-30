@@ -51,6 +51,7 @@
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .gate-btn:hover { opacity: 0.9; }
+    .gate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .gate-err {
       font-size: 13px; font-weight: 600; color: var(--red);
       background: #fee2e2; border-radius: 8px; padding: 9px 12px;
@@ -87,13 +88,12 @@
       onkeydown="if(event.key==='Enter') doLogin()"
       autocomplete="current-password"
     />
-    <button class="gate-btn" onclick="doLogin()">
+    <button class="gate-btn" id="gate-btn" onclick="doLogin()">
       🔐 Login Karein
     </button>
     <div class="gate-err" id="gate-err">❌ Wrong password. Try again.</div>
     <div class="gate-hint">
-      Default password: <strong style="color:#94a3b8">admin123</strong><br/>
-      Settings se change kar sakte ho.
+      Owner access — apna password use karein.
     </div>
   </div>
 </div>
@@ -350,31 +350,73 @@
 <script type="module">
   import { LS } from './shared/constants.js';
   import {
-    db, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs
+    db, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, auth
   } from './shared/firebase-config.js';
+  import {
+    signInWithEmailAndPassword
+  } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   // ═══════════════════════════════════════════════════════
-  //  AUTH
+  //  AUTH — Firebase Email/Password PRIMARY, old password
+  //  CHECK as fallback (so the app never gets locked out)
   // ═══════════════════════════════════════════════════════
-  const PASS_KEY = 'krh_admin_pass';
+  const PASS_KEY    = 'krh_admin_pass';
+  const ADMIN_EMAIL = 'vishtechsoftwareservices@gmail.com';
 
   function getPass() {
     return localStorage.getItem(PASS_KEY) || 'admin123';
   }
 
-  window.doLogin = function() {
-    const v     = document.getElementById('gate-pass').value;
-    const errEl = document.getElementById('gate-err');
+  window.doLogin = async function() {
+    const v       = document.getElementById('gate-pass').value;
+    const errEl   = document.getElementById('gate-err');
+    const btnEl   = document.getElementById('gate-btn');
     errEl.style.display = 'none';
 
+    if (!v) {
+      errEl.textContent = '❌ Password daalein';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Checking...';
+
+    // ── 1. Try Firebase Email/Password login FIRST ──────────
+    let firebaseOk = false;
+    try {
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, v);
+      firebaseOk = true;
+    } catch (e) {
+      console.warn('[admin login] Firebase auth failed, trying fallback:', e.code);
+      firebaseOk = false;
+    }
+
+    if (firebaseOk) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      initApp();
+      btnEl.disabled = false;
+      btnEl.textContent = '🔐 Login Karein';
+      return;
+    }
+
+    // ── 2. Fallback: old LocalStorage password check ────────
+    //    (keeps the app accessible even if Firebase login has
+    //     any issue — e.g. network hiccup, or password not yet
+    //     synced to Firebase)
     if (v === getPass()) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('app').classList.add('visible');
       initApp();
     } else {
+      errEl.textContent = '❌ Wrong password. Try again.';
       errEl.style.display = 'block';
       document.getElementById('gate-pass').select();
     }
+
+    btnEl.disabled = false;
+    btnEl.textContent = '🔐 Login Karein';
   };
 
   document.getElementById('gate-pass').addEventListener('keydown', e => {
@@ -385,6 +427,8 @@
     document.getElementById('app').classList.remove('visible');
     document.getElementById('gate').style.display = 'flex';
     document.getElementById('gate-pass').value = '';
+    // Firebase sign-out (best effort, non-blocking)
+    try { auth.signOut(); } catch (e) { /* ignore */ }
   };
 
   // ═══════════════════════════════════════════════════════
@@ -870,39 +914,4 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
