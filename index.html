@@ -1,3 +1,27 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -92,6 +116,15 @@
       🔐 Login Karein
     </button>
     <div class="gate-err" id="gate-err">❌ Wrong password. Try again.</div>
+
+    <!-- Forgot Password Link -->
+    <div style="margin-top:14px">
+      <button onclick="doForgotPassword()" style="background:none;border:none;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:var(--font)">
+        🔑 Password bhool gaye? Reset karein
+      </button>
+    </div>
+    <div id="gate-forgot-msg" style="display:none;margin-top:10px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;color:#166534"></div>
+
     <div class="gate-hint">
       Owner access — apna password use karein.
     </div>
@@ -353,7 +386,7 @@
     db, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, auth
   } from './shared/firebase-config.js';
   import {
-    signInWithEmailAndPassword
+    signInWithEmailAndPassword, sendPasswordResetEmail
   } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   // ═══════════════════════════════════════════════════════
@@ -429,6 +462,34 @@
     document.getElementById('gate-pass').value = '';
     // Firebase sign-out (best effort, non-blocking)
     try { auth.signOut(); } catch (e) { /* ignore */ }
+  };
+
+  // ── Forgot Password — Firebase reset email bhejta hai ──
+  window.doForgotPassword = async function() {
+    const msgEl = document.getElementById('gate-forgot-msg');
+    const email = prompt('Apni registered email daalo — reset link aayega:');
+    if (!email || !email.includes('@')) {
+      msgEl.style.display = 'block';
+      msgEl.style.background = '#fef2f2';
+      msgEl.style.borderColor = '#fca5a5';
+      msgEl.style.color = '#991b1b';
+      msgEl.textContent = '❌ Valid email daalo';
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      msgEl.style.display = 'block';
+      msgEl.style.background = '#f0fdf4';
+      msgEl.style.borderColor = '#86efac';
+      msgEl.style.color = '#166534';
+      msgEl.textContent = '✅ Reset link bhej diya! Apni email check karo.';
+    } catch (e) {
+      msgEl.style.display = 'block';
+      msgEl.style.background = '#fef2f2';
+      msgEl.style.borderColor = '#fca5a5';
+      msgEl.style.color = '#991b1b';
+      msgEl.textContent = '❌ Email nahi mili — sahi email daalo.';
+    }
   };
 
   // ═══════════════════════════════════════════════════════
