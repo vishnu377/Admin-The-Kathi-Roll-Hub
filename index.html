@@ -1,27 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -105,6 +83,14 @@
     <div class="gate-title">Admin Panel</div>
     <div class="gate-sub">Kathi Roll Hub — Owner Access</div>
 
+    <label class="gate-label" for="gate-email">Email</label>
+    <input
+      class="gate-input" type="email" id="gate-email"
+      placeholder="Enter your email"
+      onkeydown="if(event.key==='Enter') document.getElementById('gate-pass').focus()"
+      autocomplete="email"
+      style="letter-spacing:0;margin-bottom:12px"
+    />
     <label class="gate-label" for="gate-pass">Password</label>
     <input
       class="gate-input" type="password" id="gate-pass"
@@ -394,7 +380,7 @@
   //  CHECK as fallback (so the app never gets locked out)
   // ═══════════════════════════════════════════════════════
   const PASS_KEY    = 'krh_admin_pass';
-  const ADMIN_EMAIL = 'vishtechsoftwareservices@gmail.com';
+  // Email from input field — no hardcoded email in code
 
   function getPass() {
     return localStorage.getItem(PASS_KEY) || 'admin123';
@@ -402,10 +388,16 @@
 
   window.doLogin = async function() {
     const v       = document.getElementById('gate-pass').value;
+    const emailVal = document.getElementById('gate-email').value.trim();
     const errEl   = document.getElementById('gate-err');
     const btnEl   = document.getElementById('gate-btn');
     errEl.style.display = 'none';
 
+    if (!emailVal || !emailVal.includes('@')) {
+      errEl.textContent = '❌ Email sahi daalo';
+      errEl.style.display = 'block';
+      return;
+    }
     if (!v) {
       errEl.textContent = '❌ Password daalein';
       errEl.style.display = 'block';
@@ -418,7 +410,7 @@
     // ── 1. Try Firebase Email/Password login FIRST ──────────
     let firebaseOk = false;
     try {
-      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, v);
+      await signInWithEmailAndPassword(auth, emailVal, v);
       firebaseOk = true;
     } catch (e) {
       console.warn('[admin login] Firebase auth failed, trying fallback:', e.code);
@@ -460,6 +452,7 @@
     document.getElementById('app').classList.remove('visible');
     document.getElementById('gate').style.display = 'flex';
     document.getElementById('gate-pass').value = '';
+    document.getElementById('gate-email').value = '';
     // Firebase sign-out (best effort, non-blocking)
     try { auth.signOut(); } catch (e) { /* ignore */ }
   };
@@ -975,4 +968,22 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
