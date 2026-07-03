@@ -55,13 +55,18 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { getAuth } 
+import { getAuth, setPersistence, browserLocalPersistence } 
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // ── Initialize Firebase ────────────────────────────────────────
 const app  = initializeApp(FIREBASE_CONFIG);
 export const db   = getFirestore(app);
 export const auth = getAuth(app);
+
+// Session hamesha save rahega — logout karne tak
+setPersistence(auth, browserLocalPersistence).catch(e => 
+  console.warn('Persistence error:', e)
+);
 
 // ── Re-export for Admin & Customer Logic ───────────────────────
 export {
