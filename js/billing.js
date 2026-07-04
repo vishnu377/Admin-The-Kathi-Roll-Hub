@@ -459,12 +459,16 @@ cbLoadMenu();
 // ══════════════════════════════════════════════════════════════
 
 // jsQR library load
+
+
+
 const _jsqrScript = document.createElement('script');
-_jsqrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+_jsqrScript.src = 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js';
 document.head.appendChild(_jsqrScript);
 
-let _qrStream    = null;
-let _qrAnimFrame = null;
+// Wait for library to load
+_jsqrScript.onload = () => console.log('[QR] jsQR library loaded!');
+_jsqrScript.onerror = () => console.error('[QR] jsQR load FAILED!');
 
 window.openQrScanner = function() {
   const modal  = document.getElementById('qr-scan-modal');
