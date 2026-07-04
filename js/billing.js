@@ -4,8 +4,10 @@
 // ============================================================
 import { LS } from '../shared/constants.js';
 import {
-  db, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs
+  db, auth, doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs
 } from '../shared/firebase-config.js';
+
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // ── State ──────────────────────────────────────────────────
 let cbUser = null;
@@ -54,6 +56,13 @@ window.cbLookup = async function() {
 // ── Load Menu ─────────────────────────────────────────────────
 async function cbLoadMenu() {
   try {
+    // Auth ready hone ka wait karo
+    await new Promise(resolve => {
+      const unsub = onAuthStateChanged(auth, user => {
+        unsub();
+        resolve(user);
+      });
+    });
     const snap = await getDocs(collection(db, 'menu'));
     cbMenu = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
@@ -534,5 +543,8 @@ window.closeQrScanner = function() {
   const modal = document.getElementById('qr-scan-modal');
   if (modal) modal.classList.remove('open');
 };
+
+
+
 
 
