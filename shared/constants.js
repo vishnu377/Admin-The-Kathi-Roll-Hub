@@ -17,6 +17,7 @@ export const SHOP = {
   instagram:    "@the_kathi_roll_hub",
   zomato:       "https://zomato.com/YOUR_LINK",
   googleReview: "https://g.page/r/YOUR_REVIEW_LINK/review",
+  appLink: 'https://thekathirollhub.vishtechfixes.com',
 };
 
 // ── ADMIN ──────────────────────────────────────────────────

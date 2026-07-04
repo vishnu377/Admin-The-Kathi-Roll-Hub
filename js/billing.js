@@ -348,7 +348,8 @@ window.cbWhatsAppReceipt=function(){
   if(!cbLastBill)return;
   const b=cbLastBill,sh=JSON.parse(localStorage.getItem(LS.shop)||'{}');
   const lines=b.items.map(i=>`${i.name}${i.variant?' ('+i.variant+')':''} x${i.qty} = ₹${i.price*i.qty}`).join('\n');
-  const msg=encodeURIComponent(`🧾 *${sh.name||'Kathi Roll Hub'} — Bill Receipt*\n────────────────\n👤 ${b.name}\n📱 ${b.mobile}\n────────────────\n${lines}\n────────────────\n💰 Subtotal: ₹${b.amt}\n${b.disc>0?'🎁 Discount: -₹'+b.disc+'\n':''}✅ *Final: ₹${b.final}*\n💳 ${b.pay.toUpperCase()}\n────────────────\n⭐ Points Earned: +${b.pointsEarned}\n⭐ Total Points: ${b.points}\nDhanyawaad! Dobara aana 🙏`);
+  const msg=encodeURIComponent(`🧾 *${sh.name||'Kathi Roll Hub'} — Bill Receipt*\n────────────────\n👤 ${b.name}\n📱 ${b.mobile}\n────────────────\n${lines}\n────────────────\n💰 Subtotal: ₹${b.amt}\n${b.disc>0?'🎁 Discount: -₹'+b.disc+'\n':''}✅ *Final: ₹${b.final}*\n💳 ${b.pay.toUpperCase()}\n────────────────\n⭐ Points Earned: +${b.pointsEarned}\n⭐ Total Points: ${b.points}\nDhanyawaad! Dobara aana 🙏 📱 App link save karo:
+${SHOP.appLink}`);
   window.open(`https://wa.me/${b.mobile}?text=${msg}`,'_blank');
 };
 
