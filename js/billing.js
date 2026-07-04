@@ -344,13 +344,32 @@ window.cbConfirm = async function() {
   if(amountDue>0){dueRow.style.display='flex';document.getElementById('cs-due-amt').textContent='₹'+amountDue;}else dueRow.style.display='none';
 };
 
-window.cbWhatsAppReceipt=function(){
-  if(!cbLastBill)return;
-  const b=cbLastBill,sh=JSON.parse(localStorage.getItem(LS.shop)||'{}');
-  const lines=b.items.map(i=>`${i.name}${i.variant?' ('+i.variant+')':''} x${i.qty} = ₹${i.price*i.qty}`).join('\n');
-  const msg=encodeURIComponent(`🧾 *${sh.name||'Kathi Roll Hub'} — Bill Receipt*\n────────────────\n👤 ${b.name}\n📱 ${b.mobile}\n────────────────\n${lines}\n────────────────\n💰 Subtotal: ₹${b.amt}\n${b.disc>0?'🎁 Discount: -₹'+b.disc+'\n':''}✅ *Final: ₹${b.final}*\n💳 ${b.pay.toUpperCase()}\n────────────────\n⭐ Points Earned: +${b.pointsEarned}\n⭐ Total Points: ${b.points}\nDhanyawaad! Dobara aana 🙏 📱 App link save karo:
-${SHOP.appLink}`);
-  window.open(`https://wa.me/${b.mobile}?text=${msg}`,'_blank');
+window.cbWhatsAppReceipt = function() {
+  if (!cbLastBill) return;
+  const b  = cbLastBill;
+  const sh = JSON.parse(localStorage.getItem(LS.shop) || '{}');
+  const appLink = 'https://thekathirollhub.vishtechfixes.com';
+  const lines = b.items.map(i =>
+    `${i.name}${i.variant?' ('+i.variant+')':''} x${i.qty} = ₹${i.price*i.qty}`
+  ).join('\n');
+  const msg = encodeURIComponent(
+    `🧾 *${sh.name||'Kathi Roll Hub'} — Bill Receipt*\n` +
+    `────────────────\n` +
+    `👤 ${b.name}\n📱 ${b.mobile}\n` +
+    `────────────────\n` +
+    `${lines}\n` +
+    `────────────────\n` +
+    `💰 Subtotal: ₹${b.amt}\n` +
+    `${b.disc>0 ? '🎁 Discount: -₹'+b.disc+'\n' : ''}` +
+    `✅ *Final: ₹${b.final}*\n` +
+    `💳 ${b.pay.toUpperCase()}\n` +
+    `────────────────\n` +
+    `⭐ Points Earned: +${b.pointsEarned}\n` +
+    `⭐ Total Points: ${b.points}\n` +
+    `Dhanyawaad! Dobara aana 🙏\n` +
+    `📱 App link save karo: ${appLink}`
+  );
+  window.open(`https://wa.me/${b.mobile}?text=${msg}`, '_blank');
 };
 
 window.cbPrintReceipt=function(){
