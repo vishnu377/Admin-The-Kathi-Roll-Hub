@@ -1,5 +1,6 @@
 // ============================================================
 // admin/js/billing.js — Cart-based POS billing
+// Mirrors the proven Firestore pattern from index.html Counter
 // ============================================================
 import { LS } from '../shared/constants.js';
 import {
@@ -128,12 +129,7 @@ function cbAddToCart(name, price, variantName, discPct) {
   if (existing) {
     existing.qty += 1;
   } else {
-    cbCart.push({
-      id: 'c' + (cbItemIdSeq++),
-      name, price, qty: 1,
-      variantName: variantName || null,
-      isCustom: false
-    });
+    cbCart.push({ id: 'c' + (cbItemIdSeq++), name, price, qty: 1, variantName: variantName || null, isCustom: false });
   }
   cbRenderCart();
 }
@@ -347,9 +343,7 @@ window.cbConfirm = async function() {
     await updateDoc(doc(db, 'users', mob), { visits: newVisits, points: newPoints, saved: newSaved, lastVisit: nowIso, ...extraFields });
   } catch (e) { console.warn('customer update failed', e); saveOk = false; }
   const itemsSnapshot = cbCart.map(c => ({ name: c.name, qty: c.qty, price: c.price, variant: c.variantName || null }));
-  const offerLabel = cbAppliedOffers.length
-    ? cbAppliedOffers.map(o => o.type === 'reward' ? 'reward' : o.type).join('+')
-    : 'none';
+  const offerLabel = cbAppliedOffers.length ? cbAppliedOffers.map(o => o.type === 'reward' ? 'reward' : o.type).join('+') : 'none';
   let billId = null;
   try {
     const billRef = await addDoc(collection(db, 'bills'), {
@@ -452,20 +446,21 @@ function cbToast(msg, dur = 2500) {
 cbLoadMenu();
 
 // ══════════════════════════════════════════════════════════════
-// QR SCANNER — NEW (sirf yeh add kiya hai, baki sab same)
+// QR SCANNER — SIRF YAHI ADD KIYA HAI, BAKI SAB SAME
 // ══════════════════════════════════════════════════════════════
 
-// Load jsQR library
+// jsQR library load
 const _jsqrScript = document.createElement('script');
 _jsqrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
 document.head.appendChild(_jsqrScript);
 
-let _qrStream = null;
+let _qrStream    = null;
 let _qrAnimFrame = null;
 
 window.openQrScanner = function() {
   const modal  = document.getElementById('qr-scan-modal');
   const status = document.getElementById('qr-scan-status');
+  if (!modal) return;
   modal.classList.add('open');
   status.textContent = '📷 Camera shuru ho rahi hai...';
 
@@ -477,7 +472,7 @@ window.openQrScanner = function() {
     const video = document.getElementById('qr-video');
     video.srcObject = stream;
     video.play();
-    status.textContent = '🔍 QR code camera ke saamne rakho...';
+    status.textContent = '🔍 Customer ka QR code dikhao...';
     video.addEventListener('loadeddata', () => _scanFrame(video), { once: true });
   })
   .catch(err => {
@@ -491,7 +486,9 @@ function _scanFrame(video) {
   const ctx    = canvas.getContext('2d');
 
   function tick() {
-    if (!document.getElementById('qr-scan-modal').classList.contains('open')) return;
+    // Stop if modal closed
+    const modal = document.getElementById('qr-scan-modal');
+    if (!modal || !modal.classList.contains('open')) return;
 
     if (video.readyState >= 2 && video.videoWidth > 0) {
       canvas.width  = video.videoWidth;
@@ -506,20 +503,21 @@ function _scanFrame(video) {
 
         if (code && code.data) {
           const raw = code.data.trim();
-          console.log('QR detected:', raw);
+          console.log('[QR] Detected:', raw);
 
           if (raw.startsWith('KRH:')) {
             const mobile = raw.replace('KRH:', '').trim();
             if (/^\d{10}$/.test(mobile)) {
-              // Valid KRH QR!
+              // ✅ Valid KRH QR — load customer!
               closeQrScanner();
               document.getElementById('cb-mob').value = mobile;
               cbToast('✅ QR scan ho gaya! Profile load ho rahi hai...');
-              cbLookup();
-              return; // Stop scanning
+              // setTimeout se call karo taaki closeQrScanner complete ho
+              setTimeout(() => window.cbLookup(), 500);
+              return;
             }
           }
-          document.getElementById('qr-scan-status').textContent = '⚠️ Yeh Kathi Roll Hub ka QR nahi hai';
+          document.getElementById('qr-scan-status').textContent = '⚠️ Yeh Kathi Roll Hub ka QR nahi hai — dobara try karo';
         }
       }
     }
@@ -533,14 +531,8 @@ window.closeQrScanner = function() {
   if (_qrStream)    { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
   const video = document.getElementById('qr-video');
   if (video) video.srcObject = null;
-  document.getElementById('qr-scan-modal').classList.remove('open');
+  const modal = document.getElementById('qr-scan-modal');
+  if (modal) modal.classList.remove('open');
 };
-
-
-
-
-
-
-
 
 
