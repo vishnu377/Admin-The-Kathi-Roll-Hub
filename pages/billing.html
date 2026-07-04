@@ -8,76 +8,55 @@
   <link rel="stylesheet" href="../css/admin.css"/>
   <style>
     body { background: var(--bg); margin: 0; padding: 0; }
-.page { padding: 20px; max-width: 1200px; }
-.pos-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+    .page { padding: 20px; max-width: 1200px; }
+    .pos-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
     @media(max-width:900px){ .pos-grid { grid-template-columns: 1fr; } }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 16px; }
-.card-title { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.cust-found { background: var(--bg); border-radius: var(--r-md); padding: 12px 14px; margin-top: 10px; display: none; }
-.cust-found.show { display: block; }
-.item-results { max-height: 280px; overflow-y: auto; margin-top: 10px; }
-.item-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer;
-      transition: background .12s; margin-bottom: 6px; border: 1px solid var(--border);
-}
-.item-row:hover { background: var(--bg); border-color: var(--blue); }
-.item-row.out { opacity: .45; cursor: not-allowed; }
-.item-row .ir-name { font-size: 13.5px; font-weight: 700; color: var(--txt); }
-.item-row .ir-sub { font-size: 11px; color: var(--txt3); margin-top: 2px; }
-.item-row .ir-price { font-size: 13px; font-weight: 800; color: var(--txt); flex-shrink: 0; }
-.cart-row {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-}
-.cart-row:last-child { border-bottom: none; }
-.cr-name { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--txt); }
-.cr-variant { font-size: 11px; color: var(--txt3); }
-.qty-ctrl { display: flex; align-items: center; gap: 6px; }
-.qty-btn {
-      width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--border);
-      background: var(--bg); font-size: 14px; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; color: var(--txt);
-}
-.qty-val { font-size: 13px; font-weight: 800; min-width: 18px; text-align: center; }
-.cr-price { font-size: 13.5px; font-weight: 800; color: var(--txt); width: 60px; text-align: right; }
-.cr-del { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--red); padding: 2px 4px; }
-.empty-cart { text-align: center; padding: 32px 16px; color: var(--txt3); font-size: 13px; }
-.sum-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: var(--txt2); }
-.sum-row.total { font-size: 18px; font-weight: 800; color: var(--txt); border-top: 1.5px solid var(--border); margin-top: 8px; padding-top: 12px; }
-.sum-row .neg { color: var(--green); }
-.pay-btns { display: flex; gap: 8px; margin-top: 4px; }
-.pay-btn {
-      flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1.5px solid var(--border);
-      background: var(--bg); font-family: var(--font); font-size: 12.5px; font-weight: 700;
-      color: var(--txt2); cursor: pointer; transition: all .15s;
-}
-.pay-btn.on { border-color: var(--yellow); background: #fff8e1; color: #92400e; }
-.offer-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #fffbe6; border: 1.5px solid #ffe58f; border-radius: 99px;
-      padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--txt);
-      cursor: pointer; margin: 0 6px 6px 0; transition: all .15s;
-}
-.offer-chip.on { background: #f0fdf4; border-color: var(--green); color: #166534; }
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
-.modal-bg.open { display: flex; }
-.modal-card { background: var(--card); border-radius: var(--r-xl); padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,.2); }
-.toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: var(--txt); color: var(--card); font-size: 13px; font-weight: 700;
-      padding: 10px 20px; border-radius: 99px; z-index: 999; opacity: 0; transition: opacity .3s; white-space: nowrap;
-}
-.toast.show { opacity: 1; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 16px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .cust-found { background: var(--bg); border-radius: var(--r-md); padding: 12px 14px; margin-top: 10px; display: none; }
+    .cust-found.show { display: block; }
+    .item-results { max-height: 280px; overflow-y: auto; margin-top: 10px; }
+    .item-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer; transition: background .12s; margin-bottom: 6px; border: 1px solid var(--border); }
+    .item-row:hover { background: var(--bg); border-color: var(--blue); }
+    .item-row.out { opacity: .45; cursor: not-allowed; }
+    .item-row .ir-name { font-size: 13.5px; font-weight: 700; color: var(--txt); }
+    .item-row .ir-sub { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+    .item-row .ir-price { font-size: 13px; font-weight: 800; color: var(--txt); flex-shrink: 0; }
+    .cart-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .cart-row:last-child { border-bottom: none; }
+    .cr-name { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--txt); }
+    .cr-variant { font-size: 11px; color: var(--txt3); }
+    .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+    .qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--txt); }
+    .qty-val { font-size: 13px; font-weight: 800; min-width: 18px; text-align: center; }
+    .cr-price { font-size: 13.5px; font-weight: 800; color: var(--txt); width: 60px; text-align: right; }
+    .cr-del { background: none; border: none; cursor: pointer; font-size: 15px; color: var(--red); padding: 2px 4px; }
+    .empty-cart { text-align: center; padding: 32px 16px; color: var(--txt3); font-size: 13px; }
+    .sum-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13.5px; color: var(--txt2); }
+    .sum-row.total { font-size: 18px; font-weight: 800; color: var(--txt); border-top: 1.5px solid var(--border); margin-top: 8px; padding-top: 12px; }
+    .sum-row .neg { color: var(--green); }
+    .pay-btns { display: flex; gap: 8px; margin-top: 4px; }
+    .pay-btn { flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1.5px solid var(--border); background: var(--bg); font-family: var(--font); font-size: 12.5px; font-weight: 700; color: var(--txt2); cursor: pointer; transition: all .15s; }
+    .pay-btn.on { border-color: var(--yellow); background: #fff8e1; color: #92400e; }
+    .offer-chip { display: inline-flex; align-items: center; gap: 5px; background: #fffbe6; border: 1.5px solid #ffe58f; border-radius: 99px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--txt); cursor: pointer; margin: 0 6px 6px 0; transition: all .15s; }
+    .offer-chip.on { background: #f0fdf4; border-color: var(--green); color: #166534; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-bg.open { display: flex; }
+    .modal-card { background: var(--card); border-radius: var(--r-xl); padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,.2); }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--txt); color: var(--card); font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 99px; z-index: 999; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+    .toast.show { opacity: 1; }
     #cart-success { display: none; text-align: center; padding: 30px 16px; }
 
-    /* ── QR SCANNER — NEW ──────────────────────────────── */
-    #qr-scan-modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 600; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    /* ── QR SCANNER — NEW ─────────────────────────────── */
+    #qr-scan-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); z-index: 600; display: none; flex-direction: column; align-items: center; justify-content: center; }
     #qr-scan-modal.open { display: flex; }
-    #qr-video { width: 280px; height: 280px; border-radius: 16px; object-fit: cover; border: 3px solid var(--yellow); }
-    #qr-scan-status { color: #fff; font-size: 14px; font-weight: 700; margin-top: 14px; text-align: center; }
-    #qr-scan-close { margin-top: 16px; background: var(--red); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-size: 15px; font-weight: 700; cursor: pointer; }
-    .scan-btn { background: var(--yellow); color: #1a1a1a; border: none; border-radius: var(--r-sm); padding: 10px 16px; font-family: var(--font); font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    #qr-video { width: 280px; height: 280px; border-radius: 16px; object-fit: cover; border: 3px solid var(--yellow,#fbbf24); }
+    #qr-scan-status { color: #fff; font-size: 14px; font-weight: 700; margin-top: 16px; text-align: center; max-width: 280px; }
+    #qr-scan-close { margin-top: 16px; background: var(--red,#e53935); color: #fff; border: none; border-radius: 10px; padding: 12px 32px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .scan-btn { background: var(--yellow,#fbbf24); color: #1a1a1a; border: none; border-radius: var(--r-sm); padding: 10px 16px; font-family: var(--font); font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+
+    /* ── AUTO OFFER BADGE — NEW ───────────────────────── */
+    .offer-auto-badge { font-size: 10px; background: #dcfce7; color: #166534; font-weight: 800; padding: 2px 8px; border-radius: 99px; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -102,9 +81,7 @@
         <div class="card-title">🌯 Menu Items</div>
         <input class="inp" type="text" id="cb-item-search" placeholder="🔍 Item search karo..." oninput="cbFilterItems()"/>
         <div class="item-results" id="cb-item-results"></div>
-        <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="cbOpenCustomItem()">
-➕ Custom Item Add Karo
-        </button>
+        <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="cbOpenCustomItem()">➕ Custom Item Add Karo</button>
       </div>
     </div>
     <div>
@@ -115,8 +92,9 @@
         </div>
       </div>
       <div class="card" id="cb-offers-card" style="display:none;margin-bottom:14px">
-        <div class="card-title">🎁 Available Offers</div>
+        <div class="card-title">🎁 Available Offers <span class="offer-auto-badge">Auto Applied ✓</span></div>
         <div id="cb-offers-list"></div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:6px">Eligible offers auto apply hue hain — manually remove/add kar sakte ho</div>
       </div>
       <div class="card" id="cb-summary-section" style="display:none">
         <div class="sum-row"><span>Subtotal</span><span id="cb-subtotal">₹0</span></div>
@@ -135,13 +113,12 @@
           <input class="inp" type="number" id="cb-amt-paid" placeholder="0" oninput="cbUpdatePaymentStatus()"/>
           <div id="cb-payment-status" style="margin-top:8px;display:none"></div>
         </div>
-        <button class="btn btn-success btn-full" id="cb-confirm-btn" style="margin-top:16px" onclick="cbConfirm()">
-✅ Confirm & Save Bill
-        </button>
+        <button class="btn btn-success btn-full" id="cb-confirm-btn" style="margin-top:16px" onclick="cbConfirm()">✅ Confirm & Save Bill</button>
       </div>
     </div>
   </div>
 
+  <!-- SUCCESS CARD -->
   <div class="card" id="cart-success" style="display:none;max-width:480px;margin:0 auto">
     <div style="font-size:48px;margin-bottom:8px;text-align:center">🎉</div>
     <div style="font-size:17px;font-weight:800;color:var(--txt);margin-bottom:4px;text-align:center" id="cs-title">Bill Saved!</div>
@@ -160,11 +137,14 @@
     </div>
     <button class="btn btn-ghost btn-full" style="color:var(--green);border-color:var(--green);margin-bottom:8px" onclick="cbWhatsAppReceipt()">📲 WhatsApp Receipt</button>
     <button class="btn btn-ghost btn-full" style="color:var(--blue);border-color:var(--blue);margin-bottom:8px" onclick="cbPrintReceipt()">🖨️ Print Receipt</button>
+    <!-- EDIT + CANCEL BUTTONS — NEW -->
+    <button class="btn btn-ghost btn-full" style="color:var(--yellow,#f59e0b);border-color:var(--yellow,#f59e0b);margin-bottom:8px" onclick="cbEditBill()">✏️ Edit Bill</button>
+    <button class="btn btn-ghost btn-full" style="color:var(--red);border-color:var(--red);margin-bottom:8px" onclick="cbCancelBill()">❌ Cancel Bill</button>
     <button class="btn btn-yellow btn-full" onclick="cbNewBill()">➕ New Bill</button>
   </div>
 </div>
 
-<!-- ── CUSTOM ITEM MODAL (same as before) ───────────────────── -->
+<!-- CUSTOM ITEM MODAL -->
 <div class="modal-bg" id="cb-custom-modal" onclick="if(event.target===this)cbCloseCustomItem()">
   <div class="modal-card">
     <div style="font-size:16px;font-weight:800;color:var(--txt);margin-bottom:14px">➕ Custom Item</div>
@@ -183,7 +163,7 @@
   </div>
 </div>
 
-<!-- ── QR SCANNER MODAL — NEW ──────────────────────────────── -->
+<!-- QR SCANNER MODAL — NEW -->
 <div id="qr-scan-modal">
   <div style="color:#fff;font-size:16px;font-weight:800;margin-bottom:14px">📷 Customer QR Scan Karo</div>
   <video id="qr-video" autoplay playsinline muted></video>
@@ -196,4 +176,6 @@
 <script type="module" src="../js/billing.js"></script>
 </body>
 </html>
+
+
 
