@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <style>
+    .ins-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .ins-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow-sm); }
+    .ins-card-title { font-size: 12px; font-weight: 800; color: var(--txt3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .health-score { text-align: center; padding: 16px 0; }
+    .health-num { font-size: 64px; font-weight: 800; line-height: 1; margin-bottom: 8px; }
+    .health-label { font-size: 14px; font-weight: 700; color: var(--txt2); }
+    .health-bar { height: 8px; border-radius: 99px; background: var(--border); margin: 12px 0; overflow: hidden; }
+    .health-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { font-size: 13px; color: var(--txt2); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .stat-value { font-size: 14px; font-weight: 800; color: var(--txt); }
+    .stat-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 99px; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-yellow { background: #fef9c3; color: #854d0e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .suggestion-item { background: var(--bg); border-radius: var(--r-md); padding: 14px; margin-bottom: 10px; border-left: 4px solid var(--green); }
+    .suggestion-item.warning { border-left-color: var(--yellow, #f59e0b); }
+    .suggestion-item.danger { border-left-color: var(--red); }
+    .suggestion-item.info { border-left-color: var(--blue, #3b82f6); }
+    .sug-title { font-size: 13px; font-weight: 800; color: var(--txt); margin-bottom: 4px; }
+    .sug-desc { font-size: 12px; color: var(--txt2); font-weight: 600; line-height: 1.5; }
+    .sug-action { font-size: 11px; font-weight: 800; color: var(--green); margin-top: 8px; }
+    .sug-action.warning { color: var(--yellow, #f59e0b); }
+    .sug-action.danger { color: var(--red); }
+    .chart-bar-wrap { margin-bottom: 8px; }
+    .chart-bar-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--txt2); margin-bottom: 4px; }
+    .chart-bar-bg { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .chart-bar-fill { height: 100%; border-radius: 99px; background: var(--red); }
+    .action-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .action-item:last-child { border-bottom: none; }
+    .action-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .action-text { flex: 1; }
+    .action-title { font-size: 13px; font-weight: 800; color: var(--txt); margin-bottom: 3px; }
+    .action-sub { font-size: 12px; color: var(--txt2); font-weight: 600; }
+    .action-btn { background: var(--yellow, #fbbf24); color: #1a1a1a; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .loading-state { text-align: center; padding: 40px; color: var(--txt3); font-size: 14px; }
+    .compare-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .compare-box { flex: 1; background: var(--bg); border-radius: var(--r-md); padding: 12px; text-align: center; }
+    .compare-val { font-size: 22px; font-weight: 800; color: var(--txt); }
+    .compare-label { font-size: 11px; color: var(--txt3); font-weight: 700; margin-top: 4px; }
+    .compare-change { font-size: 12px; font-weight: 800; margin-top: 4px; }
+    .change-up { color: var(--green); }
+    .change-down { color: var(--red); }
+    .no-data { text-align: center; padding: 32px; color: var(--txt3); }
+    .no-data-icon { font-size: 40px; margin-bottom: 12px; }
+    .no-data-text { font-size: 13px; font-weight: 700; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div>
+      <div style="font-size:20px;font-weight:800;color:var(--txt)">📊 Smart Insights</div>
+      <div style="font-size:13px;color:var(--txt3);margin-top:2px">Data se business grow karo</div>
+    </div>
+    <button class="btn btn-ghost" onclick="loadInsights()" id="refresh-btn">🔄 Refresh</button>
+  </div>
+
+  <div id="insights-wrap">
+    <div class="loading-state">⏳ Data load ho raha hai...</div>
+  </div>
+</div>
+
+<script type="module">
+import { LS } from '../shared/constants.js';
+import {
+  db, collection, getDocs, query, where, orderBy
+} from '../shared/firebase-config.js';
+
+// ── Load All Data ─────────────────────────────────────────
+async function loadInsights() {
+  document.getElementById('refresh-btn').textContent = '⏳ Loading...';
+  document.getElementById('insights-wrap').innerHTML =
+    '<div class="loading-state">⏳ Data analyze ho raha hai...</div>';
+
+  try {
+    // Fetch bills
+    const billsSnap = await getDocs(collection(db, 'bills'));
+    const bills = billsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(b => b.status !== 'cancelled');
+
+    // Fetch users
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Fetch menu
+    const menuSnap = await getDocs(collection(db, 'menu'));
+    const menu = menuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Settings
+    const s = JSON.parse(localStorage.getItem(LS.settings) || '{}');
+    const visitGoal = s.defaultVisitThreshold || 5;
+
+    renderInsights(bills, users, menu, visitGoal);
+
+  } catch(e) {
+    console.error('Insights load failed:', e);
+    document.getElementById('insights-wrap').innerHTML =
+      '<div class="loading-state">❌ Data load nahi hua — internet check karo</div>';
+  }
+  document.getElementById('refresh-btn').textContent = '🔄 Refresh';
+}
+
+// ── Main Render ───────────────────────────────────────────
+function renderInsights(bills, users, menu, visitGoal) {
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // This month
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0);
+
+  const billsThisMonth = bills.filter(b => new Date(b.time) >= thisMonthStart);
+  const billsLastMonth = bills.filter(b => {
+    const d = new Date(b.time);
+    return d >= lastMonthStart && d <= lastMonthEnd;
+  });
+  const billsToday = bills.filter(b => new Date(b.time) >= today);
+
+  // Revenue
+  const revenueThis = billsThisMonth.reduce((s,b) => s + (b.final||0), 0);
+  const revenueLast = billsLastMonth.reduce((s,b) => s + (b.final||0), 0);
+  const revenueToday = billsToday.reduce((s,b) => s + (b.final||0), 0);
+  const revenueChange = revenueLast > 0
+    ? Math.round(((revenueThis - revenueLast) / revenueLast) * 100)
+    : 0;
+
+  // Users
+  const totalUsers = users.length;
+  const newThisMonth = users.filter(u => u.joined && new Date(u.joined) >= thisMonthStart).length;
+  const newLastMonth = users.filter(u => {
+    if (!u.joined) return false;
+    const d = new Date(u.joined);
+    return d >= lastMonthStart && d <= lastMonthEnd;
+  }).length;
+
+  // Returning customers
+  const returningUsers = users.filter(u => (u.visits || 0) >= 2).length;
+  const retentionRate  = totalUsers > 0 ? Math.round((returningUsers / totalUsers) * 100) : 0;
+
+  // Inactive (30+ days)
+  const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  const inactiveUsers = users.filter(u => {
+    if (!u.lastVisit) return (u.visits || 0) > 0;
+    return new Date(u.lastVisit) < thirtyDaysAgo && (u.visits || 0) > 0;
+  }).length;
+
+  // Avg bill
+  const avgBill = bills.length > 0
+    ? Math.round(bills.reduce((s,b) => s + (b.final||0), 0) / bills.length)
+    : 0;
+  const avgBillThis = billsThisMonth.length > 0
+    ? Math.round(revenueThis / billsThisMonth.length)
+    : 0;
+
+  // Item popularity
+  const itemCount = {};
+  bills.forEach(b => {
+    if (b.items) b.items.forEach(it => {
+      itemCount[it.name] = (itemCount[it.name] || 0) + (it.qty || 1);
+    });
+  });
+  const topItems = Object.entries(itemCount)
+    .sort((a,b) => b[1] - a[1]).slice(0, 5);
+  const maxItemCount = topItems[0]?.[1] || 1;
+
+  // Day wise
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayCount = Array(7).fill(0);
+  const dayRevenue = Array(7).fill(0);
+  bills.forEach(b => {
+    const d = new Date(b.time).getDay();
+    dayCount[d]++;
+    dayRevenue[d] += b.final || 0;
+  });
+  const bestDay  = dayCount.indexOf(Math.max(...dayCount));
+  const worstDay = dayCount.indexOf(Math.min(...dayCount.filter(d => d > 0)));
+
+  // Birthday this month
+  const birthdayUsers = users.filter(u => {
+    if (!u.dob) return false;
+    const dob = new Date(u.dob);
+    return dob.getMonth() === now.getMonth();
+  });
+
+  // Health Score
+  let score = 0;
+  if (totalUsers >= 10)       score += 20;
+  else if (totalUsers >= 5)   score += 10;
+  if (retentionRate >= 60)    score += 25;
+  else if (retentionRate >= 30) score += 15;
+  if (revenueChange >= 10)    score += 20;
+  else if (revenueChange >= 0)  score += 10;
+  if (avgBill >= 150)         score += 20;
+  else if (avgBill >= 100)    score += 10;
+  if (newThisMonth >= 5)      score += 15;
+  else if (newThisMonth >= 2)   score += 8;
+
+  const healthColor = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+  const healthLabel = score >= 70 ? '🟢 Bahut Achha!' : score >= 40 ? '🟡 Theek Hai' : '🔴 Improve Karo';
+
+  // Suggestions
+  const suggestions = generateSuggestions({
+    totalUsers, newThisMonth, newLastMonth, returningUsers,
+    retentionRate, inactiveUsers, revenueChange, avgBill,
+    avgBillThis, topItems, bestDay, worstDay, dayNames,
+    birthdayUsers, billsThisMonth, visitGoal, bills
+  });
+
+  // ── RENDER ───────────────────────────────────────────────
+  const wrap = document.getElementById('insights-wrap');
+
+  if (bills.length === 0 && users.length === 0) {
+    wrap.innerHTML = `
+      <div class="no-data">
+        <div class="no-data-icon">📊</div>
+        <div class="no-data-text">Abhi koi data nahi hai<br/>Customers aane do — phir insights dikhenge!</div>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+
+    <!-- HEALTH SCORE -->
+    <div class="ins-grid">
+      <div class="ins-card">
+        <div class="ins-card-title">💚 Business Health Score</div>
+        <div class="health-score">
+          <div class="health-num" style="color:${healthColor}">${score}</div>
+          <div class="health-label">${healthLabel}</div>
+          <div class="health-bar">
+            <div class="health-fill" style="width:${score}%;background:${healthColor}"></div>
+          </div>
+          <div style="font-size:12px;color:var(--txt3);font-weight:600">100 mein se score</div>
+        </div>
+      </div>
+
+      <!-- TODAY -->
+      <div class="ins-card">
+        <div class="ins-card-title">📅 Aaj Ka Summary</div>
+        <div class="stat-row">
+          <span class="stat-label">🧾 Bills</span>
+          <span class="stat-value">${billsToday.length}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">💰 Revenue</span>
+          <span class="stat-value">₹${revenueToday}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">👥 Total Customers</span>
+          <span class="stat-value">${totalUsers}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">🆕 New This Month</span>
+          <span class="stat-value">${newThisMonth}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THIS MONTH vs LAST MONTH -->
+    <div class="ins-card" style="margin-bottom:16px">
+      <div class="ins-card-title">📈 Is Mahine vs Pichle Mahine</div>
+      <div class="compare-row">
+        <div class="compare-box">
+          <div class="compare-val">₹${revenueThis.toLocaleString('en-IN')}</div>
+          <div class="compare-label">Is Mahine Revenue</div>
+          <div class="compare-change ${revenueChange >= 0 ? 'change-up' : 'change-down'}">
+            ${revenueChange >= 0 ? '↑' : '↓'} ${Math.abs(revenueChange)}%
+          </div>
+        </div>
+        <div class="compare-box">
+          <div class="compare-val">₹${revenueLast.toLocaleString('en-IN')}</div>
+          <div class="compare-label">Pichle Mahine Revenue</div>
+        </div>
+        <div class="compare-box">
+          <div class="compare-val">${newThisMonth}</div>
+          <div class="compare-label">Naye Customers</div>
+          <div class="compare-change ${newThisMonth >= newLastMonth ? 'change-up' : 'change-down'}">
+            ${newThisMonth >= newLastMonth ? '↑' : '↓'} vs ${newLastMonth} last
+          </div>
+        </div>
+        <div class="compare-box">
+          <div class="compare-val">${retentionRate}%</div>
+          <div class="compare-label">Returning Rate</div>
+          <div class="compare-change ${retentionRate >= 50 ? 'change-up' : 'change-down'}">
+            ${retentionRate >= 50 ? '✅ Achha' : '⚠️ Improve karo'}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMER ANALYTICS -->
+    <div class="ins-grid">
+      <div class="ins-card">
+        <div class="ins-card-title">👥 Customer Analytics</div>
+        <div class="stat-row">
+          <span class="stat-label">👥 Total Registered</span>
+          <span class="stat-value">${totalUsers}
+            <span class="stat-badge badge-green">+${newThisMonth} new</span>
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">🔄 Returning Customers</span>
+          <span class="stat-value">${returningUsers}
+            <span class="stat-badge ${retentionRate >= 60 ? 'badge-green' : retentionRate >= 30 ? 'badge-yellow' : 'badge-red'}">${retentionRate}%</span>
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">💤 Inactive (30+ days)</span>
+          <span class="stat-value">${inactiveUsers}
+            ${inactiveUsers > 0 ? '<span class="stat-badge badge-yellow">Offer bhejo!</span>' : '<span class="stat-badge badge-green">Sab active!</span>'}
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">🎂 Birthday This Month</span>
+          <span class="stat-value">${birthdayUsers.length}
+            ${birthdayUsers.length > 0 ? '<span class="stat-badge badge-green">Offer do!</span>' : ''}
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">💰 Avg Bill Amount</span>
+          <span class="stat-value">₹${avgBillThis || avgBill}
+            <span class="stat-badge ${avgBill >= 150 ? 'badge-green' : avgBill >= 100 ? 'badge-yellow' : 'badge-red'}">${avgBill >= 150 ? 'Achha!' : avgBill >= 100 ? 'Theek' : 'Kam hai'}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- TOP ITEMS -->
+      <div class="ins-card">
+        <div class="ins-card-title">🌯 Top Selling Items</div>
+        ${topItems.length > 0 ? topItems.map(([name, count]) => `
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-label">
+              <span>${name}</span>
+              <span>${count} times</span>
+            </div>
+            <div class="chart-bar-bg">
+              <div class="chart-bar-fill" style="width:${Math.round((count/maxItemCount)*100)}%"></div>
+            </div>
+          </div>`).join('') : '<div style="color:var(--txt3);font-size:13px;text-align:center;padding:20px">Abhi data nahi hai</div>'}
+      </div>
+    </div>
+
+    <!-- DAY ANALYSIS -->
+    <div class="ins-card" style="margin-bottom:16px">
+      <div class="ins-card-title">📅 Din Ka Analysis</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center">
+        ${dayNames.map((day, i) => `
+          <div style="background:var(--bg);border-radius:10px;padding:10px 4px;${i===bestDay?'border:2px solid var(--green)':i===worstDay&&dayCount[i]>0?'border:2px solid var(--red)':'border:2px solid transparent'}">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px">${day.slice(0,3)}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--txt)">${dayCount[i]}</div>
+            <div style="font-size:9px;color:var(--txt3)">bills</div>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--green)">🟢 Best: ${dayNames[bestDay]}</div>
+        ${dayCount.filter(d=>d>0).length > 1 ? `<div style="font-size:12px;font-weight:700;color:var(--red)">🔴 Slow: ${dayNames[worstDay]}</div>` : ''}
+      </div>
+    </div>
+
+    <!-- SMART SUGGESTIONS -->
+    <div class="ins-card" style="margin-bottom:16px">
+      <div class="ins-card-title">💡 Smart Suggestions</div>
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:12px;font-weight:600">
+        Data ke basis pe — sirf profitable suggestions
+      </div>
+      ${suggestions.length > 0
+        ? suggestions.map(s => `
+          <div class="suggestion-item ${s.type}">
+            <div class="sug-title">${s.icon} ${s.title}</div>
+            <div class="sug-desc">${s.desc}</div>
+            <div class="sug-action ${s.type}">→ ${s.action}</div>
+          </div>`).join('')
+        : '<div style="color:var(--txt3);font-size:13px;text-align:center;padding:16px">Zyada data aane do — phir suggestions aayenge!</div>'
+      }
+    </div>
+
+    <!-- ACTION ITEMS -->
+    <div class="ins-card">
+      <div class="ins-card-title">✅ Abhi Karo — Action Items</div>
+      ${generateActionItems(inactiveUsers, birthdayUsers, newThisMonth, retentionRate, avgBill, worstDay, dayNames)}
+    </div>
+  `;
+}
+
+// ── Smart Suggestions Generator ───────────────────────────
+function generateSuggestions(data) {
+  const suggestions = [];
+  const {
+    totalUsers, newThisMonth, returningUsers, retentionRate,
+    inactiveUsers, revenueChange, avgBill, avgBillThis,
+    topItems, bestDay, worstDay, dayNames, birthdayUsers,
+    billsThisMonth, visitGoal, bills
+  } = data;
+
+  // 1. Inactive customers
+  if (inactiveUsers >= 3) {
+    suggestions.push({
+      type: 'warning',
+      icon: '💤',
+      title: `${inactiveUsers} Customers 30 Din Se Nahi Aaye!`,
+      desc: `Inhe wapas bulao — ek special offer bhejo WhatsApp pe. Yeh log pehle aate the matlab shop pasand hai!`,
+      action: 'Customers section mein jaao → Inactive filter karo → WhatsApp pe offer bhejo'
+    });
+  }
+
+  // 2. Birthday customers
+  if (birthdayUsers.length > 0) {
+    suggestions.push({
+      type: 'info',
+      icon: '🎂',
+      title: `${birthdayUsers.length} Customers Ka Birthday Is Mahine!`,
+      desc: `Birthday wale customers ko special feel karo — ek FREE item ya extra discount do. Yeh customers lifetime loyal ban jaate hain!`,
+      action: `WhatsApp pe message bhejo: "Happy Birthday! FREE [item] le jao hamare yahan!"`
+    });
+  }
+
+  // 3. Slow day offer
+  if (dayNames[worstDay] && bills.length >= 10) {
+    suggestions.push({
+      type: 'warning',
+      icon: '📅',
+      title: `${dayNames[worstDay]} Sabse Slow Din Hai`,
+      desc: `${dayNames[worstDay]} pe sabse kam bills bante hain. Is din ek special offer chalao — jaise "10% OFF every ${dayNames[worstDay]}". Margin safe rahegi!`,
+      action: `Rewards section mein "${dayNames[worstDay]} Special 10% OFF" offer banao`
+    });
+  }
+
+  // 4. Combo suggestion
+  if (topItems.length >= 2) {
+    const item1 = topItems[0][0];
+    const item2 = topItems[1][0];
+    suggestions.push({
+      type: 'info',
+      icon: '🌯',
+      title: `Combo Offer Banao — ${item1} + ${item2}`,
+      desc: `Yeh dono items sabse zyada bik rahe hain. Inhe combo mein de do — customer zyada lega, tumhara average bill badhega!`,
+      action: `Menu mein combo item add karo ya billing mein suggest karo`
+    });
+  }
+
+  // 5. Low retention
+  if (retentionRate < 40 && totalUsers >= 5) {
+    suggestions.push({
+      type: 'danger',
+      icon: '🔄',
+      title: `Sirf ${retentionRate}% Customers Wapas Aate Hain`,
+      desc: `Zyada customers register karke wapas nahi aa rahe. Visit reward goal check karo — kya ${visitGoal} visits bahut zyada hai? 3-4 kar do temporarily!`,
+      action: `Settings mein Visit Goal ${visitGoal} se 3 kar do — customers jaldi reward paayenge!`
+    });
+  }
+
+  // 6. Low avg bill
+  if (avgBill > 0 && avgBill < 120) {
+    suggestions.push({
+      type: 'warning',
+      icon: '💰',
+      title: `Average Bill ₹${avgBill} — Badhao Thoda`,
+      desc: `Billing ke waqt "Kuch aur lenge?" bolna start karo — Cold Coffee, Fries suggest karo. ₹20-30 average bill badhne se monthly revenue kaafi badhegi!`,
+      action: `Staff ko train karo — har bill pe ek extra item suggest karein`
+    });
+  }
+
+  // 7. Revenue growing
+  if (revenueChange >= 15) {
+    suggestions.push({
+      type: '',
+      icon: '🚀',
+      title: `Revenue ${revenueChange}% Badha — Maintain Karo!`,
+      desc: `Bahut achha growth hai! Jo kar rahe ho woh continue karo. Abhi ek "Loyal Member Exclusive" offer add karo — existing customers ko special feel karo!`,
+      action: `Rewards mein "Member Special 12% OFF" offer add karo`
+    });
+  }
+
+  // 8. New customers low
+  if (newThisMonth < 3 && totalUsers > 0) {
+    suggestions.push({
+      type: 'warning',
+      icon: '🆕',
+      title: `Is Mahine Sirf ${newThisMonth} Naye Customers`,
+      desc: `Naye customers kam aa rahe hain. Referral program promote karo — existing customers se bolna shuru karo "Dost ko refer karo, dono ko points milenge!"`,
+      action: `QR code WhatsApp Status pe lagao + Referral offer banao`
+    });
+  }
+
+  return suggestions.slice(0, 5); // Max 5 suggestions
+}
+
+// ── Action Items ─────────────────────────────────────────
+function generateActionItems(inactiveUsers, birthdayUsers, newThisMonth, retentionRate, avgBill, worstDay, dayNames) {
+  const actions = [];
+
+  if (inactiveUsers > 0) {
+    actions.push({
+      icon: '💤',
+      title: `${inactiveUsers} Inactive Customers Ko Offer Bhejo`,
+      sub: '30 din se nahi aaye — ek WhatsApp offer se wapas aayenge!',
+      btn: 'Customers Dekho'
+    });
+  }
+
+  if (birthdayUsers.length > 0) {
+    actions.push({
+      icon: '🎂',
+      title: `${birthdayUsers.length} Birthday Wale Customers Ko Wish Karo`,
+      sub: birthdayUsers.map(u => u.name).join(', '),
+      btn: 'Message Karo'
+    });
+  }
+
+  if (newThisMonth < 5) {
+    actions.push({
+      icon: '📱',
+      title: 'WhatsApp Status Pe QR Code Lagao',
+      sub: 'Naye customers attract karne ka sabse easy tarika!',
+      btn: 'QR Dekho'
+    });
+  }
+
+  if (avgBill < 120) {
+    actions.push({
+      icon: '💡',
+      title: 'Staff Ko Upselling Sikhao',
+      sub: '"Cold Coffee bhi le lenge?" — bas itna bolne se avg bill ₹30-40 badhega!',
+      btn: 'Guide Dekho'
+    });
+  }
+
+  actions.push({
+    icon: '🎁',
+    title: `${dayNames[worstDay]} Special Offer Banao`,
+    sub: `Slow din pe offer = zyada customers = zyada revenue!`,
+    btn: 'Offer Banao'
+  });
+
+  if (actions.length === 0) {
+    return '<div style="color:var(--txt3);font-size:13px;text-align:center;padding:16px">Sab kuch achha chal raha hai! 🎉</div>';
+  }
+
+  return actions.map(a => `
+    <div class="action-item">
+      <div class="action-icon">${a.icon}</div>
+      <div class="action-text">
+        <div class="action-title">${a.title}</div>
+        <div class="action-sub">${a.sub}</div>
+      </div>
+      <button class="action-btn">${a.btn}</button>
+    </div>`).join('');
+}
+
+// ── Init ─────────────────────────────────────────────────
+window.loadInsights = loadInsights;
+loadInsights();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
